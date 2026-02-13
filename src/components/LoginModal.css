@@ -1,0 +1,223 @@
+/* ===== Login/Register Modal — Windows 97 Theme ===== */
+
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family:
+    "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Verdana, Arial, sans-serif;
+  font-size: 11px;
+}
+
+.login-modal-container {
+  background: var(--w97-window, #c0c0c0);
+  border-top: 2px solid var(--w97-btn-highlight, #ffffff);
+  border-left: 2px solid var(--w97-btn-highlight, #ffffff);
+  border-right: 2px solid var(--w97-btn-dark, #404040);
+  border-bottom: 2px solid var(--w97-btn-dark, #404040);
+  box-shadow: 1px 1px 0 #000;
+  width: 400px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: var(--w97-text, #000);
+}
+
+.login-modal-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(
+    to right,
+    var(--w97-titlebar-from, #235a81),
+    var(--w97-titlebar-to, #1a4565)
+  );
+  color: var(--w97-titlebar-text, #ffffff);
+  padding: 3px 4px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.login-modal-title {
+  flex: 1;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.login-modal-context {
+  font-size: 10px;
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+.login-modal-close {
+  background: var(--w97-btn-face, #c0c0c0);
+  border-top: 1px solid var(--w97-btn-highlight, #fff);
+  border-left: 1px solid var(--w97-btn-highlight, #fff);
+  border-right: 1px solid var(--w97-btn-dark, #404040);
+  border-bottom: 1px solid var(--w97-btn-dark, #404040);
+  color: var(--w97-text, #000);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  width: 18px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.login-modal-close:active {
+  border-top-color: var(--w97-btn-dark, #404040);
+  border-left-color: var(--w97-btn-dark, #404040);
+  border-right-color: var(--w97-btn-highlight, #fff);
+  border-bottom-color: var(--w97-btn-highlight, #fff);
+}
+
+.login-modal-tabs {
+  display: flex;
+  background: var(--w97-window, #c0c0c0);
+  padding: 4px 4px 0;
+}
+
+.login-modal-tab {
+  flex: 1;
+  padding: 4px 0;
+  background: var(--w97-btn-face, #c0c0c0);
+  color: var(--w97-text, #000);
+  font-size: 11px;
+  font-weight: normal;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  border-top: 1px solid var(--w97-btn-highlight, #fff);
+  border-left: 1px solid var(--w97-btn-highlight, #fff);
+  border-right: 1px solid var(--w97-btn-dark, #404040);
+  border-bottom: 1px solid var(--w97-btn-shadow, #808080);
+  margin-right: 2px;
+}
+.login-modal-tab:last-child {
+  margin-right: 0;
+}
+.login-modal-tab:hover {
+  text-decoration: underline;
+}
+.login-modal-tab.active {
+  font-weight: bold;
+  border-bottom-color: var(--w97-window, #c0c0c0);
+  position: relative;
+  z-index: 1;
+  padding-bottom: 5px;
+  margin-bottom: -1px;
+}
+
+.login-modal-form {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Sunken group box */
+  margin: 4px;
+  border-top: 1px solid var(--w97-btn-shadow, #808080);
+  border-left: 1px solid var(--w97-btn-shadow, #808080);
+  border-right: 1px solid var(--w97-btn-highlight, #fff);
+  border-bottom: 1px solid var(--w97-btn-highlight, #fff);
+}
+
+.login-modal-row2 {
+  display: flex;
+  gap: 8px;
+}
+.login-modal-row2 > .login-modal-field {
+  flex: 1;
+}
+
+.login-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.login-modal-field label {
+  font-size: 11px;
+  font-weight: normal;
+  color: var(--w97-text, #000);
+}
+
+.login-modal-input,
+.login-modal-field .p-inputtext,
+.login-modal-field .p-password-input {
+  width: 100%;
+  border-radius: 0 !important;
+  border-top: 1px solid var(--w97-btn-shadow, #808080) !important;
+  border-left: 1px solid var(--w97-btn-shadow, #808080) !important;
+  border-right: 1px solid var(--w97-btn-highlight, #fff) !important;
+  border-bottom: 1px solid var(--w97-btn-highlight, #fff) !important;
+  background: var(--w97-input-bg, #fff) !important;
+  font-size: 11px !important;
+  padding: 3px 4px !important;
+  height: 22px !important;
+  box-shadow: none !important;
+  color: var(--w97-text, #000) !important;
+  font-family: inherit !important;
+}
+
+.login-modal-field .p-password {
+  width: 100%;
+}
+
+.login-modal-select {
+  width: 100%;
+  border-top: 1px solid var(--w97-btn-shadow, #808080);
+  border-left: 1px solid var(--w97-btn-shadow, #808080);
+  border-right: 1px solid var(--w97-btn-highlight, #fff);
+  border-bottom: 1px solid var(--w97-btn-highlight, #fff);
+  background: var(--w97-input-bg, #fff);
+  font-size: 11px;
+  padding: 2px 4px;
+  height: 22px;
+  font-family: inherit;
+  color: var(--w97-text, #000);
+  border-radius: 0;
+}
+
+.login-modal-error.p-message {
+  border-radius: 0 !important;
+  font-size: 11px;
+  margin: 0;
+  padding: 4px 8px;
+  background: #fff0f0 !important;
+  border: 1px solid var(--w97-red, #ff0000) !important;
+  color: var(--w97-red, #ff0000) !important;
+}
+
+.login-modal-submit.p-button {
+  border-radius: 0 !important;
+  background: var(--w97-btn-face, #c0c0c0) !important;
+  color: var(--w97-text, #000) !important;
+  border-top: 2px solid var(--w97-btn-highlight, #fff) !important;
+  border-left: 2px solid var(--w97-btn-highlight, #fff) !important;
+  border-right: 2px solid var(--w97-btn-dark, #404040) !important;
+  border-bottom: 2px solid var(--w97-btn-dark, #404040) !important;
+  box-shadow: none !important;
+  height: 26px;
+  margin-top: 4px;
+  font-family: inherit !important;
+}
+.login-modal-submit.p-button .p-button-label {
+  font-size: 11px;
+  font-weight: bold;
+}
+.login-modal-submit.p-button:not(:disabled):hover {
+  text-decoration: underline;
+}
+.login-modal-submit.p-button:active {
+  border-top-color: var(--w97-btn-dark, #404040) !important;
+  border-left-color: var(--w97-btn-dark, #404040) !important;
+  border-right-color: var(--w97-btn-highlight, #fff) !important;
+  border-bottom-color: var(--w97-btn-highlight, #fff) !important;
+}
