@@ -1,5 +1,5 @@
-declare module "matchdbJobs/JobsApp" {
-  import { FC } from "react";
+declare module 'matchdbJobs/JobsApp' {
+  import { FC } from 'react';
 
   interface JobsAppProps {
     token: string | null;
@@ -7,7 +7,7 @@ declare module "matchdbJobs/JobsApp" {
     userId: string | undefined;
     userEmail: string | undefined;
     plan?: string;
-    visibility?: "all" | "c2c" | "w2" | "c2h" | "fulltime";
+    visibility?: 'all' | 'c2c' | 'w2' | 'c2h' | 'fulltime';
   }
 
   const JobsApp: FC<JobsAppProps>;
