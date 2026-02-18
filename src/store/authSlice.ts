@@ -7,7 +7,9 @@ interface User {
   first_name: string;
   last_name: string;
   user_type: "candidate" | "vendor";
-  visibility: "all" | "c2c" | "w2" | "c2h" | "fulltime";
+  /** Candidate one-time membership: which job types + subtypes they can see.
+   *  null = no restriction (vendors always null; candidate default = all). */
+  membership_config: Record<string, string[]> | null;
   plan: "free" | "pro" | "enterprise";
 }
 
@@ -58,7 +60,7 @@ export const register = createAsyncThunk(
       first_name?: string;
       last_name?: string;
       user_type: "candidate" | "vendor";
-      visibility?: "all" | "c2c" | "w2" | "c2h" | "fulltime";
+      membership_config?: Record<string, string[]> | null;
     },
     { rejectWithValue },
   ) => {
@@ -69,7 +71,9 @@ export const register = createAsyncThunk(
         firstName: data.first_name,
         lastName: data.last_name,
         userType: data.user_type,
-        visibility: data.visibility || "all",
+        membershipConfig: data.membership_config
+          ? JSON.stringify(data.membership_config)
+          : undefined,
       });
       return response.data;
     } catch (err: any) {
@@ -77,6 +81,23 @@ export const register = createAsyncThunk(
         err.response?.data?.error ||
         err.response?.data?.details?.[0]?.message ||
         "Registration failed. Please try again.";
+      return rejectWithValue(message);
+    }
+  },
+);
+
+export const deleteAccount = createAsyncThunk(
+  "auth/deleteAccount",
+  async (token: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete("/api/auth/account", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (err: any) {
+      const message =
+        err.response?.data?.error ||
+        "Failed to delete account. Please try again.";
       return rejectWithValue(message);
     }
   },
@@ -145,6 +166,24 @@ const authSlice = createSlice({
         );
       })
       .addCase(register.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Delete Account
+      .addCase(deleteAccount.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteAccount.fulfilled, (state) => {
+        state.loading = false;
+        state.user = null;
+        state.token = null;
+        state.refresh = null;
+        localStorage.removeItem("matchdb_token");
+        localStorage.removeItem("matchdb_refresh");
+        localStorage.removeItem("matchdb_user");
+      })
+      .addCase(deleteAccount.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

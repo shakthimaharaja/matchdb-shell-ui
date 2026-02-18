@@ -360,6 +360,14 @@
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
 }
 
+.legacy-shell-other-mfes-title {
+  background: var(--w97-btn-shadow, #aaa);
+  color: var(--w97-text, #333);
+  text-shadow: none;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 .legacy-shell-nav-list {
   list-style: none;
   margin: 0;
@@ -483,6 +491,19 @@
   gap: 4px;
 }
 
+/* Depth-1 child items — indented under their parent */
+.legacy-shell-subnav-item.depth-1 {
+  padding-left: 30px;
+  font-size: 10px;
+  color: var(--w97-text-secondary, #555);
+  border-left: 2px solid var(--w97-border-light, #ddd);
+  margin-left: 14px;
+  width: calc(100% - 14px);
+}
+.legacy-shell-subnav-item.depth-1.active {
+  border-left-color: var(--w97-sidebar-active, #235a81);
+}
+
 .legacy-shell-subnav-bullet {
   font-size: 8px;
   color: var(--w97-blue);
@@ -577,6 +598,17 @@
   color: var(--w97-text-secondary);
   font-size: 10px;
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.legacy-shell-date-tz {
+  font-weight: 700;
+  color: var(--w97-navy);
+  font-size: 9px;
+  letter-spacing: 0.2px;
 }
 
 /* Page-head right column: auth buttons + date stacked */

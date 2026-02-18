@@ -15,7 +15,7 @@ const JobsAppWrapper: React.FC = () => {
         userId={user?.id}
         userEmail={user?.email}
         plan={user?.plan}
-        visibility={user?.visibility}
+        membershipConfig={user?.membership_config}
       />
     </Suspense>
   );

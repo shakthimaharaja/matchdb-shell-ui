@@ -7,7 +7,7 @@ declare module 'matchdbJobs/JobsApp' {
     userId: string | undefined;
     userEmail: string | undefined;
     plan?: string;
-    visibility?: 'all' | 'c2c' | 'w2' | 'c2h' | 'fulltime';
+    membershipConfig?: Record<string, string[]> | null;
   }
 
   const JobsApp: FC<JobsAppProps>;

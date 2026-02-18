@@ -221,3 +221,113 @@
   border-right-color: var(--w97-btn-highlight, #fff) !important;
   border-bottom-color: var(--w97-btn-highlight, #fff) !important;
 }
+
+/* ===== SMALL HINT TEXT ===== */
+.lm-hint {
+  font-weight: normal;
+  font-size: 9px;
+  color: var(--w97-text-secondary, #666);
+}
+
+/* ===== VENDOR INFO PANEL ===== */
+.lm-vendor-info {
+  border: 1px solid var(--w97-btn-dark, #404040);
+  border-top: 2px solid var(--w97-titlebar-from, #235a81);
+  background: #eef4fb;
+  padding: 6px 8px;
+  margin: 2px 0;
+}
+
+.lm-vendor-info-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--w97-navy, #235a81);
+  margin-bottom: 3px;
+}
+
+.lm-vendor-info-desc {
+  font-size: 10px;
+  color: var(--w97-text-secondary, #555);
+  line-height: 1.4;
+}
+
+/* ===== MEMBERSHIP SELECTOR ===== */
+.login-modal-membership {
+  border: 1px solid var(--w97-btn-shadow, #aaa);
+  border-top: 1px solid var(--w97-btn-dark, #404040);
+  border-left: 1px solid var(--w97-btn-dark, #404040);
+  background: var(--w97-window-alt, #f7f7f7);
+  padding: 8px 10px;
+  margin-top: 2px;
+}
+
+.lm-membership-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--w97-navy, #235a81);
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--w97-border-light, #ddd);
+  padding-bottom: 4px;
+}
+
+.lm-membership-note {
+  font-weight: 400;
+  font-size: 9px;
+  color: var(--w97-text-secondary, #666);
+  margin-left: 6px;
+}
+
+.lm-job-type-row {
+  padding: 3px 0;
+}
+
+.lm-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  user-select: none;
+}
+
+.lm-checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+  margin: 0;
+}
+
+.lm-subtypes {
+  margin: 2px 0 4px 18px;
+  padding: 5px 8px;
+  background: var(--w97-window, #fff);
+  border: 1px solid var(--w97-border-light, #ddd);
+  border-left: 3px solid var(--w97-navy, #235a81);
+}
+
+.lm-sub-hint {
+  font-size: 9px;
+  color: var(--w97-text-secondary, #666);
+  margin-bottom: 4px;
+  font-style: italic;
+}
+
+.lm-sub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 12px;
+}
+
+.lm-membership-summary {
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: #e6f0fa;
+  border: 1px solid #9ab5d0;
+  font-size: 10px;
+  color: #1a3a5c;
+}
+
+.lm-membership-required {
+  font-size: 10px;
+  color: #bb3333;
+  margin-top: 4px;
+  text-align: center;
+}

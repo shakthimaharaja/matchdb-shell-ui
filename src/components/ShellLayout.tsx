@@ -13,6 +13,7 @@ interface SubNavItem {
   label: string;
   count?: number;
   active?: boolean;
+  depth?: number;
   onClick?: () => void;
 }
 interface SubNavGroup {
@@ -202,6 +203,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [subNavGroups, setSubNavGroups] = useState<SubNavGroup[]>([]);
+  const [mfeBreadcrumb, setMfeBreadcrumb] = useState<string[]>([]);
   const [activeJobType, setActiveJobType] = useState<string>("");
   const [activeLoginType, setActiveLoginType] = useState<
     "candidate" | "vendor"
@@ -209,6 +211,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem("matchdb_dark") === "1";
   });
+  const [expandedMFEs, setExpandedMFEs] = useState<Record<string, boolean>>({});
 
   const isLoggedIn = !!token;
 
@@ -225,13 +228,60 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     setSubNavGroups(Array.isArray(detail) ? detail : []);
   }, []);
 
+  const handleBreadcrumb = useCallback((e: Event) => {
+    const detail = (e as CustomEvent).detail;
+    setMfeBreadcrumb(Array.isArray(detail) ? detail : []);
+  }, []);
+
   useEffect(() => {
     window.addEventListener("matchdb:subnav", handleSubNav);
-    return () => window.removeEventListener("matchdb:subnav", handleSubNav);
-  }, [handleSubNav]);
+    window.addEventListener("matchdb:breadcrumb", handleBreadcrumb);
+    return () => {
+      window.removeEventListener("matchdb:subnav", handleSubNav);
+      window.removeEventListener("matchdb:breadcrumb", handleBreadcrumb);
+    };
+  }, [handleSubNav, handleBreadcrumb]);
 
   /* Nav = all 10 MFEs always visible */
   const navItems = MFE_NAV;
+
+  const [tzCity, setTzCity] = useState(() => {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return tz.split('/').pop()?.replace(/_/g, ' ') || tz;
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    // Try browser geolocation → reverse-geocode to get actual city + state
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const { latitude, longitude } = pos.coords;
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`,
+              { headers: { 'Accept-Language': 'en-US' } }
+            );
+            if (!res.ok) return;
+            const data = await res.json();
+            const addr = data.address || {};
+            const city = addr.city || addr.town || addr.village || addr.county || '';
+            const state = addr.state ? `, ${addr.state}` : '';
+            if (!cancelled && city) setTzCity(`${city}${state}`);
+          } catch { /* keep timezone fallback */ }
+        },
+        () => { /* geolocation denied – keep timezone fallback */ },
+        { timeout: 5000 }
+      );
+    }
+    return () => { cancelled = true; };
+  }, []);
+
+  const tzAbbr = useMemo(() => {
+    return new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
+      .formatToParts(new Date())
+      .find((p) => p.type === 'timeZoneName')?.value || '';
+  }, []);
 
   const plan = (user?.plan ?? "free").toUpperCase();
   const initials = user
@@ -248,14 +298,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
   const drawerWidth = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
-  /* Determine allowed subdivisions based on candidate visibility */
-  const allowedSubdivisions = useMemo(() => {
-    if (!isLoggedIn) return []; // no job-type subs when not logged in
-    if (user?.user_type === "vendor") return JOB_TYPE_SUBS;
-    const vis = user?.visibility || "all";
-    if (vis === "all") return JOB_TYPE_SUBS;
-    return JOB_TYPE_SUBS.filter((s) => s.id === vis);
-  }, [isLoggedIn, user]);
+  /* Shell-level job type subs — MFE controls the real filtering via membershipConfig */
+  const allowedSubdivisions = useMemo(
+    () => (isLoggedIn ? JOB_TYPE_SUBS : []),
+    [isLoggedIn],
+  );
 
   /* Broadcast active login context to MFE */
   useEffect(() => {
@@ -410,150 +457,56 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
             </div>
           )}
 
-          {/* ---- Flat app list (no section headers) ---- */}
-          <ul className="legacy-shell-nav-list legacy-shell-apps-list">
-            {navItems.map((item) => {
-              const activeItem = item.id === active.id;
-              const isDisabled = !!item.disabled;
-              const itemSubs = getSubsForItem(item);
-              return (
-                <li key={item.id} className="legacy-shell-app-entry">
+          {/* ---- JOBS item (active MFE) ---- */}
+          {(() => {
+            const item = navItems.find((n) => n.id === "jobs")!;
+            const activeItem = item.id === active.id;
+            return (
+              <ul className="legacy-shell-nav-list legacy-shell-apps-list">
+                <li className="legacy-shell-app-entry">
                   <button
                     type="button"
-                    className={`legacy-shell-nav-item${activeItem ? " active" : ""}${isDisabled ? " disabled" : ""}`}
-                    onClick={() => {
-                      if (isDisabled) return;
-                      navigate(item.path);
-                    }}
-                    title={
-                      isDisabled
-                        ? `${item.label} — Coming Soon (port ${item.port})`
-                        : collapsed
-                          ? `${item.label} (port ${item.port})`
-                          : `Port ${item.port}`
-                    }
-                    disabled={isDisabled}
+                    className={`legacy-shell-nav-item${activeItem ? " active" : ""}`}
+                    onClick={() => navigate(item.path)}
+                    title={collapsed ? `${item.label} (port ${item.port})` : `Jobs portal — port ${item.port}`}
                   >
-                    {/* Color chip */}
                     {!collapsed && item.chipColor && (
-                      <span
-                        className="legacy-shell-mfe-chip"
-                        style={{
-                          background: isDisabled
-                            ? "var(--w97-btn-shadow, #808080)"
-                            : item.chipColor,
-                        }}
-                      />
+                      <span className="legacy-shell-mfe-chip" style={{ background: item.chipColor }} />
                     )}
                     <i className={`${item.icon} legacy-shell-nav-icon`} />
                     {!collapsed && <span>{item.label}</span>}
-                    {!collapsed && isDisabled && (
-                      <span className="legacy-shell-mfe-soon">soon</span>
-                    )}
                     {collapsed && item.chipColor && (
-                      <span
-                        className="legacy-shell-mfe-chip"
-                        style={{
-                          background: isDisabled
-                            ? "var(--w97-btn-shadow, #808080)"
-                            : item.chipColor,
-                          position: "absolute",
-                          right: 2,
-                          top: 2,
-                          width: 5,
-                          height: 5,
-                        }}
-                      />
+                      <span className="legacy-shell-mfe-chip" style={{
+                        background: item.chipColor,
+                        position: "absolute", right: 2, top: 2, width: 5, height: 5,
+                      }} />
                     )}
                   </button>
 
-                  {/* Login-mode sub-rows (when NOT logged in under Jobs) */}
-                  {!collapsed &&
-                    !isDisabled &&
-                    !isLoggedIn &&
-                    item.id === "jobs" && (
-                      <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
-                        {LOGIN_MODES.map((lm) => (
-                          <li key={lm.id}>
-                            <button
-                              type="button"
-                              className={`legacy-shell-nav-item legacy-shell-subnav-item${activeLoginType === lm.id ? " active" : ""}`}
-                              onClick={() => {
-                                setActiveLoginType(
-                                  lm.id as "candidate" | "vendor",
-                                );
-                              }}
-                            >
-                              <span className="legacy-shell-subnav-bullet">
-                                {lm.icon}
-                              </span>
-                              <span className="legacy-shell-subnav-label">
-                                {lm.label}
-                              </span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                  {/* Job-type sub-rows (when logged in under Jobs) */}
-                  {!collapsed &&
-                    !isDisabled &&
-                    isLoggedIn &&
-                    item.id === "jobs" &&
-                    allowedSubdivisions.length > 0 && (
-                      <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
-                        {allowedSubdivisions.map((sub) => (
-                          <li key={sub.id}>
-                            <button
-                              type="button"
-                              className={`legacy-shell-nav-item legacy-shell-subnav-item${activeJobType === sub.id ? " active" : ""}`}
-                              onClick={() => handleJobTypeClick(sub.id)}
-                            >
-                              <span className="legacy-shell-subnav-bullet">
-                                ▸
-                              </span>
-                              <span className="legacy-shell-subnav-label">
-                                {sub.label}
-                              </span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                  {/* Always-visible submenus for other non-disabled MFEs */}
-                  {!collapsed &&
-                    !isDisabled &&
-                    item.id !== "jobs" &&
-                    itemSubs.length > 0 && (
-                      <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
-                        {itemSubs.map((sub) => (
-                          <li key={sub.id}>
-                            <button
-                              type="button"
-                              className="legacy-shell-nav-item legacy-shell-subnav-item"
-                            >
-                              <span className="legacy-shell-subnav-bullet">
-                                ▸
-                              </span>
-                              <span className="legacy-shell-subnav-label">
-                                {sub.label}
-                              </span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  {/* Login-mode sub-rows (Candidate / Vendor login selector) */}
+                  {!collapsed && !isLoggedIn && (
+                    <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
+                      {LOGIN_MODES.map((lm) => (
+                        <li key={lm.id}>
+                          <button
+                            type="button"
+                            className={`legacy-shell-nav-item legacy-shell-subnav-item${activeLoginType === lm.id ? " active" : ""}`}
+                            onClick={() => setActiveLoginType(lm.id as "candidate" | "vendor")}
+                            title={lm.id === "candidate" ? "Log in as a job seeker" : "Log in as an employer / recruiter"}
+                          >
+                            <span className="legacy-shell-subnav-bullet">{lm.icon}</span>
+                            <span className="legacy-shell-subnav-label">{lm.label}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
-              );
-            })}
-          </ul>
+              </ul>
+            );
+          })()}
 
-          {/* ---- MFE sub-nav groups ---- */}
-          {!collapsed && subNavGroups.length > 0 && (
-            <div className="legacy-shell-subnav-divider" />
-          )}
+          {/* ---- MFE sub-nav groups (Profile, Actions, Job Type from MFE) ---- */}
           {subNavGroups.map((group, gi) => (
             <div
               key={`sub-${gi}`}
@@ -561,7 +514,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
             >
               {!collapsed && (
                 <div className="legacy-shell-nav-group-title legacy-shell-subnav-title">
-                  <span className="legacy-shell-subnav-icon">{group.icon}</span>
+                  {group.icon && <span className="legacy-shell-subnav-icon">{group.icon}</span>}
                   {group.label}
                 </div>
               )}
@@ -571,11 +524,18 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                     <li key={item.id}>
                       <button
                         type="button"
-                        className={`legacy-shell-nav-item legacy-shell-subnav-item${item.active ? " active" : ""}`}
+                        className={[
+                          'legacy-shell-nav-item',
+                          'legacy-shell-subnav-item',
+                          item.depth === 1 ? 'depth-1' : '',
+                          item.active ? 'active' : '',
+                        ].filter(Boolean).join(' ')}
                         onClick={item.onClick}
-                        title={item.label}
+                        title={item.count !== undefined ? `${item.label} (${item.count} records)` : item.label}
                       >
-                        <span className="legacy-shell-subnav-bullet">▸</span>
+                        <span className="legacy-shell-subnav-bullet">
+                          {item.depth === 1 ? '└' : '▸'}
+                        </span>
                         <span className="legacy-shell-subnav-label">
                           {item.label}
                         </span>
@@ -604,6 +564,71 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
               )}
             </div>
           ))}
+
+          {/* ---- OTHER MFEs (Sales, Rentals, etc.) — collapsible, default collapsed ---- */}
+          <ul className="legacy-shell-nav-list legacy-shell-apps-list">
+            {navItems.filter((n) => n.id !== "jobs").map((item) => {
+              const isDisabled = !!item.disabled;
+              const itemSubs = item.subs || [];
+              const isExpanded = !!expandedMFEs[item.id];
+              const toggleExpand = () =>
+                setExpandedMFEs((prev) => ({ ...prev, [item.id]: !prev[item.id] }));
+              return (
+                <li key={item.id} className="legacy-shell-app-entry">
+                  <button
+                    type="button"
+                    className={`legacy-shell-nav-item${isDisabled ? " disabled" : ""}`}
+                    onClick={() => {
+                      if (isDisabled) {
+                        toggleExpand();
+                      } else {
+                        navigate(item.path);
+                      }
+                    }}
+                    title={isDisabled ? `${item.label} — Coming Soon (port ${item.port})` : `${item.label} (port ${item.port})`}
+                  >
+                    {!collapsed && item.chipColor && (
+                      <span className="legacy-shell-mfe-chip" style={{
+                        background: isDisabled ? "var(--w97-btn-shadow, #808080)" : item.chipColor,
+                      }} />
+                    )}
+                    <i className={`${item.icon} legacy-shell-nav-icon`} />
+                    {!collapsed && <span>{item.label}</span>}
+                    {!collapsed && isDisabled && (
+                      <span className="legacy-shell-mfe-soon">soon</span>
+                    )}
+                    {!collapsed && itemSubs.length > 0 && (
+                      <span style={{ marginLeft: "auto", fontSize: 9, opacity: 0.6 }}>
+                        {isExpanded ? "▾" : "▸"}
+                      </span>
+                    )}
+                    {collapsed && item.chipColor && (
+                      <span className="legacy-shell-mfe-chip" style={{
+                        background: isDisabled ? "var(--w97-btn-shadow, #808080)" : item.chipColor,
+                        position: "absolute", right: 2, top: 2, width: 5, height: 5,
+                      }} />
+                    )}
+                  </button>
+                  {!collapsed && isExpanded && itemSubs.length > 0 && (
+                    <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
+                      {itemSubs.map((sub) => (
+                        <li key={sub.id}>
+                          <button
+                            type="button"
+                            className="legacy-shell-nav-item legacy-shell-subnav-item"
+                            title={`${item.label} › ${sub.label} — Coming Soon`}
+                          >
+                            <span className="legacy-shell-subnav-bullet">▸</span>
+                            <span className="legacy-shell-subnav-label">{sub.label}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </aside>
 
         <section className="legacy-shell-main">
@@ -612,14 +637,39 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
               Home
             </button>
             <span className="sep">&gt;</span>
-            <span>{active.label}</span>
-            {active.port && (
+            <button type="button" onClick={() => navigate(active.path)}>
+              {active.label}
+            </button>
+            {active.port && !mfeBreadcrumb.length && (
               <>
                 <span className="sep">|</span>
                 <span style={{ opacity: 0.6 }}>:{active.port}</span>
               </>
             )}
-            {activeJobType && (
+            {/* MFE-provided breadcrumb segments */}
+            {mfeBreadcrumb.map((seg, i) => (
+              <React.Fragment key={i}>
+                <span className="sep">&gt;</span>
+                {i < mfeBreadcrumb.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      /* clicking an ancestor segment fires subnav item at that depth */
+                      const subNavItem = subNavGroups
+                        .flatMap((g) => g.items)
+                        .find((item) => item.label === seg || item.active);
+                      subNavItem?.onClick?.();
+                    }}
+                  >
+                    {seg}
+                  </button>
+                ) : (
+                  <span>{seg}</span>
+                )}
+              </React.Fragment>
+            ))}
+            {/* Fallback: show active job type filter when no MFE breadcrumb */}
+            {!mfeBreadcrumb.length && activeJobType && (
               <>
                 <span className="sep">&gt;</span>
                 <span>
@@ -661,12 +711,13 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                 </div>
               )}
               <div className="legacy-shell-date">
-                {new Date().toLocaleDateString("en-US", {
+                <span className="legacy-shell-date-tz">{tzCity}{tzAbbr ? ` (${tzAbbr})` : ''}</span>
+                <span>{new Date().toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
                   month: "long",
                   day: "numeric",
-                })}
+                })}</span>
               </div>
             </div>
           </div>
