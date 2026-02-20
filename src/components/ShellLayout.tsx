@@ -15,6 +15,7 @@ interface SubNavItem {
   count?: number;
   active?: boolean;
   depth?: number;
+  tooltip?: string; // custom tooltip text (e.g. profile URL for copy action)
   onClick?: () => void;
 }
 interface SubNavGroup {
@@ -636,9 +637,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                           .join(" ")}
                         onClick={item.onClick}
                         title={
-                          item.count !== undefined
-                            ? `${item.label} (${item.count} records)`
-                            : item.label
+                          item.tooltip
+                            ? item.tooltip
+                            : item.count !== undefined
+                              ? `${item.label} (${item.count} records)`
+                              : item.label
                         }
                       >
                         <span className="legacy-shell-subnav-bullet">

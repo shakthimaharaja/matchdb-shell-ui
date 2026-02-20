@@ -387,6 +387,11 @@
 }
 .legacy-shell-subnav-item.depth-1.active {
   border-left-color: var(--w97-sidebar-active, #235a81);
+  color: var(--w97-sidebar-active-text, #fff);
+  background: var(--w97-sidebar-active, #235a81);
+}
+.legacy-shell-subnav-item.depth-1.active .legacy-shell-subnav-bullet {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .legacy-shell-subnav-bullet {
