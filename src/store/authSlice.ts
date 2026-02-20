@@ -1,16 +1,21 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 
-interface User {
+export interface User {
   id: string;
   email: string;
   first_name: string;
   last_name: string;
+  username: string;
   user_type: "candidate" | "vendor";
-  /** Candidate one-time membership: which job types + subtypes they can see.
-   *  null = no restriction (vendors always null; candidate default = all). */
+  /**
+   * Candidate visibility config: which job types + subtypes they can appear in.
+   * null = no visibility purchased yet (new candidates).
+   */
   membership_config: Record<string, string[]> | null;
-  plan: "free" | "pro" | "enterprise";
+  /** true if the candidate has made at least one visibility payment */
+  has_purchased_visibility: boolean;
+  plan: "free" | "basic" | "pro" | "pro_plus";
 }
 
 interface AuthState {
@@ -31,6 +36,8 @@ const initialState: AuthState = {
   loading: false,
   error: null,
 };
+
+// ─── Async Thunks ─────────────────────────────────────────────────────────────
 
 export const login = createAsyncThunk(
   "auth/login",
@@ -60,7 +67,6 @@ export const register = createAsyncThunk(
       first_name?: string;
       last_name?: string;
       user_type: "candidate" | "vendor";
-      membership_config?: Record<string, string[]> | null;
     },
     { rejectWithValue },
   ) => {
@@ -71,9 +77,7 @@ export const register = createAsyncThunk(
         firstName: data.first_name,
         lastName: data.last_name,
         userType: data.user_type,
-        membershipConfig: data.membership_config
-          ? JSON.stringify(data.membership_config)
-          : undefined,
+        // membershipConfig is no longer set at registration — it's purchased via the Pricing page
       });
       return response.data;
     } catch (err: any) {
@@ -82,6 +86,24 @@ export const register = createAsyncThunk(
         err.response?.data?.details?.[0]?.message ||
         "Registration failed. Please try again.";
       return rejectWithValue(message);
+    }
+  },
+);
+
+/**
+ * Fetches the latest user data from the server (e.g., after a successful payment
+ * to refresh membership_config and plan without requiring a full re-login).
+ */
+export const refreshUserData = createAsyncThunk(
+  "auth/refreshUserData",
+  async (token: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.get("/api/auth/verify", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data.user as User;
+    } catch (err: any) {
+      return rejectWithValue("Failed to refresh user data");
     }
   },
 );
@@ -103,6 +125,8 @@ export const deleteAccount = createAsyncThunk(
   },
 );
 
+// ─── Slice ────────────────────────────────────────────────────────────────────
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -118,11 +142,27 @@ const authSlice = createSlice({
     clearError(state) {
       state.error = null;
     },
-    updatePlan(state, action) {
+    updatePlan(state, action: PayloadAction<User["plan"]>) {
       if (state.user) {
         state.user.plan = action.payload;
         localStorage.setItem("matchdb_user", JSON.stringify(state.user));
       }
+    },
+    /**
+     * Hydrates Redux auth state from Google OAuth callback URL params.
+     * Called by OAuthCallbackPage after the OAuth redirect lands.
+     */
+    setAuthFromOAuth(
+      state,
+      action: PayloadAction<{ token: string; refresh: string; user: User }>,
+    ) {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.refresh = action.payload.refresh;
+      state.error = null;
+      localStorage.setItem("matchdb_token", action.payload.token);
+      localStorage.setItem("matchdb_refresh", action.payload.refresh);
+      localStorage.setItem("matchdb_user", JSON.stringify(action.payload.user));
     },
   },
   extraReducers: (builder) => {
@@ -169,6 +209,11 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      // Refresh user data (post-payment)
+      .addCase(refreshUserData.fulfilled, (state, action) => {
+        state.user = action.payload;
+        localStorage.setItem("matchdb_user", JSON.stringify(action.payload));
+      })
       // Delete Account
       .addCase(deleteAccount.pending, (state) => {
         state.loading = true;
@@ -190,5 +235,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError, updatePlan } = authSlice.actions;
+export const { logout, clearError, updatePlan, setAuthFromOAuth } =
+  authSlice.actions;
 export default authSlice.reducer;

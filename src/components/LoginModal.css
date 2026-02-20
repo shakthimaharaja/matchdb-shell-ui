@@ -251,7 +251,54 @@
   line-height: 1.4;
 }
 
-/* ===== MEMBERSHIP SELECTOR ===== */
+/* ===== GOOGLE OAUTH BUTTON ===== */
+.lm-google-btn.p-button {
+  width: 100%;
+  background: #fff !important;
+  color: #444 !important;
+  border: 1px solid #aaa !important;
+  border-top: 2px solid var(--w97-btn-highlight, #fff) !important;
+  border-left: 2px solid var(--w97-btn-highlight, #fff) !important;
+  border-right: 2px solid var(--w97-btn-dark, #404040) !important;
+  border-bottom: 2px solid var(--w97-btn-dark, #404040) !important;
+  height: 28px;
+  font-size: 11px !important;
+  font-family: inherit !important;
+  margin: 2px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: none !important;
+}
+
+.lm-google-btn.p-button:not(:disabled):hover {
+  background: #f0f4ff !important;
+}
+
+.lm-google-btn.p-button .p-button-icon {
+  color: #4285F4;
+  font-size: 13px;
+}
+
+.lm-oauth-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 10px;
+  color: var(--w97-text-secondary, #666);
+}
+
+.lm-oauth-divider::before,
+.lm-oauth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--w97-btn-shadow, #aaa);
+}
+
+/* ===== MEMBERSHIP SELECTOR (legacy — kept for any remaining refs) ===== */
 .login-modal-membership {
   border: 1px solid var(--w97-btn-shadow, #aaa);
   border-top: 1px solid var(--w97-btn-dark, #404040);
@@ -330,4 +377,55 @@
   color: #bb3333;
   margin-top: 4px;
   text-align: center;
+}
+
+/* ===== UPGRADE PROMPT PANEL (shown after free-account auth) ===== */
+.lm-upgrade-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px 20px;
+  text-align: center;
+}
+
+.lm-upgrade-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.lm-upgrade-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--w97-navy, #235a81);
+  margin: 0 0 10px;
+}
+
+.lm-upgrade-desc {
+  font-size: 11px;
+  color: var(--w97-text-secondary, #444);
+  line-height: 1.55;
+  max-width: 320px;
+  margin: 0 0 18px;
+}
+
+.lm-upgrade-cta {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 10px;
+  font-size: 11px !important;
+}
+
+.lm-upgrade-skip {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--w97-text-secondary, #666);
+  text-decoration: underline;
+  padding: 0;
+  font-family: inherit;
+}
+
+.lm-upgrade-skip:hover {
+  color: var(--w97-navy, #235a81);
 }

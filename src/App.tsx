@@ -1,8 +1,8 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
-import { useAppSelector } from "./store";
-import PricingPage from "./pages/PricingPage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import ResumeViewPage from "./pages/ResumeViewPage";
 import ShellLayout from "./components/ShellLayout";
 import JobsAppWrapper from "./components/JobsAppWrapper";
 import LoginModal from "./components/LoginModal";
@@ -26,17 +26,6 @@ const theme = createTheme({
   },
 });
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const { token } = useAppSelector((state) => state.auth);
-  if (!token) {
-    // When not logged in, show the jobs app in public mode
-    return <JobsAppWrapper />;
-  }
-  return <>{children}</>;
-};
-
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
@@ -44,14 +33,10 @@ const App: React.FC = () => {
       <LoginModal />
       <ShellLayout>
         <Routes>
-          <Route
-            path="/pricing"
-            element={
-              <PrivateRoute>
-                <PricingPage />
-              </PrivateRoute>
-            }
-          />
+          {/* OAuth callback — must be outside ShellLayout guard so it works pre-login */}
+          <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
+          {/* Public resume view — anyone can view a candidate's profile by username */}
+          <Route path="/resume/:username" element={<ResumeViewPage />} />
           <Route path="/*" element={<JobsAppWrapper />} />
         </Routes>
       </ShellLayout>

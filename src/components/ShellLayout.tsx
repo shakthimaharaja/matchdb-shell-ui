@@ -4,7 +4,8 @@ import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import { useAppDispatch, useAppSelector } from "../store";
-import { logout } from "../store/authSlice";
+import { logout, refreshUserData } from "../store/authSlice";
+import PricingPage from "../pages/PricingPage";
 import "./ShellLayout.css";
 
 /* ---- types shared with the Jobs MFE via CustomEvent ---- */
@@ -222,6 +223,68 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     document.body.setAttribute("data-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
+  /* ── Pricing modal (triggered by Jobs MFE via custom event OR URL params) ── */
+  const [pricingModalOpen, setPricingModalOpen] = useState(false);
+  const [pricingModalTab, setPricingModalTab] = useState<
+    "vendor" | "candidate"
+  >("vendor");
+  /**
+   * Set to true when pricing modal is opened after a successful candidate payment.
+   * When the modal closes, we fire matchdb:openProfile so the profile form opens next.
+   */
+  const [pendingProfileOpen, setPendingProfileOpen] = useState(false);
+
+  const handleOpenPricing = useCallback((e: Event) => {
+    const detail = (e as CustomEvent).detail;
+    setPricingModalTab(detail?.tab === "candidate" ? "candidate" : "vendor");
+    // If the event includes triggerProfile flag, sequence profile modal after pricing
+    if (detail?.triggerProfile) setPendingProfileOpen(true);
+    setPricingModalOpen(true);
+  }, []);
+
+  const handleClosePricing = useCallback(() => {
+    setPricingModalOpen(false);
+    window.dispatchEvent(new CustomEvent("matchdb:pricingClosed"));
+    if (pendingProfileOpen) {
+      setPendingProfileOpen(false);
+      // Small delay so pricing overlay fully unmounts before profile modal appears
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("matchdb:openProfile"));
+      }, 80);
+    }
+  }, [pendingProfileOpen]);
+
+  useEffect(() => {
+    window.addEventListener("matchdb:openPricing", handleOpenPricing);
+    return () =>
+      window.removeEventListener("matchdb:openPricing", handleOpenPricing);
+  }, [handleOpenPricing]);
+
+  /* Auto-open pricing modal on Stripe post-checkout redirects (e.g. /?success=true) */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isSuccess = params.get("success") === "true";
+    const isCandSucc = params.get("candidate_success") === "true";
+    const isCanceled = params.get("canceled") === "true";
+    if (isSuccess || isCandSucc || isCanceled) {
+      const tab = isCandSucc
+        ? "candidate"
+        : user?.user_type === "candidate"
+          ? "candidate"
+          : "vendor";
+      setPricingModalTab(tab);
+      if (isCandSucc) {
+        // Refresh user data from server so hasPurchasedVisibility reflects the completed payment,
+        // then sequence the profile form after the pricing confirmation modal closes.
+        if (token) dispatch(refreshUserData(token));
+        setPendingProfileOpen(true);
+      }
+      setPricingModalOpen(true);
+      // Clean up the URL so the modal doesn't re-open on navigation
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [user?.user_type]);
+
   /* Listen for sub-nav events emitted by the Jobs MFE */
   const handleSubNav = useCallback((e: Event) => {
     const detail = (e as CustomEvent).detail;
@@ -247,7 +310,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
   const [tzCity, setTzCity] = useState(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return tz.split('/').pop()?.replace(/_/g, ' ') || tz;
+    return tz.split("/").pop()?.replace(/_/g, " ") || tz;
   });
 
   useEffect(() => {
@@ -260,27 +323,36 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
             const { latitude, longitude } = pos.coords;
             const res = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`,
-              { headers: { 'Accept-Language': 'en-US' } }
+              { headers: { "Accept-Language": "en-US" } },
             );
             if (!res.ok) return;
             const data = await res.json();
             const addr = data.address || {};
-            const city = addr.city || addr.town || addr.village || addr.county || '';
-            const state = addr.state ? `, ${addr.state}` : '';
+            const city =
+              addr.city || addr.town || addr.village || addr.county || "";
+            const state = addr.state ? `, ${addr.state}` : "";
             if (!cancelled && city) setTzCity(`${city}${state}`);
-          } catch { /* keep timezone fallback */ }
+          } catch {
+            /* keep timezone fallback */
+          }
         },
-        () => { /* geolocation denied – keep timezone fallback */ },
-        { timeout: 5000 }
+        () => {
+          /* geolocation denied – keep timezone fallback */
+        },
+        { timeout: 5000 },
       );
     }
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const tzAbbr = useMemo(() => {
-    return new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
-      .formatToParts(new Date())
-      .find((p) => p.type === 'timeZoneName')?.value || '';
+    return (
+      new Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
+        .formatToParts(new Date())
+        .find((p) => p.type === "timeZoneName")?.value || ""
+    );
   }, []);
 
   const plan = (user?.plan ?? "free").toUpperCase();
@@ -468,18 +540,32 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                     type="button"
                     className={`legacy-shell-nav-item${activeItem ? " active" : ""}`}
                     onClick={() => navigate(item.path)}
-                    title={collapsed ? `${item.label} (port ${item.port})` : `Jobs portal — port ${item.port}`}
+                    title={
+                      collapsed
+                        ? `${item.label} (port ${item.port})`
+                        : `Jobs portal — port ${item.port}`
+                    }
                   >
                     {!collapsed && item.chipColor && (
-                      <span className="legacy-shell-mfe-chip" style={{ background: item.chipColor }} />
+                      <span
+                        className="legacy-shell-mfe-chip"
+                        style={{ background: item.chipColor }}
+                      />
                     )}
                     <i className={`${item.icon} legacy-shell-nav-icon`} />
                     {!collapsed && <span>{item.label}</span>}
                     {collapsed && item.chipColor && (
-                      <span className="legacy-shell-mfe-chip" style={{
-                        background: item.chipColor,
-                        position: "absolute", right: 2, top: 2, width: 5, height: 5,
-                      }} />
+                      <span
+                        className="legacy-shell-mfe-chip"
+                        style={{
+                          background: item.chipColor,
+                          position: "absolute",
+                          right: 2,
+                          top: 2,
+                          width: 5,
+                          height: 5,
+                        }}
+                      />
                     )}
                   </button>
 
@@ -491,11 +577,23 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                           <button
                             type="button"
                             className={`legacy-shell-nav-item legacy-shell-subnav-item${activeLoginType === lm.id ? " active" : ""}`}
-                            onClick={() => setActiveLoginType(lm.id as "candidate" | "vendor")}
-                            title={lm.id === "candidate" ? "Log in as a job seeker" : "Log in as an employer / recruiter"}
+                            onClick={() =>
+                              setActiveLoginType(
+                                lm.id as "candidate" | "vendor",
+                              )
+                            }
+                            title={
+                              lm.id === "candidate"
+                                ? "Log in as a job seeker"
+                                : "Log in as an employer / recruiter"
+                            }
                           >
-                            <span className="legacy-shell-subnav-bullet">{lm.icon}</span>
-                            <span className="legacy-shell-subnav-label">{lm.label}</span>
+                            <span className="legacy-shell-subnav-bullet">
+                              {lm.icon}
+                            </span>
+                            <span className="legacy-shell-subnav-label">
+                              {lm.label}
+                            </span>
                           </button>
                         </li>
                       ))}
@@ -514,7 +612,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
             >
               {!collapsed && (
                 <div className="legacy-shell-nav-group-title legacy-shell-subnav-title">
-                  {group.icon && <span className="legacy-shell-subnav-icon">{group.icon}</span>}
+                  {group.icon && (
+                    <span className="legacy-shell-subnav-icon">
+                      {group.icon}
+                    </span>
+                  )}
                   {group.label}
                 </div>
               )}
@@ -525,16 +627,22 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                       <button
                         type="button"
                         className={[
-                          'legacy-shell-nav-item',
-                          'legacy-shell-subnav-item',
-                          item.depth === 1 ? 'depth-1' : '',
-                          item.active ? 'active' : '',
-                        ].filter(Boolean).join(' ')}
+                          "legacy-shell-nav-item",
+                          "legacy-shell-subnav-item",
+                          item.depth === 1 ? "depth-1" : "",
+                          item.active ? "active" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
                         onClick={item.onClick}
-                        title={item.count !== undefined ? `${item.label} (${item.count} records)` : item.label}
+                        title={
+                          item.count !== undefined
+                            ? `${item.label} (${item.count} records)`
+                            : item.label
+                        }
                       >
                         <span className="legacy-shell-subnav-bullet">
-                          {item.depth === 1 ? '└' : '▸'}
+                          {item.depth === 1 ? "└" : "▸"}
                         </span>
                         <span className="legacy-shell-subnav-label">
                           {item.label}
@@ -567,67 +675,100 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
           {/* ---- OTHER MFEs (Sales, Rentals, etc.) — collapsible, default collapsed ---- */}
           <ul className="legacy-shell-nav-list legacy-shell-apps-list">
-            {navItems.filter((n) => n.id !== "jobs").map((item) => {
-              const isDisabled = !!item.disabled;
-              const itemSubs = item.subs || [];
-              const isExpanded = !!expandedMFEs[item.id];
-              const toggleExpand = () =>
-                setExpandedMFEs((prev) => ({ ...prev, [item.id]: !prev[item.id] }));
-              return (
-                <li key={item.id} className="legacy-shell-app-entry">
-                  <button
-                    type="button"
-                    className={`legacy-shell-nav-item${isDisabled ? " disabled" : ""}`}
-                    onClick={() => {
-                      if (isDisabled) {
-                        toggleExpand();
-                      } else {
-                        navigate(item.path);
+            {navItems
+              .filter((n) => n.id !== "jobs")
+              .map((item) => {
+                const isDisabled = !!item.disabled;
+                const itemSubs = item.subs || [];
+                const isExpanded = !!expandedMFEs[item.id];
+                const toggleExpand = () =>
+                  setExpandedMFEs((prev) => ({
+                    ...prev,
+                    [item.id]: !prev[item.id],
+                  }));
+                return (
+                  <li key={item.id} className="legacy-shell-app-entry">
+                    <button
+                      type="button"
+                      className={`legacy-shell-nav-item${isDisabled ? " disabled" : ""}`}
+                      onClick={() => {
+                        if (isDisabled) {
+                          toggleExpand();
+                        } else {
+                          navigate(item.path);
+                        }
+                      }}
+                      title={
+                        isDisabled
+                          ? `${item.label} — Coming Soon (port ${item.port})`
+                          : `${item.label} (port ${item.port})`
                       }
-                    }}
-                    title={isDisabled ? `${item.label} — Coming Soon (port ${item.port})` : `${item.label} (port ${item.port})`}
-                  >
-                    {!collapsed && item.chipColor && (
-                      <span className="legacy-shell-mfe-chip" style={{
-                        background: isDisabled ? "var(--w97-btn-shadow, #808080)" : item.chipColor,
-                      }} />
+                    >
+                      {!collapsed && item.chipColor && (
+                        <span
+                          className="legacy-shell-mfe-chip"
+                          style={{
+                            background: isDisabled
+                              ? "var(--w97-btn-shadow, #808080)"
+                              : item.chipColor,
+                          }}
+                        />
+                      )}
+                      <i className={`${item.icon} legacy-shell-nav-icon`} />
+                      {!collapsed && <span>{item.label}</span>}
+                      {!collapsed && isDisabled && (
+                        <span className="legacy-shell-mfe-soon">soon</span>
+                      )}
+                      {!collapsed && itemSubs.length > 0 && (
+                        <span
+                          style={{
+                            marginLeft: "auto",
+                            fontSize: 9,
+                            opacity: 0.6,
+                          }}
+                        >
+                          {isExpanded ? "▾" : "▸"}
+                        </span>
+                      )}
+                      {collapsed && item.chipColor && (
+                        <span
+                          className="legacy-shell-mfe-chip"
+                          style={{
+                            background: isDisabled
+                              ? "var(--w97-btn-shadow, #808080)"
+                              : item.chipColor,
+                            position: "absolute",
+                            right: 2,
+                            top: 2,
+                            width: 5,
+                            height: 5,
+                          }}
+                        />
+                      )}
+                    </button>
+                    {!collapsed && isExpanded && itemSubs.length > 0 && (
+                      <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
+                        {itemSubs.map((sub) => (
+                          <li key={sub.id}>
+                            <button
+                              type="button"
+                              className="legacy-shell-nav-item legacy-shell-subnav-item"
+                              title={`${item.label} › ${sub.label} — Coming Soon`}
+                            >
+                              <span className="legacy-shell-subnav-bullet">
+                                ▸
+                              </span>
+                              <span className="legacy-shell-subnav-label">
+                                {sub.label}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                    <i className={`${item.icon} legacy-shell-nav-icon`} />
-                    {!collapsed && <span>{item.label}</span>}
-                    {!collapsed && isDisabled && (
-                      <span className="legacy-shell-mfe-soon">soon</span>
-                    )}
-                    {!collapsed && itemSubs.length > 0 && (
-                      <span style={{ marginLeft: "auto", fontSize: 9, opacity: 0.6 }}>
-                        {isExpanded ? "▾" : "▸"}
-                      </span>
-                    )}
-                    {collapsed && item.chipColor && (
-                      <span className="legacy-shell-mfe-chip" style={{
-                        background: isDisabled ? "var(--w97-btn-shadow, #808080)" : item.chipColor,
-                        position: "absolute", right: 2, top: 2, width: 5, height: 5,
-                      }} />
-                    )}
-                  </button>
-                  {!collapsed && isExpanded && itemSubs.length > 0 && (
-                    <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
-                      {itemSubs.map((sub) => (
-                        <li key={sub.id}>
-                          <button
-                            type="button"
-                            className="legacy-shell-nav-item legacy-shell-subnav-item"
-                            title={`${item.label} › ${sub.label} — Coming Soon`}
-                          >
-                            <span className="legacy-shell-subnav-bullet">▸</span>
-                            <span className="legacy-shell-subnav-label">{sub.label}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              );
-            })}
+                  </li>
+                );
+              })}
           </ul>
         </aside>
 
@@ -711,13 +852,18 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                 </div>
               )}
               <div className="legacy-shell-date">
-                <span className="legacy-shell-date-tz">{tzCity}{tzAbbr ? ` (${tzAbbr})` : ''}</span>
-                <span>{new Date().toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}</span>
+                <span className="legacy-shell-date-tz">
+                  {tzCity}
+                  {tzAbbr ? ` (${tzAbbr})` : ""}
+                </span>
+                <span>
+                  {new Date().toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
               </div>
             </div>
           </div>
@@ -730,6 +876,95 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           </footer>
         </section>
       </div>
+
+      {/* ── Pricing modal overlay — triggered by matchdb:openPricing event ── */}
+      {pricingModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 3000,
+            background: "rgba(0,0,0,0.55)",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            padding: "20px 16px",
+            overflowY: "auto",
+          }}
+          onClick={handleClosePricing}
+        >
+          <div
+            style={{
+              background: "#f5f5f5",
+              width: "fit-content",
+              maxWidth: "95vw",
+              borderTop: "2px solid #fff",
+              borderLeft: "2px solid #fff",
+              borderRight: "2px solid #404040",
+              borderBottom: "2px solid #404040",
+              boxShadow: "4px 4px 12px rgba(0,0,0,0.4)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* W97-style title bar */}
+            <div
+              style={{
+                background: "linear-gradient(to right, #235a81, #3b6fa6)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                padding: "4px 6px",
+                gap: 6,
+              }}
+            >
+              <span style={{ fontSize: 13 }}>💎</span>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: 12,
+                  flex: 1,
+                  fontFamily: "MS Sans Serif, Tahoma, Arial, sans-serif",
+                }}
+              >
+                Plans &amp; Pricing — MatchDB
+              </span>
+              <button
+                onClick={handleClosePricing}
+                style={{
+                  background: "#c0c0c0",
+                  border: "1px solid",
+                  borderTopColor: "#fff",
+                  borderLeftColor: "#fff",
+                  borderRightColor: "#404040",
+                  borderBottomColor: "#404040",
+                  width: 18,
+                  height: 18,
+                  cursor: "pointer",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
+                  lineHeight: 1,
+                }}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+            {/* PricingPage fills the modal body */}
+            <div
+              style={{ maxHeight: "calc(100vh - 100px)", overflowY: "auto" }}
+            >
+              <PricingPage
+                initialTab={pricingModalTab}
+                onClose={() => setPricingModalOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
