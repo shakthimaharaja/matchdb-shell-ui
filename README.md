@@ -29,8 +29,9 @@ matchdb-shell-ui/
 │   ├── bootstrap.tsx            # React root render
 │   ├── App.tsx                  # Router setup
 │   ├── components/
+│   │   ├── index.ts             # ★ Barrel export (ShellLayout, LoginModal, JobsAppWrapper)
 │   │   ├── ShellLayout.tsx      # Main layout — sidebar, header, footer, pricing modal
-│   │   ├── ShellLayout.css      # Master theme (CSS custom properties)
+│   │   ├── ShellLayout.css      # Shell layout styles (references global CSS vars)
 │   │   ├── JobsAppWrapper.tsx   # Lazy loader for Jobs remote MFE
 │   │   ├── LoginModal.tsx       # Login / register modal
 │   │   └── LoginModal.css      # Login modal styling
@@ -45,8 +46,14 @@ matchdb-shell-ui/
 │   ├── store/
 │   │   ├── index.ts             # Redux store config
 │   │   └── authSlice.ts         # Auth state, login/register/OAuth thunks
-│   └── types/
-│       └── federation.d.ts      # Module Federation type declarations
+│   ├── styles/
+│   │   ├── index.css            # ★ Barrel — imports w97-theme + w97-base
+│   │   ├── w97-theme.css        # ★ Global CSS custom properties (light + dark mode)
+│   │   └── w97-base.css         # ★ Shared utility classes (raised, sunken, titlebar, scroll)
+│   ├── types/
+│   │   └── federation.d.ts      # Module Federation type declarations
+│   └── utils/
+│       └── index.ts             # ★ Shared helpers (authHeader, downloadBlob, fmtCurrency, fmtDate)
 ├── env/
 │   └── .env.development         # Local env vars
 ├── webpack.config.js            # Webpack + Module Federation config
@@ -74,11 +81,11 @@ Shell (host)  ──── Module Federation ──── Jobs MFE (remote :3001
 
 ## Routes
 
-| Path               | Component          | Auth | Description                      |
-| ------------------ | ------------------ | ---- | -------------------------------- |
-| `/oauth-callback`  | OAuthCallbackPage  | No   | Google OAuth redirect handler    |
-| `/resume/:username`| ResumeViewPage     | No   | Public candidate resume view     |
-| `/*`               | JobsAppWrapper     | No   | Main app (loads Jobs MFE)        |
+| Path                | Component         | Auth | Description                   |
+| ------------------- | ----------------- | ---- | ----------------------------- |
+| `/oauth-callback`   | OAuthCallbackPage | No   | Google OAuth redirect handler |
+| `/resume/:username` | ResumeViewPage    | No   | Public candidate resume view  |
+| `/*`                | JobsAppWrapper    | No   | Main app (loads Jobs MFE)     |
 
 ## Inter-MFE Events (CustomEvent)
 
@@ -146,16 +153,16 @@ The pricing page is rendered as an inline modal within `ShellLayout` (not a sepa
 
 ## Module Federation Props (→ Jobs MFE)
 
-| Prop                    | Type                             | Description                     |
-| ----------------------- | -------------------------------- | ------------------------------- |
-| `token`                 | `string \| null`                 | JWT access token                |
-| `userType`              | `string \| null`                 | `candidate` or `vendor`         |
-| `userId`                | `string \| null`                 | User ID                         |
-| `userEmail`             | `string \| null`                 | User email                      |
-| `username`              | `string \| undefined`           | URL-safe username slug          |
-| `plan`                  | `string \| undefined`           | Subscription plan               |
-| `membershipConfig`      | `Record<string,string[]> \| null`| Visibility domains/subdomains  |
-| `hasPurchasedVisibility`| `boolean \| undefined`          | Whether candidate has visibility|
+| Prop                     | Type                              | Description                      |
+| ------------------------ | --------------------------------- | -------------------------------- |
+| `token`                  | `string \| null`                  | JWT access token                 |
+| `userType`               | `string \| null`                  | `candidate` or `vendor`          |
+| `userId`                 | `string \| null`                  | User ID                          |
+| `userEmail`              | `string \| null`                  | User email                       |
+| `username`               | `string \| undefined`             | URL-safe username slug           |
+| `plan`                   | `string \| undefined`             | Subscription plan                |
+| `membershipConfig`       | `Record<string,string[]> \| null` | Visibility domains/subdomains    |
+| `hasPurchasedVisibility` | `boolean \| undefined`            | Whether candidate has visibility |
 
 ## Sidebar Navigation
 
@@ -163,3 +170,22 @@ The shell renders 8 MFE navigation entries (only **Jobs** is currently active). 
 
 - **Before login**: shows "Candidate Login" and "Vendor Login" sub-rows
 - **After login**: shows job-type filters (C2C, W2, C2H, Full Time) based on user visibility
+
+## Global Styles (`src/styles/`)
+
+The Windows 97 theme is centralized into global style files imported once in `bootstrap.tsx`:
+
+| File            | Purpose                                                                   |
+| --------------- | ------------------------------------------------------------------------- |
+| `w97-theme.css` | 50+ `--w97-*` CSS custom properties for light & dark mode color palettes  |
+| `w97-base.css`  | Shared utility classes: `.w97-raised`, `.w97-sunken`, `.w97-scroll`, etc. |
+| `index.css`     | Barrel — imports both theme and base CSS in one import                    |
+
+## Utilities (`src/utils/`)
+
+| Export           | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| `authHeader()`   | Builds `{ Authorization: 'Bearer …' }` header     |
+| `downloadBlob()` | Triggers a file download from a Blob response     |
+| `fmtCurrency()`  | Formats a number as currency or returns "—"       |
+| `fmtDate()`      | Formats an ISO date string to short readable form |
