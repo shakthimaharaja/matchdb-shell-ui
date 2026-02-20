@@ -1,6 +1,6 @@
 # matchdb-shell-ui
 
-Host (shell) microfrontend for the MatchDB staffing platform. Acts as the application shell — renders the sidebar navigation, header, dark-mode toggle, login modal, and dynamically loads the Jobs remote MFE via Webpack 5 Module Federation.
+Host (shell) microfrontend for the MatchDB staffing platform. Acts as the application shell — renders the sidebar navigation, header, dark-mode toggle, login modal, pricing modal, and dynamically loads the Jobs remote MFE via Webpack 5 Module Federation.
 
 ## Tech Stack
 
@@ -29,18 +29,22 @@ matchdb-shell-ui/
 │   ├── bootstrap.tsx            # React root render
 │   ├── App.tsx                  # Router setup
 │   ├── components/
-│   │   ├── ShellLayout.tsx      # Main layout — sidebar, header, footer
+│   │   ├── ShellLayout.tsx      # Main layout — sidebar, header, footer, pricing modal
 │   │   ├── ShellLayout.css      # Master theme (CSS custom properties)
 │   │   ├── JobsAppWrapper.tsx   # Lazy loader for Jobs remote MFE
-│   │   └── LoginModal.tsx       # Login / register modal
+│   │   ├── LoginModal.tsx       # Login / register modal
+│   │   └── LoginModal.css      # Login modal styling
 │   ├── pages/
 │   │   ├── LoginPage.tsx        # Standalone login page
 │   │   ├── LoginPage.css
 │   │   ├── RegisterPage.tsx     # Standalone register page
-│   │   └── PricingPage.tsx      # Subscription pricing page
+│   │   ├── PricingPage.tsx      # W97-themed subscription + candidate package pricing
+│   │   ├── PricingPage.css      # Pricing modal styling (684 lines, full W97 theme)
+│   │   ├── OAuthCallbackPage.tsx # Google OAuth redirect handler
+│   │   └── ResumeViewPage.tsx   # Public candidate resume view (/resume/:username)
 │   ├── store/
 │   │   ├── index.ts             # Redux store config
-│   │   └── authSlice.ts         # Auth state, login/register thunks
+│   │   └── authSlice.ts         # Auth state, login/register/OAuth thunks
 │   └── types/
 │       └── federation.d.ts      # Module Federation type declarations
 ├── env/
@@ -67,6 +71,14 @@ Shell (host)  ──── Module Federation ──── Jobs MFE (remote :3001
 - The shell webpack dev server proxies `/api/auth` and `/api/payments` to the Node proxy on port 4000, which forwards to `matchdb-shell-services` on port 8000.
 - `/api/jobs` calls are proxied to the Jobs Node proxy on port 4001, then to `matchdb-jobs-services` on port 8001.
 - The Jobs MFE (`matchdbJobs`) is loaded at runtime from `http://localhost:3001/remoteEntry.js`.
+
+## Routes
+
+| Path               | Component          | Auth | Description                      |
+| ------------------ | ------------------ | ---- | -------------------------------- |
+| `/oauth-callback`  | OAuthCallbackPage  | No   | Google OAuth redirect handler    |
+| `/resume/:username`| ResumeViewPage     | No   | Public candidate resume view     |
+| `/*`               | JobsAppWrapper     | No   | Main app (loads Jobs MFE)        |
 
 ## Inter-MFE Events (CustomEvent)
 
@@ -121,6 +133,29 @@ The app is available at **http://localhost:3000**.
 | `npm run server` | Express proxy server on port 4000 |
 | `npm run dev`    | Both webpack + proxy concurrently |
 | `npm run build`  | Production build to `dist/`       |
+
+## Pricing Modal
+
+The pricing page is rendered as an inline modal within `ShellLayout` (not a separate route). It supports:
+
+- **Vendor plans:** Free / Pro / Enterprise subscriptions with job & poke limits
+- **Candidate packages:** One-time visibility purchases with domain/subdomain selection
+- **Role-gated tabs:** Vendors see only vendor plans, candidates see only candidate packages, guests can switch
+- **Package-first flow:** Candidates select a package, then choose domains/subdomains from a map
+- **Stripe integration:** Redirects to Stripe checkout, auto-opens modal on return via URL query params
+
+## Module Federation Props (→ Jobs MFE)
+
+| Prop                    | Type                             | Description                     |
+| ----------------------- | -------------------------------- | ------------------------------- |
+| `token`                 | `string \| null`                 | JWT access token                |
+| `userType`              | `string \| null`                 | `candidate` or `vendor`         |
+| `userId`                | `string \| null`                 | User ID                         |
+| `userEmail`             | `string \| null`                 | User email                      |
+| `username`              | `string \| undefined`           | URL-safe username slug          |
+| `plan`                  | `string \| undefined`           | Subscription plan               |
+| `membershipConfig`      | `Record<string,string[]> \| null`| Visibility domains/subdomains  |
+| `hasPurchasedVisibility`| `boolean \| undefined`          | Whether candidate has visibility|
 
 ## Sidebar Navigation
 
