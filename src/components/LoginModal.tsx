@@ -75,7 +75,8 @@ const LoginModal: React.FC = () => {
 
   useEffect(() => {
     window.addEventListener("matchdb:openLogin", handleOpenModal);
-    return () => window.removeEventListener("matchdb:openLogin", handleOpenModal);
+    return () =>
+      window.removeEventListener("matchdb:openLogin", handleOpenModal);
   }, [handleOpenModal]);
 
   // After auth succeeds: handle post-auth modal flow
@@ -115,9 +116,11 @@ const LoginModal: React.FC = () => {
     setShowUpgrade(false);
     setOpen(false);
     // triggerProfile: true tells ShellLayout to open the profile modal after pricing closes
-    window.dispatchEvent(new CustomEvent("matchdb:openPricing", {
-      detail: { tab, triggerProfile: !isVendor },
-    }));
+    window.dispatchEvent(
+      new CustomEvent("matchdb:openPricing", {
+        detail: { tab, triggerProfile: !isVendor },
+      }),
+    );
   };
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,14 +161,14 @@ const LoginModal: React.FC = () => {
   const handleGoogleAuth = (userType: "candidate" | "vendor") => {
     const backendUrl =
       (window as any).__MATCHDB_API_URL__ ||
-      "http://localhost:8000";
+      process.env.SHELL_SERVICES_URL ||
+      "";
     window.location.href = `${backendUrl}/api/auth/google?userType=${userType}`;
   };
 
   if (!open) return null;
 
-  const activeUserType =
-    mode === "login" ? context : regForm.user_type;
+  const activeUserType = mode === "login" ? context : regForm.user_type;
 
   // ── Upgrade prompt (shown after free-account auth) ────────────────────────
   if (showUpgrade) {
@@ -183,7 +186,9 @@ const LoginModal: React.FC = () => {
             <span className="login-modal-context">
               {isVendor ? "🏢 Vendor" : "👤 Candidate"}
             </span>
-            <button className="login-modal-close" onClick={handleUpgradeClose}>✕</button>
+            <button className="login-modal-close" onClick={handleUpgradeClose}>
+              ✕
+            </button>
           </div>
 
           <div className="lm-upgrade-panel">
@@ -428,8 +433,7 @@ const LoginModal: React.FC = () => {
 
             <div className="login-modal-field">
               <label htmlFor="lm-reg-password">
-                Password{" "}
-                <span className="lm-hint">(min 8 characters)</span>
+                Password <span className="lm-hint">(min 8 characters)</span>
               </label>
               <Password
                 id="lm-reg-password"
