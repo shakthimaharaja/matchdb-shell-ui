@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import ResumeViewPage from "./pages/ResumeViewPage";
+import WelcomePage from "./pages/WelcomePage";
 import ShellLayout from "./components/ShellLayout";
 import JobsAppWrapper from "./components/JobsAppWrapper";
 import LoginModal from "./components/LoginModal";
@@ -33,11 +34,13 @@ const App: React.FC = () => {
       <LoginModal />
       <ShellLayout>
         <Routes>
+          {/* Welcome landing page — default home */}
+          <Route path="/" element={<WelcomePage />} />
           {/* OAuth callback — must be outside ShellLayout guard so it works pre-login */}
           <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
           {/* Public resume view — anyone can view a candidate's profile by username */}
           <Route path="/resume/:username" element={<ResumeViewPage />} />
-          <Route path="/*" element={<JobsAppWrapper />} />
+          <Route path="*" element={<JobsAppWrapper />} />
         </Routes>
       </ShellLayout>
     </ThemeProvider>

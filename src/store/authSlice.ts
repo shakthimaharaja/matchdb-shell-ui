@@ -16,6 +16,8 @@ export interface User {
   /** true if the candidate has made at least one visibility payment */
   has_purchased_visibility: boolean;
   plan: "free" | "basic" | "pro" | "pro_plus";
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 interface AuthState {
@@ -24,6 +26,8 @@ interface AuthState {
   refresh: string | null;
   loading: boolean;
   error: string | null;
+  /** Stores user_type of the user whose session just expired, for redirect-to-login purposes. */
+  sessionExpiredUserType: "candidate" | "vendor" | null;
 }
 
 const token = localStorage.getItem("matchdb_token");
@@ -35,6 +39,7 @@ const initialState: AuthState = {
   refresh: localStorage.getItem("matchdb_refresh") || null,
   loading: false,
   error: null,
+  sessionExpiredUserType: null,
 };
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -108,6 +113,25 @@ export const refreshUserData = createAsyncThunk(
   },
 );
 
+/**
+ * Silently refreshes the access token using the stored refresh token.
+ * On success, returns the new access token string.
+ * On failure (refresh expired), rejects so caller can trigger logout + redirect.
+ */
+export const refreshAuthToken = createAsyncThunk(
+  "auth/refreshToken",
+  async (refreshToken: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.post("/api/auth/refresh", {
+        refresh: refreshToken,
+      });
+      return response.data as { access: string };
+    } catch (err: any) {
+      return rejectWithValue("Session expired. Please log in again.");
+    }
+  },
+);
+
 export const deleteAccount = createAsyncThunk(
   "auth/deleteAccount",
   async (token: string, { rejectWithValue }) => {
@@ -132,6 +156,20 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logout(state) {
+      state.user = null;
+      state.token = null;
+      state.refresh = null;
+      state.sessionExpiredUserType = null;
+      localStorage.removeItem("matchdb_token");
+      localStorage.removeItem("matchdb_refresh");
+      localStorage.removeItem("matchdb_user");
+    },
+    /**
+     * Clears auth state when a session has expired, preserving user_type for
+     * redirect-to-appropriate-login logic in JobsAppWrapper.
+     */
+    expireSession(state, action: PayloadAction<"candidate" | "vendor">) {
+      state.sessionExpiredUserType = action.payload;
       state.user = null;
       state.token = null;
       state.refresh = null;
@@ -214,6 +252,11 @@ const authSlice = createSlice({
         state.user = action.payload;
         localStorage.setItem("matchdb_user", JSON.stringify(action.payload));
       })
+      // Token refresh (silent re-auth)
+      .addCase(refreshAuthToken.fulfilled, (state, action) => {
+        state.token = action.payload.access;
+        localStorage.setItem("matchdb_token", action.payload.access);
+      })
       // Delete Account
       .addCase(deleteAccount.pending, (state) => {
         state.loading = true;
@@ -235,6 +278,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError, updatePlan, setAuthFromOAuth } =
+export const { logout, clearError, updatePlan, setAuthFromOAuth, expireSession } =
   authSlice.actions;
 export default authSlice.reducer;

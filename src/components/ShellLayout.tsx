@@ -68,7 +68,7 @@ const MFE_NAV: NavItem[] = [
     id: "jobs",
     label: "Jobs",
     icon: "pi pi-briefcase",
-    path: "/",
+    path: "/jobs",
     section: "MARKETPLACE",
     port: 3001,
     chipColor: "var(--mfe-chip-1)",
@@ -207,9 +207,20 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   const [subNavGroups, setSubNavGroups] = useState<SubNavGroup[]>([]);
   const [mfeBreadcrumb, setMfeBreadcrumb] = useState<string[]>([]);
   const [activeJobType, setActiveJobType] = useState<string>("");
+  /** null = no sub-item selected (user is on /jobs or elsewhere) */
+  const loginTypeFromPath = location.pathname.startsWith("/jobs/vendor")
+    ? "vendor"
+    : location.pathname.startsWith("/jobs/candidate")
+    ? "candidate"
+    : null;
   const [activeLoginType, setActiveLoginType] = useState<
-    "candidate" | "vendor"
-  >("candidate");
+    "candidate" | "vendor" | null
+  >(loginTypeFromPath);
+
+  /* Keep activeLoginType in sync when URL changes (e.g. back/forward) */
+  useEffect(() => {
+    setActiveLoginType(loginTypeFromPath);
+  }, [location.pathname]);
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem("matchdb_dark") === "1";
   });
@@ -357,6 +368,43 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   }, []);
 
   const plan = (user?.plan ?? "free").toUpperCase();
+
+  /* ── Profile location — sent from Jobs MFE via custom event ── */
+  const [profileLocation, setProfileLocation] = useState<string>("");
+  /* ── Visible-in text — sent from Jobs MFE ── */
+  const [visibleInText, setVisibleInText] = useState<string>("");
+
+  /* Derive country + flag from location string (e.g. "Indianapolis, IN" → "🇺🇸 United States") */
+  const US_STATES = new Set([
+    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
+    "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
+    "VA","WA","WV","WI","WY","DC",
+  ]);
+  const profileCountry = useMemo(() => {
+    if (!profileLocation) return "";
+    const parts = profileLocation.split(",").map((s: string) => s.trim());
+    const lastPart = parts[parts.length - 1]?.toUpperCase();
+    if (lastPart && US_STATES.has(lastPart)) return "🇺🇸 United States";
+    return profileLocation; // fallback: show raw location
+  }, [profileLocation]);
+  useEffect(() => {
+    const locHandler = (e: Event) => {
+      const loc = (e as CustomEvent).detail?.location;
+      if (loc) setProfileLocation(loc);
+    };
+    const visHandler = (e: Event) => {
+      const text = (e as CustomEvent).detail?.text;
+      setVisibleInText(text || "");
+    };
+    window.addEventListener("matchdb:profileLocation", locHandler);
+    window.addEventListener("matchdb:visibleIn", visHandler);
+    return () => {
+      window.removeEventListener("matchdb:profileLocation", locHandler);
+      window.removeEventListener("matchdb:visibleIn", visHandler);
+    };
+  }, []);
+
   const initials = user
     ? `${user.first_name?.charAt(0) ?? ""}${user.last_name?.charAt(0) ?? ""}`.toUpperCase() ||
       user.email.charAt(0).toUpperCase()
@@ -365,9 +413,43 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     ? `${user.first_name} ${user.last_name ?? ""}`.trim()
     : (user?.email ?? "Guest");
 
+  /* ── Account age & profile freshness badges ── */
+  const accountAgeBadge = useMemo(() => {
+    if (!user?.created_at) return null;
+    const created = new Date(user.created_at);
+    const now = new Date();
+    const diffMs = now.getTime() - created.getTime();
+    const days = Math.floor(diffMs / 86400000);
+    let label: string;
+    let color: "green" | "yellow" | "orange" | "red";
+    if (days < 30) { label = `${days}d`; color = "green"; }
+    else if (days < 90) { const m = Math.floor(days / 30); label = `${m}mo`; color = "green"; }
+    else if (days < 180) { const m = Math.floor(days / 30); label = `${m}mo`; color = "yellow"; }
+    else if (days < 365) { const m = Math.floor(days / 30); label = `${m}mo`; color = "orange"; }
+    else { const y = Math.floor(days / 365); label = `${y}yr`; color = "red"; }
+    return { label, color, tooltip: `Account created ${created.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` };
+  }, [user?.created_at]);
+
+  const profileFreshBadge = useMemo(() => {
+    if (!user?.updated_at) return null;
+    const updated = new Date(user.updated_at);
+    const now = new Date();
+    const diffMs = now.getTime() - updated.getTime();
+    const days = Math.floor(diffMs / 86400000);
+    let label: string;
+    let color: "green" | "yellow" | "orange" | "red";
+    if (days < 7) { label = "Fresh"; color = "green"; }
+    else if (days < 30) { label = `${days}d ago`; color = "yellow"; }
+    else if (days < 90) { const m = Math.floor(days / 30); label = `${m}mo ago`; color = "orange"; }
+    else { const m = Math.floor(days / 30); label = m < 12 ? `${m}mo ago` : `${Math.floor(days / 365)}yr ago`; color = "red"; }
+    return { label, color, tooltip: `Profile updated ${updated.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` };
+  }, [user?.updated_at]);
+
+  const isWelcome = location.pathname === "/";
+
+  /** null on home page "/" — no nav item should appear selected */
   const active =
-    navItems.find((item) => isPathActive(item.path, location.pathname)) ??
-    navItems[0];
+    navItems.find((item) => isPathActive(item.path, location.pathname)) ?? null;
 
   const drawerWidth = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
@@ -377,11 +459,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     [isLoggedIn],
   );
 
-  /* Broadcast active login context to MFE */
+  /* Broadcast active login context to MFE (null → "candidate" as safe default) */
   useEffect(() => {
     window.dispatchEvent(
       new CustomEvent("matchdb:loginContext", {
-        detail: { loginType: activeLoginType },
+        detail: { loginType: activeLoginType ?? "candidate" },
       }),
     );
   }, [activeLoginType]);
@@ -432,7 +514,12 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           aria-label="Toggle sidebar"
         />
 
-        <div className="legacy-shell-brand">
+        <div
+          className="legacy-shell-brand"
+          onClick={() => navigate("/")}
+          style={{ cursor: "pointer" }}
+          title="MatchDB — Home"
+        >
           {/* Tiny Windows-97 pixel flag */}
           <div className="legacy-shell-brand-logo">
             <span
@@ -464,6 +551,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           <span className="legacy-shell-brand-subtitle">97</span>
         </div>
 
+        {/* Location / Date / Time — single line in header */}
+        <span className="legacy-shell-date-inline">
+          🇺🇸 {tzCity}{tzAbbr ? ` (${tzAbbr})` : ""} &middot; {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+        </span>
+
         <div className="legacy-shell-header-fill" />
 
         {/* Dark mode toggle */}
@@ -474,6 +566,8 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           onClick={() => setDarkMode((prev) => !prev)}
           aria-label="Toggle dark mode"
           title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          tooltip={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          tooltipOptions={{ position: "bottom" }}
         />
 
         {isLoggedIn && (
@@ -497,7 +591,9 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
               icon="pi pi-sign-out"
               label="Sign Out"
               className="legacy-shell-signout"
-              onClick={() => dispatch(logout())}
+              onClick={() => { dispatch(logout()); navigate("/"); }}
+              tooltip="Sign out"
+              tooltipOptions={{ position: "bottom" }}
             />
           </>
         )}
@@ -507,6 +603,8 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
         <aside
           className={`legacy-shell-sidebar${collapsed ? " collapsed" : ""}`}
           style={{ width: drawerWidth }}
+          role="navigation"
+          aria-label="Main navigation"
         >
           {!collapsed && isLoggedIn && (
             <div className="legacy-shell-sidebar-user">
@@ -515,7 +613,36 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                 shape="circle"
                 className="legacy-shell-avatar big"
               />
-              <div className="legacy-shell-sidebar-name">{displayName}</div>
+              <div className="legacy-shell-sidebar-info">
+                <div className="legacy-shell-sidebar-name">{displayName}</div>
+                <div className="legacy-shell-sidebar-type">
+                  {user?.user_type === "vendor" ? "Vendor" : "Candidate"}
+                </div>
+              </div>
+              <div className="legacy-shell-rosettes">
+                {accountAgeBadge && (
+                  <div
+                    className={`rosette rosette-${accountAgeBadge.color}`}
+                    title={accountAgeBadge.tooltip}
+                  >
+                    <div className="rosette-body">
+                      <span className="rosette-label">{accountAgeBadge.label}</span>
+                    </div>
+                    <div className="rosette-tails" />
+                  </div>
+                )}
+                {profileFreshBadge && (
+                  <div
+                    className={`rosette rosette-${profileFreshBadge.color}`}
+                    title={profileFreshBadge.tooltip}
+                  >
+                    <div className="rosette-body">
+                      <span className="rosette-label">{profileFreshBadge.label}</span>
+                    </div>
+                    <div className="rosette-tails" />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -533,14 +660,15 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           {/* ---- JOBS item (active MFE) ---- */}
           {(() => {
             const item = navItems.find((n) => n.id === "jobs")!;
-            const activeItem = item.id === active.id;
+            const activeItem = active !== null && item.id === active.id;
             return (
               <ul className="legacy-shell-nav-list legacy-shell-apps-list">
                 <li className="legacy-shell-app-entry">
                   <button
                     type="button"
                     className={`legacy-shell-nav-item${activeItem ? " active" : ""}`}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => { navigate(item.path); setActiveLoginType(null); }}
+                    aria-current={activeItem ? "page" : undefined}
                     title={
                       collapsed
                         ? `${item.label} (port ${item.port})`
@@ -578,11 +706,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                           <button
                             type="button"
                             className={`legacy-shell-nav-item legacy-shell-subnav-item${activeLoginType === lm.id ? " active" : ""}`}
-                            onClick={() =>
-                              setActiveLoginType(
-                                lm.id as "candidate" | "vendor",
-                              )
-                            }
+                            onClick={() => {
+                              const type = lm.id as "candidate" | "vendor";
+                              setActiveLoginType(type);
+                              navigate(`/jobs/${type}`);
+                            }}
                             title={
                               lm.id === "candidate"
                                 ? "Log in as a job seeker"
@@ -775,67 +903,45 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           </ul>
         </aside>
 
-        <section className="legacy-shell-main">
-          <div className="legacy-shell-breadcrumb">
-            <button type="button" onClick={() => navigate("/")}>
-              Home
-            </button>
-            <span className="sep">&gt;</span>
-            <button type="button" onClick={() => navigate(active.path)}>
-              {active.label}
-            </button>
-            {active.port && !mfeBreadcrumb.length && (
-              <>
-                <span className="sep">|</span>
-                <span style={{ opacity: 0.6 }}>:{active.port}</span>
-              </>
-            )}
-            {/* MFE-provided breadcrumb segments */}
-            {mfeBreadcrumb.map((seg, i) => (
-              <React.Fragment key={i}>
-                <span className="sep">&gt;</span>
-                {i < mfeBreadcrumb.length - 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      /* clicking an ancestor segment fires subnav item at that depth */
-                      const subNavItem = subNavGroups
-                        .flatMap((g) => g.items)
-                        .find((item) => item.label === seg || item.active);
-                      subNavItem?.onClick?.();
-                    }}
-                  >
-                    {seg}
-                  </button>
-                ) : (
-                  <span>{seg}</span>
-                )}
-              </React.Fragment>
-            ))}
-            {/* Fallback: show active job type filter when no MFE breadcrumb */}
-            {!mfeBreadcrumb.length && activeJobType && (
-              <>
-                <span className="sep">&gt;</span>
-                <span>
-                  {JOB_TYPE_SUBS.find((s) => s.id === activeJobType)?.label ||
-                    activeJobType}
-                </span>
-              </>
-            )}
-          </div>
+        <section className="legacy-shell-main" role="main">
+
+          {/* Visible-in banner — above pagehead, sent from Jobs MFE */}
+          {isLoggedIn && visibleInText && (
+            <div className="legacy-shell-visible-in">
+              <i className="pi pi-eye" style={{ marginRight: 6, fontSize: 13 }} />
+              {visibleInText}
+            </div>
+          )}
 
           <div className="legacy-shell-pagehead">
             <div>
-              <h2>{active.label}</h2>
+              <h2>
+                {isWelcome ? "MatchDB" : (active?.label ?? "")}
+              </h2>
+              {(!isLoggedIn || isWelcome) && (
               <p>
-                {!isLoggedIn
-                  ? "Browse job openings and candidate profiles"
-                  : user?.user_type === "vendor"
-                    ? "Manage job postings and review applicants"
-                    : "Search and apply for available positions"}
+                {isWelcome
+                  ? "The data-driven marketplace"
+                  : "Browse job openings and candidate profiles"}
               </p>
+              )}
             </div>
             <div className="legacy-shell-pagehead-right">
+              {isLoggedIn && (
+                <Button
+                  type="button"
+                  label="Upgrade"
+                  className="legacy-shell-signout"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("matchdb:openPricing", {
+                        detail: { tab: user?.user_type === "vendor" ? "vendor" : "candidate" },
+                      }),
+                    )
+                  }
+                  style={{ fontWeight: 700 }}
+                />
+              )}
               {!isLoggedIn && (
                 <div className="legacy-shell-pagehead-auth">
                   <Button
@@ -854,20 +960,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                   />
                 </div>
               )}
-              <div className="legacy-shell-date">
-                <span className="legacy-shell-date-tz">
-                  {tzCity}
-                  {tzAbbr ? ` (${tzAbbr})` : ""}
+              {isLoggedIn && profileCountry && (
+                <span className="legacy-shell-sub-country">
+                  {profileCountry}
                 </span>
-                <span>
-                  {new Date().toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
+              )}
             </div>
           </div>
 

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
-import { Message } from "primereact/message";
 import { useAppDispatch, useAppSelector } from "../store";
 import { login, register, clearError } from "../store/authSlice";
 import "./LoginModal.css";
@@ -228,16 +227,19 @@ const LoginModal: React.FC = () => {
       <div
         className="login-modal-container"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lm-title"
       >
         {/* Title bar */}
         <div className="login-modal-titlebar">
-          <span className="login-modal-title">
+          <span id="lm-title" className="login-modal-title">
             {mode === "login" ? "User Authentication" : "Create Account"}
           </span>
           <span className="login-modal-context">
             {context === "vendor" ? "🏢 Vendor" : "👤 Candidate"}
           </span>
-          <button className="login-modal-close" onClick={handleClose}>
+          <button className="login-modal-close" onClick={handleClose} aria-label="Close dialog">
             ✕
           </button>
         </div>
@@ -246,6 +248,7 @@ const LoginModal: React.FC = () => {
         <div className="login-modal-tabs">
           <button
             className={`login-modal-tab${mode === "login" ? " active" : ""}`}
+            aria-label="Sign In tab"
             onClick={() => {
               setMode("login");
               dispatch(clearError());
@@ -255,6 +258,7 @@ const LoginModal: React.FC = () => {
           </button>
           <button
             className={`login-modal-tab${mode === "register" ? " active" : ""}`}
+            aria-label="Create Account tab"
             onClick={() => {
               setMode("register");
               dispatch(clearError());
@@ -266,11 +270,9 @@ const LoginModal: React.FC = () => {
 
         {/* OAuth error banner (from failed redirect) */}
         {oauthError && (
-          <Message
-            severity="error"
-            text={oauthError}
-            className="login-modal-error"
-          />
+          <div className="w97-alert w97-alert-error" role="alert" aria-live="assertive">
+            ✕ {oauthError}
+          </div>
         )}
 
         {/* ── Login form ── */}
@@ -317,11 +319,9 @@ const LoginModal: React.FC = () => {
             </div>
 
             {error && (
-              <Message
-                severity="error"
-                text={error}
-                className="login-modal-error"
-              />
+              <div className="w97-alert w97-alert-error" role="alert" aria-live="assertive">
+                ✕ {error}
+              </div>
             )}
             <Button
               type="submit"
@@ -329,6 +329,7 @@ const LoginModal: React.FC = () => {
               icon={loading ? "pi pi-spin pi-spinner" : "pi pi-sign-in"}
               disabled={loading}
               className="login-modal-submit"
+              aria-label={loading ? "Signing in, please wait" : "Sign In"}
             />
           </form>
         )}
@@ -447,11 +448,9 @@ const LoginModal: React.FC = () => {
             </div>
 
             {error && (
-              <Message
-                severity="error"
-                text={error}
-                className="login-modal-error"
-              />
+              <div className="w97-alert w97-alert-error" role="alert" aria-live="assertive">
+                ✕ {error}
+              </div>
             )}
             <Button
               type="submit"
@@ -459,6 +458,7 @@ const LoginModal: React.FC = () => {
               icon={loading ? "pi pi-spin pi-spinner" : "pi pi-user-plus"}
               disabled={loading}
               className="login-modal-submit"
+              aria-label={loading ? "Creating account, please wait" : "Create Free Account"}
             />
           </form>
         )}

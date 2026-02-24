@@ -10,7 +10,7 @@
   height: 100%;
   font-family:
     "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Arial, sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--w97-text, #000);
   background: var(--w97-window, #f3f3f3);
 }
@@ -20,7 +20,7 @@
   background: var(--w97-btn-face, #e5e5e5);
   border-bottom: 1px solid var(--w97-btn-shadow, #808080);
   padding: 3px 8px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #555);
   display: flex;
   align-items: center;
@@ -49,7 +49,7 @@
 }
 .pp-tab {
   padding: 3px 14px 4px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -85,7 +85,7 @@
 /* ── Alert / message bar ────────────────────────── */
 .pp-alert {
   padding: 4px 8px;
-  font-size: 11px;
+  font-size: 13px;
   border: 1px solid;
   margin-bottom: 8px;
   display: flex;
@@ -112,7 +112,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   color: inherit;
   padding: 0 2px;
   font-family: inherit;
@@ -120,7 +120,7 @@
 
 /* ── Section label ──────────────────────────────── */
 .pp-section-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -181,7 +181,7 @@
   );
   color: #fff;
   padding: 3px 6px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   gap: 6px;
   flex-shrink: 0;
@@ -199,7 +199,7 @@
   background: linear-gradient(to right, #1b5e20, #155724);
 }
 .pp-plan-badge {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -230,7 +230,7 @@
   color: var(--w97-green, #2e7d32);
 }
 .pp-plan-price-interval {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--w97-text-secondary, #555);
 }
@@ -254,14 +254,14 @@
   display: flex;
   align-items: flex-start;
   gap: 5px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #555);
   line-height: 1.4;
 }
 .pp-plan-features li::before {
   content: "✔";
   color: var(--w97-green, #2e7d32);
-  font-size: 10px;
+  font-size: 12px;
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -280,7 +280,7 @@
   background: #e8f5e9;
   border: 1px solid #2e7d32;
   color: #1b5e20;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   padding: 3px 4px;
   letter-spacing: 0.04em;
@@ -308,14 +308,24 @@
   padding: 7px 8px;
   position: relative;
   overflow: visible;
+  cursor: pointer;
+  transition: none;
+}
+.pp-pkg-card:hover {
+  border-color: var(--w97-navy, #235a81);
 }
 .pp-pkg-card-best {
   border-color: var(--w97-navy, #235a81);
   background: #f0f6ff;
   border-width: 2px;
 }
+.pp-pkg-card-selected {
+  border: 2px solid var(--w97-navy, #235a81) !important;
+  background: #eaf0f9 !important;
+  box-shadow: inset 0 0 0 1px var(--w97-navy, #235a81);
+}
 .pp-pkg-name {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
   margin-bottom: 2px;
@@ -327,12 +337,12 @@
   line-height: 1.2;
 }
 .pp-pkg-price span {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--w97-text-secondary, #555);
 }
 .pp-pkg-desc {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #555);
   margin-top: 2px;
   line-height: 1.4;
@@ -344,7 +354,7 @@
   transform: translateX(-50%);
   background: var(--w97-navy, #235a81);
   color: #fff;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 7px;
   letter-spacing: 0.06em;
@@ -367,7 +377,7 @@
   );
   color: #fff;
   padding: 3px 8px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -387,7 +397,7 @@
   flex-wrap: wrap;
 }
 .pp-field-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--w97-text, #000);
   white-space: nowrap;
@@ -396,7 +406,7 @@
 
 .pp-select {
   height: 22px;
-  font-size: 11px;
+  font-size: 13px;
   font-family: inherit;
   border-top: 1px solid var(--w97-btn-shadow, #808080);
   border-left: 1px solid var(--w97-btn-shadow, #808080);
@@ -425,7 +435,7 @@
   gap: 4px;
   cursor: pointer;
   user-select: none;
-  font-size: 11px;
+  font-size: 13px;
 }
 .pp-subdomain-item input[type="checkbox"] {
   cursor: pointer;
@@ -438,7 +448,7 @@
   font-weight: 700;
 }
 .pp-subdomain-owned-badge {
-  font-size: 9px;
+  font-size: 11px;
   background: #e8f5e9;
   border: 1px solid #2e7d32;
   color: #1b5e20;
@@ -462,7 +472,7 @@
   min-width: 160px;
 }
 .pp-rec-label {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -471,7 +481,7 @@
   margin-bottom: 2px;
 }
 .pp-rec-name {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
 }
@@ -482,7 +492,7 @@
   line-height: 1.3;
 }
 .pp-rec-price-sub {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--w97-text-secondary, #555);
 }
@@ -495,7 +505,7 @@
   margin-bottom: 8px;
 }
 .pp-visibility-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: #1b5e20;
   margin-bottom: 4px;
@@ -504,7 +514,7 @@
   gap: 4px;
 }
 .pp-visibility-domain {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--w97-text-secondary, #555);
   text-transform: uppercase;
@@ -518,7 +528,7 @@
   margin-top: 2px;
 }
 .pp-visibility-sub {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   background: #e8f5e9;
   border: 1px solid #2e7d32;
@@ -532,10 +542,9 @@
   margin-bottom: 8px;
 }
 
-/* ── Footer note ─────────────────────────────────── */
 /* ── Step headers ──────────────────────────────────────────── */
 .pp-step-header {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
   text-transform: uppercase;
@@ -548,26 +557,12 @@
   gap: 8px;
 }
 .pp-step-hint {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--w97-text-secondary, #888);
   text-transform: none;
   letter-spacing: normal;
   font-style: italic;
-}
-
-/* Selectable package cards */
-.pp-pkg-card {
-  cursor: pointer;
-  transition: none;
-}
-.pp-pkg-card:hover {
-  border-color: var(--w97-navy, #235a81);
-}
-.pp-pkg-card-selected {
-  border: 2px solid var(--w97-navy, #235a81) !important;
-  background: #eaf0f9 !important;
-  box-shadow: inset 0 0 0 1px var(--w97-navy, #235a81);
 }
 
 /* ── Domain / Subdomain Map ───────────────────────────────── */
@@ -601,7 +596,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--w97-text, #000);
   text-transform: uppercase;
@@ -613,7 +608,7 @@
   color: #fff;
 }
 .pp-domain-check {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -630,7 +625,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 5px 8px;
-  font-size: 11px;
+  font-size: 13px;
   background: var(--w97-window, #fff);
   border-top: 1px solid var(--w97-btn-highlight, #fff);
   border-left: 1px solid var(--w97-btn-highlight, #fff);
@@ -666,7 +661,7 @@
   flex: 1;
 }
 .pp-sub-tile-badge {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   background: #2e7d32;
   color: #fff;
@@ -674,7 +669,7 @@
   letter-spacing: 0.04em;
 }
 .pp-sub-tile-check {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
   margin-left: 4px;
@@ -702,7 +697,7 @@
   flex-wrap: wrap;
 }
 .pp-purchase-pkg {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
 }
@@ -712,12 +707,12 @@
   color: var(--w97-navy, #235a81);
 }
 .pp-purchase-note {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--w97-text-secondary, #555);
 }
 
 .pp-footer {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #555);
   text-align: center;
   padding: 6px 8px;
@@ -728,8 +723,8 @@
 
 /* ── Buttons ─────────────────────────────────────── */
 .pp-btn {
-  height: 22px;
-  font-size: 11px;
+  height: 24px;
+  font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   border-top: 1px solid var(--w97-btn-highlight, #fff);
@@ -782,8 +777,8 @@
 
 .pp-btn-wide {
   min-width: 160px;
-  height: 24px;
-  font-size: 12px;
+  height: 26px;
+  font-size: 14px;
 }
 
 /* ── Confirm dialog (overlay inside the main pricing overlay) ── */
@@ -814,7 +809,7 @@
   );
   color: #fff;
   padding: 3px 6px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -830,7 +825,7 @@
   border-right: 1px solid var(--w97-btn-dark, #404040);
   border-bottom: 1px solid var(--w97-btn-dark, #404040);
   color: var(--w97-text, #000);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   width: 18px;
@@ -861,14 +856,14 @@
   padding: 7px 9px;
 }
 .pp-confirm-card-title {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #555);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
 }
 .pp-confirm-card-name {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
   margin: 1px 0 4px;
@@ -880,7 +875,7 @@
   line-height: 1.1;
 }
 .pp-confirm-card-price-note {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--w97-text-secondary, #555);
 }
@@ -898,7 +893,7 @@
   gap: 2px;
 }
 .pp-confirm-feature-list li {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #555);
   display: flex;
   align-items: flex-start;
@@ -916,7 +911,7 @@
   margin-top: 4px;
 }
 .pp-confirm-sub-pill {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 5px;
   border: 1px solid var(--w97-navy, #235a81);
@@ -924,7 +919,7 @@
   background: #f0f6ff;
 }
 .pp-confirm-notice {
-  font-size: 10px;
+  font-size: 12px;
   color: #1a3f60;
   background: #f0f6ff;
   border: 1px solid #235a81;
@@ -963,7 +958,7 @@
 }
 
 .pp-inline-confirm-heading {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
   letter-spacing: 0.03em;
@@ -975,4 +970,17 @@
   justify-content: flex-end;
   padding-top: 4px;
   border-top: 1px solid var(--w97-btn-shadow, #808080);
+}
+
+/* ── Responsive additions ─────────────────────────────────── */
+@media (max-width: 600px) {
+  .pp-confirm-window {
+    width: 98vw;
+  }
+  .pp-domain-map {
+    grid-template-columns: 1fr;
+  }
+  .pp-tabs {
+    overflow-x: auto;
+  }
 }

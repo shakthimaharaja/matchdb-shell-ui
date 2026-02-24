@@ -1,0 +1,270 @@
+/* ===== WelcomePage — W97-native DB Terminal ===== */
+
+/* Full-height wrapper — fills .legacy-shell-content exactly like pub-landing */
+.wlc-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Verdana, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--w97-text);
+}
+
+/* ── W97 raised window panel ── */
+.wlc-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-top: 2px solid var(--w97-btn-highlight, #fff);
+  border-left: 2px solid var(--w97-btn-highlight, #fff);
+  border-right: 2px solid var(--w97-btn-dark, #404040);
+  border-bottom: 2px solid var(--w97-btn-dark, #404040);
+  background: var(--w97-window);
+}
+
+/* ── Titlebar ── */
+.wlc-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  background: linear-gradient(
+    to right,
+    var(--w97-titlebar-from, #235a81),
+    var(--w97-titlebar-to, #1a4565)
+  );
+  flex-shrink: 0;
+}
+
+.wlc-titlebar-icon {
+  font-size: 14px;
+}
+
+.wlc-titlebar-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--w97-titlebar-text, #fff);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.2px;
+}
+
+.wlc-titlebar-meta {
+  font-size: 12px;
+  color: var(--w97-titlebar-text, #fff);
+  opacity: 0.75;
+  margin-right: 4px;
+}
+
+/* ── Menu bar ── */
+.wlc-menubar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--w97-btn-face, #e5e5e5);
+  border-bottom: 1px solid var(--w97-btn-shadow, #aaa);
+  border-top: 1px solid var(--w97-btn-highlight, #fff);
+  padding: 1px 4px;
+  flex-shrink: 0;
+}
+
+.wlc-menu-item {
+  padding: 1px 8px;
+  font-size: 13px;
+  cursor: default;
+  color: var(--w97-text);
+  user-select: none;
+}
+
+.wlc-menu-item:hover {
+  background: var(--w97-sidebar-active, #235a81);
+  color: var(--w97-titlebar-text, #fff);
+}
+
+.wlc-menu-item.active {
+  color: var(--w97-green, #2e7d32);
+  font-weight: bold;
+}
+
+/* ── Body area (contains the terminal) ── */
+.wlc-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 6px;
+  background: var(--w97-window, #fff);
+  gap: 6px;
+}
+
+/* ── Terminal output — sunken inset ── */
+.wlc-term {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 10px;
+  background: var(--w97-input-bg, #fff);
+  /* Sunken W97 border */
+  border-top: 1px solid var(--w97-btn-shadow, #aaa);
+  border-left: 1px solid var(--w97-btn-shadow, #aaa);
+  border-right: 1px solid var(--w97-btn-highlight, #fff);
+  border-bottom: 1px solid var(--w97-btn-highlight, #fff);
+  box-shadow: inset 1px 1px 0 var(--w97-btn-dark, #888);
+}
+
+/* Scrollbar matching the shell */
+.wlc-term::-webkit-scrollbar { width: 16px; }
+.wlc-term::-webkit-scrollbar-track { background: var(--w97-scrollbar-track, #f0f0f0); }
+.wlc-term::-webkit-scrollbar-thumb {
+  background: var(--w97-btn-face, #e5e5e5);
+  border-top: 1px solid var(--w97-btn-highlight, #fff);
+  border-left: 1px solid var(--w97-btn-highlight, #fff);
+  border-right: 1px solid var(--w97-btn-dark, #888);
+  border-bottom: 1px solid var(--w97-btn-dark, #888);
+}
+
+/* ── Individual terminal lines ── */
+.wlc-line {
+  font-family: "Lucida Console", "Courier New", Courier, monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre;
+  color: var(--w97-text);
+}
+
+.wlc-line-cmd  { color: var(--w97-navy, #235a81); font-weight: bold; }
+.wlc-line-ok   { color: var(--w97-text-secondary, #555); }
+.wlc-line-tbl  { color: var(--w97-btn-shadow, #777); }
+.wlc-line-live { color: var(--w97-green, #2e7d32); font-weight: bold; }
+.wlc-line-res  { color: var(--w97-navy, #235a81); font-style: italic; }
+
+.wlc-cursor {
+  display: inline-block;
+  color: var(--w97-orange, #e8850f);
+  animation: wlc-blink 1.05s step-end infinite;
+}
+@keyframes wlc-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── CTA section (appears after typewriter) ── */
+.wlc-cta {
+  flex-shrink: 0;
+  border-top: 2px solid var(--w97-btn-shadow, #aaa);
+  border-top-color: var(--w97-btn-highlight, #fff);
+  border-bottom: 1px solid var(--w97-btn-shadow, #aaa);
+  background: var(--w97-btn-face, #e5e5e5);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.wlc-cta-text {
+  flex: 1;
+  min-width: 160px;
+}
+
+.wlc-cta-headline {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--w97-navy, #235a81);
+  margin-bottom: 1px;
+}
+
+.wlc-cta-sub {
+  font-size: 12px;
+  color: var(--w97-text-secondary, #555);
+}
+
+.wlc-cta-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* W97-style raised button */
+.wlc-btn {
+  padding: 3px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--w97-btn-face, #e5e5e5);
+  color: var(--w97-text, #000);
+  border-top: 2px solid var(--w97-btn-highlight, #fff);
+  border-left: 2px solid var(--w97-btn-highlight, #fff);
+  border-right: 2px solid var(--w97-btn-dark, #404040);
+  border-bottom: 2px solid var(--w97-btn-dark, #404040);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.wlc-btn:active {
+  border-top-color: var(--w97-btn-dark, #404040);
+  border-left-color: var(--w97-btn-dark, #404040);
+  border-right-color: var(--w97-btn-highlight, #fff);
+  border-bottom-color: var(--w97-btn-highlight, #fff);
+}
+
+/* Primary btn — blue fill, dotted focus ring */
+.wlc-btn-primary {
+  background: var(--w97-sidebar-active, #235a81);
+  color: var(--w97-titlebar-text, #fff);
+  font-weight: bold;
+  outline: 1px dotted #fff;
+  outline-offset: -4px;
+}
+.wlc-btn-primary:active {
+  background: var(--w97-titlebar-to, #1a4565);
+}
+
+/* ── Status bar ── */
+.wlc-statusbar {
+  display: flex;
+  justify-content: space-between;
+  background: var(--w97-status-bg, #e5e5e5);
+  border-top: 1px solid var(--w97-btn-shadow, #aaa);
+  padding: 2px 0;
+  flex-shrink: 0;
+}
+
+.wlc-statusbar span {
+  padding: 1px 8px;
+  font-size: 12px;
+  color: var(--w97-text);
+  border-top: 1px solid var(--w97-btn-shadow, #aaa);
+  border-left: 1px solid var(--w97-btn-shadow, #aaa);
+  border-right: 1px solid var(--w97-btn-highlight, #fff);
+  border-bottom: 1px solid var(--w97-btn-highlight, #fff);
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .wlc-btn-primary {
+  background: var(--w97-sidebar-active, #2a5a80);
+  outline-color: var(--w97-titlebar-text, #d0e0f0);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .wlc-window {
+    width: 96vw;
+  }
+  .wlc-cta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .wlc-cta-btns {
+    width: 100%;
+    flex-direction: column;
+  }
+  .wlc-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

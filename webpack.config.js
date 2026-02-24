@@ -5,19 +5,28 @@ const path = require("path");
 const deps = require("./package.json").dependencies;
 
 module.exports = (env = {}) => {
-  const envName = env.production ? "production" : env.qa ? "qa" : "development";
+  const envName = env.production
+    ? "production"
+    : env.qa
+      ? "qa"
+      : env.development
+        ? "development"
+        : "local";
   const envFile = path.resolve(__dirname, `env/.env.${envName}`);
 
+  const isDev = envName === "local" || envName === "development";
+
   const jobsUiUrls = {
+    local: "http://localhost:3001",
     development: "http://localhost:3001",
     qa: "https://jobs-ui.qa.matchdb.com",
-    production: "http://matchingdb.com:3001",
+    production: "https://matchingdb.com/jobs-remote",
   };
 
   return {
     entry: "./src/index.ts",
-    mode: envName === "development" ? "development" : "production",
-    devtool: envName === "development" ? "inline-source-map" : false,
+    mode: isDev ? "development" : "production",
+    devtool: isDev ? "inline-source-map" : false,
     output: {
       publicPath: "auto",
       filename: "[name].[contenthash].js",

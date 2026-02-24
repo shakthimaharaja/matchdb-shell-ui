@@ -10,7 +10,7 @@
   justify-content: center;
   font-family:
     "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Verdana, Arial, sans-serif;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .login-modal-container {
@@ -38,7 +38,7 @@
   );
   color: var(--w97-titlebar-text, #ffffff);
   padding: 3px 4px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .login-modal-context {
-  font-size: 10px;
+  font-size: 12px;
   opacity: 0.8;
   font-weight: normal;
 }
@@ -60,7 +60,7 @@
   border-right: 1px solid var(--w97-btn-dark, #404040);
   border-bottom: 1px solid var(--w97-btn-dark, #404040);
   color: var(--w97-text, #000);
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
   padding: 0 4px;
   line-height: 1;
@@ -89,7 +89,7 @@
   padding: 4px 0;
   background: var(--w97-btn-face, #c0c0c0);
   color: var(--w97-text, #000);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: normal;
   cursor: pointer;
   text-align: center;
@@ -143,7 +143,7 @@
 }
 
 .login-modal-field label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: normal;
   color: var(--w97-text, #000);
 }
@@ -158,9 +158,9 @@
   border-right: 1px solid var(--w97-btn-highlight, #fff) !important;
   border-bottom: 1px solid var(--w97-btn-highlight, #fff) !important;
   background: var(--w97-input-bg, #fff) !important;
-  font-size: 11px !important;
+  font-size: 13px !important;
   padding: 3px 4px !important;
-  height: 22px !important;
+  height: 24px !important;
   box-shadow: none !important;
   color: var(--w97-text, #000) !important;
   font-family: inherit !important;
@@ -177,9 +177,9 @@
   border-right: 1px solid var(--w97-btn-highlight, #fff);
   border-bottom: 1px solid var(--w97-btn-highlight, #fff);
   background: var(--w97-input-bg, #fff);
-  font-size: 11px;
+  font-size: 13px;
   padding: 2px 4px;
-  height: 22px;
+  height: 24px;
   font-family: inherit;
   color: var(--w97-text, #000);
   border-radius: 0;
@@ -187,7 +187,7 @@
 
 .login-modal-error.p-message {
   border-radius: 0 !important;
-  font-size: 11px;
+  font-size: 13px;
   margin: 0;
   padding: 4px 8px;
   background: #fff0f0 !important;
@@ -204,12 +204,12 @@
   border-right: 2px solid var(--w97-btn-dark, #404040) !important;
   border-bottom: 2px solid var(--w97-btn-dark, #404040) !important;
   box-shadow: none !important;
-  height: 26px;
+  height: 28px;
   margin-top: 4px;
   font-family: inherit !important;
 }
 .login-modal-submit.p-button .p-button-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
 }
 .login-modal-submit.p-button:not(:disabled):hover {
@@ -225,7 +225,7 @@
 /* ===== SMALL HINT TEXT ===== */
 .lm-hint {
   font-weight: normal;
-  font-size: 9px;
+  font-size: 11px;
   color: var(--w97-text-secondary, #666);
 }
 
@@ -239,14 +239,14 @@
 }
 
 .lm-vendor-info-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
   color: var(--w97-navy, #235a81);
   margin-bottom: 3px;
 }
 
 .lm-vendor-info-desc {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #555);
   line-height: 1.4;
 }
@@ -262,7 +262,7 @@
   border-right: 2px solid var(--w97-btn-dark, #404040) !important;
   border-bottom: 2px solid var(--w97-btn-dark, #404040) !important;
   height: 28px;
-  font-size: 11px !important;
+  font-size: 13px !important;
   font-family: inherit !important;
   margin: 2px 0;
   display: flex;
@@ -278,7 +278,7 @@
 
 .lm-google-btn.p-button .p-button-icon {
   color: #4285F4;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .lm-oauth-divider {
@@ -286,7 +286,7 @@
   align-items: center;
   gap: 8px;
   margin: 6px 0;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #666);
 }
 
@@ -309,7 +309,7 @@
 }
 
 .lm-membership-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
   margin-bottom: 6px;
@@ -319,7 +319,7 @@
 
 .lm-membership-note {
   font-weight: 400;
-  font-size: 9px;
+  font-size: 11px;
   color: var(--w97-text-secondary, #666);
   margin-left: 6px;
 }
@@ -333,7 +333,7 @@
   align-items: center;
   gap: 5px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 13px;
   user-select: none;
 }
 
@@ -351,7 +351,7 @@
 }
 
 .lm-sub-hint {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--w97-text-secondary, #666);
   margin-bottom: 4px;
   font-style: italic;
@@ -368,12 +368,12 @@
   padding: 4px 8px;
   background: #e6f0fa;
   border: 1px solid #9ab5d0;
-  font-size: 10px;
+  font-size: 12px;
   color: #1a3a5c;
 }
 
 .lm-membership-required {
-  font-size: 10px;
+  font-size: 12px;
   color: #bb3333;
   margin-top: 4px;
   text-align: center;
@@ -394,14 +394,14 @@
 }
 
 .lm-upgrade-title {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--w97-navy, #235a81);
   margin: 0 0 10px;
 }
 
 .lm-upgrade-desc {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--w97-text-secondary, #444);
   line-height: 1.55;
   max-width: 320px;
@@ -412,14 +412,14 @@
   width: 100%;
   max-width: 300px;
   margin-bottom: 10px;
-  font-size: 11px !important;
+  font-size: 13px !important;
 }
 
 .lm-upgrade-skip {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--w97-text-secondary, #666);
   text-decoration: underline;
   padding: 0;
@@ -428,4 +428,19 @@
 
 .lm-upgrade-skip:hover {
   color: var(--w97-navy, #235a81);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .login-modal-container {
+    width: 98vw;
+    max-height: 95vh;
+  }
+  .login-modal-overlay {
+    align-items: flex-start;
+    padding-top: 16px;
+  }
+  .login-modal-row2 {
+    flex-direction: column;
+  }
 }
