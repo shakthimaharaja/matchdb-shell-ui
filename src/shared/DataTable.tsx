@@ -64,11 +64,11 @@ export interface DataTableProps {
 
 // ── Internal: Padding rows ────────────────────────────────────────────────────
 
-const PadRows: React.FC<{ dataLen: number; cols: number; rowCount: number }> = ({
-  dataLen,
-  cols,
-  rowCount,
-}) => {
+const PadRows: React.FC<{
+  dataLen: number;
+  cols: number;
+  rowCount: number;
+}> = ({ dataLen, cols, rowCount }) => {
   const remaining = rowCount - dataLen;
   if (remaining <= 0) return null;
   return (
@@ -177,7 +177,11 @@ const DataTable: React.FC<DataTableProps> = ({
                   </tr>
                 );
               })}
-              <PadRows dataLen={data.length} cols={totalCols} rowCount={rowCount} />
+              <PadRows
+                dataLen={data.length}
+                cols={totalCols}
+                rowCount={rowCount}
+              />
             </tbody>
           </table>
         )}
