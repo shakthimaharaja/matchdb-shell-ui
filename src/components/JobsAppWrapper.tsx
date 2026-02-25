@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store";
 import { expireSession, refreshAuthToken } from "../store/authSlice";
 import axios from "axios";
+import PublicJobsView from "./PublicJobsView";
 
 // Dynamically load the remote Jobs MFE via Module Federation
 const JobsApp = lazy(() => import("matchdbJobs/JobsApp"));
@@ -96,6 +97,17 @@ const JobsAppWrapper: React.FC = () => {
 
     verifyToken();
   }, [token]);
+
+  // Pre-login: render public live data tables directly in shell (no MFE load).
+  // The flex wrapper ensures pub-landing fills legacy-shell-content correctly
+  // on both initial navigation and hard page reloads.
+  if (!token) {
+    return (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
+        <PublicJobsView />
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>

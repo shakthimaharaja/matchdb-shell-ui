@@ -125,6 +125,12 @@
   flex: 1;
 }
 
+.legacy-shell-header-auth {
+  display: flex;
+  gap: 6px;
+  margin-left: 8px;
+}
+
 .legacy-shell-plan.p-tag {
   border-radius: 0 !important;
   background: var(--w97-green) !important;
@@ -135,11 +141,203 @@
   padding: 1px 6px;
 }
 
+.legacy-shell-user-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .legacy-shell-user {
   display: flex;
   align-items: center;
   gap: 4px;
   color: var(--w97-titlebar-text);
+  padding: 2px 4px;
+  border-top: 1px solid transparent;
+  border-left: 1px solid transparent;
+  border-right: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+}
+.legacy-shell-user:hover {
+  border-top-color: var(--w97-btn-highlight, #fff);
+  border-left-color: var(--w97-btn-highlight, #fff);
+  border-right-color: var(--w97-btn-dark, #404040);
+  border-bottom-color: var(--w97-btn-dark, #404040);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.legacy-shell-user-caret {
+  font-size: 9px;
+  opacity: 0.7;
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Account details dropdown panel ────────────────────────────────── */
+.shell-account-panel {
+  position: absolute;
+  top: calc(100% + 2px);
+  right: 0;
+  width: 240px;
+  background: var(--w97-window, #c0c0c0);
+  border-top: 2px solid var(--w97-btn-highlight, #fff);
+  border-left: 2px solid var(--w97-btn-highlight, #fff);
+  border-right: 2px solid var(--w97-btn-dark, #404040);
+  border-bottom: 2px solid var(--w97-btn-dark, #404040);
+  z-index: 2000;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.45);
+  font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, sans-serif;
+}
+
+.shell-account-panel-title {
+  background: linear-gradient(
+    to right,
+    var(--w97-titlebar-from, #235a81),
+    var(--w97-titlebar-to, #1a4565)
+  );
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+
+.shell-account-panel-close {
+  margin-left: auto;
+  background: var(--w97-btn-face, #c0c0c0);
+  color: var(--w97-text, #000);
+  border-top: 1px solid var(--w97-btn-highlight, #fff);
+  border-left: 1px solid var(--w97-btn-highlight, #fff);
+  border-right: 1px solid var(--w97-btn-dark, #404040);
+  border-bottom: 1px solid var(--w97-btn-dark, #404040);
+  width: 16px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0;
+  font-weight: 700;
+  line-height: 1;
+}
+.shell-account-panel-close:hover {
+  background: #d4d4d4;
+}
+.shell-account-panel-close:active {
+  border-top-color: var(--w97-btn-dark, #404040);
+  border-left-color: var(--w97-btn-dark, #404040);
+  border-right-color: var(--w97-btn-highlight, #fff);
+  border-bottom-color: var(--w97-btn-highlight, #fff);
+}
+
+.shell-account-panel-body {
+  padding: 2px 0;
+}
+
+.shell-account-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--w97-border-light, #d4d0c8);
+}
+.shell-account-row:last-child {
+  border-bottom: none;
+}
+
+.shell-account-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--w97-text-secondary, #4e4e4e);
+  width: 72px;
+  flex-shrink: 0;
+  letter-spacing: 0.1px;
+}
+
+.shell-account-value {
+  font-size: 12px;
+  color: var(--w97-text, #000);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  font-weight: 500;
+}
+
+.shell-account-plan {
+  font-weight: 700;
+  color: var(--w97-green, #2e7d32);
+  letter-spacing: 0.3px;
+}
+
+.shell-account-panel-footer {
+  border-top: 1px solid var(--w97-btn-shadow, #808080);
+  padding: 3px 6px;
+  background: var(--w97-window, #c0c0c0);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.shell-account-panel-signout {
+  height: 22px;
+  font-size: 12px;
+  font-weight: 700;
+  border-top: 1px solid var(--w97-btn-highlight, #fff);
+  border-left: 1px solid var(--w97-btn-highlight, #fff);
+  border-right: 1px solid var(--w97-btn-dark, #404040);
+  border-bottom: 1px solid var(--w97-btn-dark, #404040);
+  background: var(--w97-btn-face, #c0c0c0);
+  color: var(--w97-text, #000);
+  padding: 0 10px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.shell-account-panel-signout:hover {
+  background: #d4d4d4;
+}
+.shell-account-panel-signout:active {
+  border-top-color: var(--w97-btn-dark, #404040);
+  border-left-color: var(--w97-btn-dark, #404040);
+  border-right-color: var(--w97-btn-highlight, #fff);
+  border-bottom-color: var(--w97-btn-highlight, #fff);
+}
+
+/* Dark mode — account panel */
+.legacy-shell-root.dark .shell-account-panel {
+  background: #2a2a2a;
+  border-color: #555 #333 #333 #555;
+}
+.legacy-shell-root.dark .shell-account-row {
+  border-bottom-color: #3a3a3a;
+}
+.legacy-shell-root.dark .shell-account-label {
+  color: #888;
+}
+.legacy-shell-root.dark .shell-account-value {
+  color: #ddd;
+}
+.legacy-shell-root.dark .shell-account-plan {
+  color: #6f6;
+}
+.legacy-shell-root.dark .shell-account-panel-footer {
+  background: #2a2a2a;
+  border-top-color: #555;
+}
+.legacy-shell-root.dark .shell-account-panel-signout {
+  background: #444;
+  color: #ddd;
+  border-color: #666 #222 #222 #666;
+}
+.legacy-shell-root.dark .shell-account-panel-close {
+  background: #444;
+  color: #ddd;
+  border-color: #666 #222 #222 #666;
 }
 
 .legacy-shell-avatar.p-avatar {
@@ -184,8 +382,8 @@
 .legacy-shell-sidebar {
   background: var(--w97-sidebar-bg);
   border-right: 1px solid var(--w97-btn-dark);
-  overflow: hidden;
   overflow-x: hidden;
+  overflow-y: auto;
   transition: width 0.2s ease;
   /* Sunken inner border */
   box-shadow: inset -1px 0 0 var(--w97-btn-highlight);
@@ -278,7 +476,8 @@
     var(--rosette-primary) 0deg 10deg,
     var(--rosette-dark) 10deg 20deg
   );
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35),
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.35),
     inset 0 0 3px rgba(255, 255, 255, 0.15);
 }
 
@@ -295,7 +494,8 @@
     var(--rosette-face)
   );
   border: 1.5px solid var(--rosette-trim);
-  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.55),
+  box-shadow:
+    inset 0 1px 3px rgba(255, 255, 255, 0.55),
     0 0 0 1.5px rgba(255, 255, 255, 0.15);
 }
 
@@ -384,11 +584,13 @@
 
 /* ---- Dark-mode softening ---- */
 .legacy-shell-root.dark .rosette-body {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6),
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.6),
     inset 0 0 2px rgba(255, 255, 255, 0.08);
 }
 .legacy-shell-root.dark .rosette-body::before {
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25),
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.25),
     0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
@@ -688,8 +890,11 @@
 /* ===== CONTENT ===== */
 .legacy-shell-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--w97-content-bg);
   padding: 0;
   /* Sunken border */
@@ -747,7 +952,7 @@
     padding: 6px 4px;
     justify-content: center;
     gap: 0;
-    font-size: 0;           /* hide text, show icon only */
+    font-size: 0; /* hide text, show icon only */
     border-left-width: 2px;
   }
   .legacy-shell-nav-item .legacy-shell-nav-icon {

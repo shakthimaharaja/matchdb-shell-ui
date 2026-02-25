@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
@@ -66,7 +72,7 @@ interface NavItem {
 const MFE_NAV: NavItem[] = [
   {
     id: "jobs",
-    label: "Jobs",
+    label: "Jobs Database",
     icon: "pi pi-briefcase",
     path: "/jobs",
     section: "MARKETPLACE",
@@ -206,13 +212,14 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [subNavGroups, setSubNavGroups] = useState<SubNavGroup[]>([]);
   const [mfeBreadcrumb, setMfeBreadcrumb] = useState<string[]>([]);
+  const [footerInfo, setFooterInfo] = useState("");
   const [activeJobType, setActiveJobType] = useState<string>("");
   /** null = no sub-item selected (user is on /jobs or elsewhere) */
   const loginTypeFromPath = location.pathname.startsWith("/jobs/vendor")
     ? "vendor"
     : location.pathname.startsWith("/jobs/candidate")
-    ? "candidate"
-    : null;
+      ? "candidate"
+      : null;
   const [activeLoginType, setActiveLoginType] = useState<
     "candidate" | "vendor" | null
   >(loginTypeFromPath);
@@ -311,14 +318,30 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   useEffect(() => {
     window.addEventListener("matchdb:subnav", handleSubNav);
     window.addEventListener("matchdb:breadcrumb", handleBreadcrumb);
+    const handleFooterInfo = (e: Event) => {
+      const text = (e as CustomEvent).detail?.text || "";
+      setFooterInfo(text);
+    };
+    window.addEventListener("matchdb:footerInfo", handleFooterInfo);
     return () => {
       window.removeEventListener("matchdb:subnav", handleSubNav);
       window.removeEventListener("matchdb:breadcrumb", handleBreadcrumb);
+      window.removeEventListener("matchdb:footerInfo", handleFooterInfo);
     };
   }, [handleSubNav, handleBreadcrumb]);
 
-  /* Nav = all 10 MFEs always visible */
-  const navItems = MFE_NAV;
+  /* Nav = all 10 MFEs always visible; override 'Jobs Database' label per user type */
+  const jobsLabel =
+    user?.user_type === "vendor"
+      ? "Candidate Database"
+      : user?.user_type === "candidate"
+        ? "Job Openings Database"
+        : "Jobs Database";
+  const navItems = useMemo(
+    () =>
+      MFE_NAV.map((n) => (n.id === "jobs" ? { ...n, label: jobsLabel } : n)),
+    [jobsLabel],
+  );
 
   const [tzCity, setTzCity] = useState(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -376,10 +399,57 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
   /* Derive country + flag from location string (e.g. "Indianapolis, IN" → "🇺🇸 United States") */
   const US_STATES = new Set([
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
-    "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
-    "VA","WA","WV","WI","WY","DC",
+    "AL",
+    "AK",
+    "AZ",
+    "AR",
+    "CA",
+    "CO",
+    "CT",
+    "DE",
+    "FL",
+    "GA",
+    "HI",
+    "ID",
+    "IL",
+    "IN",
+    "IA",
+    "KS",
+    "KY",
+    "LA",
+    "ME",
+    "MD",
+    "MA",
+    "MI",
+    "MN",
+    "MS",
+    "MO",
+    "MT",
+    "NE",
+    "NV",
+    "NH",
+    "NJ",
+    "NM",
+    "NY",
+    "NC",
+    "ND",
+    "OH",
+    "OK",
+    "OR",
+    "PA",
+    "RI",
+    "SC",
+    "SD",
+    "TN",
+    "TX",
+    "UT",
+    "VT",
+    "VA",
+    "WA",
+    "WV",
+    "WI",
+    "WY",
+    "DC",
   ]);
   const profileCountry = useMemo(() => {
     if (!profileLocation) return "";
@@ -422,12 +492,31 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     const days = Math.floor(diffMs / 86400000);
     let label: string;
     let color: "green" | "yellow" | "orange" | "red";
-    if (days < 30) { label = `${days}d`; color = "green"; }
-    else if (days < 90) { const m = Math.floor(days / 30); label = `${m}mo`; color = "green"; }
-    else if (days < 180) { const m = Math.floor(days / 30); label = `${m}mo`; color = "yellow"; }
-    else if (days < 365) { const m = Math.floor(days / 30); label = `${m}mo`; color = "orange"; }
-    else { const y = Math.floor(days / 365); label = `${y}yr`; color = "red"; }
-    return { label, color, tooltip: `Account created ${created.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` };
+    if (days < 30) {
+      label = `${days}d`;
+      color = "green";
+    } else if (days < 90) {
+      const m = Math.floor(days / 30);
+      label = `${m}mo`;
+      color = "green";
+    } else if (days < 180) {
+      const m = Math.floor(days / 30);
+      label = `${m}mo`;
+      color = "yellow";
+    } else if (days < 365) {
+      const m = Math.floor(days / 30);
+      label = `${m}mo`;
+      color = "orange";
+    } else {
+      const y = Math.floor(days / 365);
+      label = `${y}yr`;
+      color = "red";
+    }
+    return {
+      label,
+      color,
+      tooltip: `Account created ${created.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+    };
   }, [user?.created_at]);
 
   const profileFreshBadge = useMemo(() => {
@@ -438,12 +527,45 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     const days = Math.floor(diffMs / 86400000);
     let label: string;
     let color: "green" | "yellow" | "orange" | "red";
-    if (days < 7) { label = "Fresh"; color = "green"; }
-    else if (days < 30) { label = `${days}d ago`; color = "yellow"; }
-    else if (days < 90) { const m = Math.floor(days / 30); label = `${m}mo ago`; color = "orange"; }
-    else { const m = Math.floor(days / 30); label = m < 12 ? `${m}mo ago` : `${Math.floor(days / 365)}yr ago`; color = "red"; }
-    return { label, color, tooltip: `Profile updated ${updated.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` };
+    if (days < 7) {
+      label = "Fresh";
+      color = "green";
+    } else if (days < 30) {
+      label = `${days}d ago`;
+      color = "yellow";
+    } else if (days < 90) {
+      const m = Math.floor(days / 30);
+      label = `${m}mo ago`;
+      color = "orange";
+    } else {
+      const m = Math.floor(days / 30);
+      label = m < 12 ? `${m}mo ago` : `${Math.floor(days / 365)}yr ago`;
+      color = "red";
+    }
+    return {
+      label,
+      color,
+      tooltip: `Profile updated ${updated.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+    };
   }, [user?.updated_at]);
+
+  /* ── Account details panel ── */
+  const [showAccountPanel, setShowAccountPanel] = useState(false);
+  const accountPanelContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showAccountPanel) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        accountPanelContainerRef.current &&
+        !accountPanelContainerRef.current.contains(e.target as Node)
+      ) {
+        setShowAccountPanel(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAccountPanel]);
 
   const isWelcome = location.pathname === "/";
 
@@ -553,7 +675,20 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
         {/* Location / Date / Time — single line in header */}
         <span className="legacy-shell-date-inline">
-          🇺🇸 {tzCity}{tzAbbr ? ` (${tzAbbr})` : ""} &middot; {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+          🇺🇸 {tzCity}
+          {tzAbbr ? ` (${tzAbbr})` : ""} &middot;{" "}
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
+          {isLoggedIn && user?.user_type && (
+            <span style={{ color: "#e8850f", fontWeight: 700, marginLeft: 6 }}>
+              · Logged in as{" "}
+              {user.user_type === "vendor" ? "Vendor" : "Candidate"}
+            </span>
+          )}
         </span>
 
         <div className="legacy-shell-header-fill" />
@@ -570,28 +705,167 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           tooltipOptions={{ position: "bottom" }}
         />
 
+        {!isLoggedIn && (
+          <div className="legacy-shell-header-auth">
+            <Button
+              type="button"
+              icon="pi pi-sign-in"
+              label="Sign In"
+              className="legacy-shell-signout"
+              onClick={() => openLogin("candidate", "login")}
+              tooltip="Sign in to your account"
+              tooltipOptions={{ position: "bottom" }}
+            />
+            <Button
+              type="button"
+              icon="pi pi-user-plus"
+              label="Sign Up"
+              className="legacy-shell-signout"
+              onClick={() => openLogin("candidate", "register")}
+              tooltip="Create a new account"
+              tooltipOptions={{ position: "bottom" }}
+            />
+          </div>
+        )}
+
         {isLoggedIn && (
           <>
             <Tag value={plan} className="legacy-shell-plan" />
-            <div className="legacy-shell-user">
-              <Avatar
-                label={initials}
-                shape="circle"
-                className="legacy-shell-avatar"
-              />
-              <div className="legacy-shell-user-text">
-                <div className="legacy-shell-user-name">{displayName}</div>
-                <div className="legacy-shell-user-type">
-                  {user?.user_type === "vendor" ? "Vendor" : "Candidate"}
+            {/* Clickable user area — opens account details panel */}
+            <div
+              className="legacy-shell-user-container"
+              ref={accountPanelContainerRef}
+            >
+              <div
+                className="legacy-shell-user"
+                style={{ cursor: "pointer" }}
+                onClick={() => setShowAccountPanel((p) => !p)}
+                title="Click to view account details"
+                role="button"
+                aria-expanded={showAccountPanel}
+                aria-haspopup="true"
+              >
+                <Avatar
+                  label={initials}
+                  shape="circle"
+                  className="legacy-shell-avatar"
+                />
+                <div className="legacy-shell-user-text">
+                  <div className="legacy-shell-user-name">{displayName}</div>
+                  <div className="legacy-shell-user-type">
+                    {user?.user_type === "vendor" ? "Vendor" : "Candidate"}
+                  </div>
                 </div>
+                <span className="legacy-shell-user-caret" aria-hidden="true">
+                  {showAccountPanel ? "▲" : "▼"}
+                </span>
               </div>
+
+              {/* W97-style account details dropdown */}
+              {showAccountPanel && (
+                <div
+                  className="shell-account-panel"
+                  role="dialog"
+                  aria-label="Account Details"
+                >
+                  <div className="shell-account-panel-title">
+                    <span>👤</span>
+                    <span>Account Details</span>
+                    <button
+                      className="shell-account-panel-close"
+                      onClick={() => setShowAccountPanel(false)}
+                      title="Close"
+                      aria-label="Close account details"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="shell-account-panel-body">
+                    <div className="shell-account-row">
+                      <span className="shell-account-label">Name</span>
+                      <span className="shell-account-value" title={displayName}>
+                        {displayName}
+                      </span>
+                    </div>
+                    <div className="shell-account-row">
+                      <span className="shell-account-label">Email</span>
+                      <span className="shell-account-value" title={user?.email}>
+                        {user?.email}
+                      </span>
+                    </div>
+                    {user?.username && (
+                      <div className="shell-account-row">
+                        <span className="shell-account-label">Username</span>
+                        <span className="shell-account-value">
+                          @{user.username}
+                        </span>
+                      </div>
+                    )}
+                    <div className="shell-account-row">
+                      <span className="shell-account-label">Type</span>
+                      <span className="shell-account-value">
+                        {user?.user_type === "vendor" ? "Vendor" : "Candidate"}
+                      </span>
+                    </div>
+                    <div className="shell-account-row">
+                      <span className="shell-account-label">Plan</span>
+                      <span className="shell-account-value shell-account-plan">
+                        {plan}
+                      </span>
+                    </div>
+                    {user?.created_at && (
+                      <div className="shell-account-row">
+                        <span className="shell-account-label">
+                          Member since
+                        </span>
+                        <span className="shell-account-value">
+                          {new Date(user.created_at).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            },
+                          )}
+                        </span>
+                      </div>
+                    )}
+                    {profileFreshBadge && (
+                      <div className="shell-account-row">
+                        <span className="shell-account-label">Updated</span>
+                        <span
+                          className="shell-account-value"
+                          title={profileFreshBadge.tooltip}
+                        >
+                          {profileFreshBadge.label}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="shell-account-panel-footer">
+                    <button
+                      className="shell-account-panel-signout"
+                      onClick={() => {
+                        setShowAccountPanel(false);
+                        dispatch(logout());
+                        navigate("/");
+                      }}
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <Button
               type="button"
               icon="pi pi-sign-out"
               label="Sign Out"
               className="legacy-shell-signout"
-              onClick={() => { dispatch(logout()); navigate("/"); }}
+              onClick={() => {
+                dispatch(logout());
+                navigate("/");
+              }}
               tooltip="Sign out"
               tooltipOptions={{ position: "bottom" }}
             />
@@ -626,7 +900,9 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                     title={accountAgeBadge.tooltip}
                   >
                     <div className="rosette-body">
-                      <span className="rosette-label">{accountAgeBadge.label}</span>
+                      <span className="rosette-label">
+                        {accountAgeBadge.label}
+                      </span>
                     </div>
                     <div className="rosette-tails" />
                   </div>
@@ -637,7 +913,9 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                     title={profileFreshBadge.tooltip}
                   >
                     <div className="rosette-body">
-                      <span className="rosette-label">{profileFreshBadge.label}</span>
+                      <span className="rosette-label">
+                        {profileFreshBadge.label}
+                      </span>
                     </div>
                     <div className="rosette-tails" />
                   </div>
@@ -667,7 +945,10 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                   <button
                     type="button"
                     className={`legacy-shell-nav-item${activeItem ? " active" : ""}`}
-                    onClick={() => { navigate(item.path); setActiveLoginType(null); }}
+                    onClick={() => {
+                      navigate(item.path);
+                      setActiveLoginType(null);
+                    }}
                     aria-current={activeItem ? "page" : undefined}
                     title={
                       collapsed
@@ -904,38 +1185,43 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
         </aside>
 
         <section className="legacy-shell-main" role="main">
-
           {/* Visible-in banner — above pagehead, sent from Jobs MFE */}
           {isLoggedIn && visibleInText && (
             <div className="legacy-shell-visible-in">
-              <i className="pi pi-eye" style={{ marginRight: 6, fontSize: 13 }} />
+              <i
+                className="pi pi-eye"
+                style={{ marginRight: 6, fontSize: 13 }}
+              />
               {visibleInText}
             </div>
           )}
 
           <div className="legacy-shell-pagehead">
             <div>
-              <h2>
-                {isWelcome ? "MatchDB" : (active?.label ?? "")}
-              </h2>
+              <h2>{isWelcome ? "MatchDB" : (active?.label ?? "")}</h2>
               {(!isLoggedIn || isWelcome) && (
-              <p>
-                {isWelcome
-                  ? "The data-driven marketplace"
-                  : "Browse job openings and candidate profiles"}
-              </p>
+                <p>
+                  {isWelcome
+                    ? "The data-driven marketplace"
+                    : "Browse job openings and candidate profiles"}
+                </p>
               )}
             </div>
             <div className="legacy-shell-pagehead-right">
               {isLoggedIn && (
                 <Button
                   type="button"
-                  label="Upgrade"
+                  label="Upgrade to Post More"
                   className="legacy-shell-signout"
                   onClick={() =>
                     window.dispatchEvent(
                       new CustomEvent("matchdb:openPricing", {
-                        detail: { tab: user?.user_type === "vendor" ? "vendor" : "candidate" },
+                        detail: {
+                          tab:
+                            user?.user_type === "vendor"
+                              ? "vendor"
+                              : "candidate",
+                        },
                       }),
                     )
                   }
@@ -944,19 +1230,35 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
               )}
               {!isLoggedIn && (
                 <div className="legacy-shell-pagehead-auth">
-                  <Button
-                    type="button"
-                    icon="pi pi-sign-in"
-                    label="Sign In"
-                    className="legacy-shell-signout"
-                    onClick={() => openLogin("candidate", "login")}
-                  />
+                  {loginTypeFromPath !== "vendor" && (
+                    <Button
+                      type="button"
+                      icon="pi pi-user"
+                      label="Candidate Login"
+                      className="legacy-shell-signout"
+                      onClick={() => openLogin("candidate", "login")}
+                    />
+                  )}
+                  {loginTypeFromPath !== "candidate" && (
+                    <Button
+                      type="button"
+                      icon="pi pi-building"
+                      label="Vendor Login"
+                      className="legacy-shell-signout"
+                      onClick={() => openLogin("vendor", "login")}
+                    />
+                  )}
                   <Button
                     type="button"
                     icon="pi pi-user-plus"
-                    label="Sign Up"
+                    label="Create Account"
                     className="legacy-shell-signout"
-                    onClick={() => openLogin("candidate", "register")}
+                    onClick={() =>
+                      openLogin(
+                        loginTypeFromPath === "vendor" ? "vendor" : "candidate",
+                        "register",
+                      )
+                    }
                   />
                 </div>
               )}
@@ -972,6 +1274,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
           <footer className="legacy-shell-footer">
             <span>&copy; 2026 MatchDB Corporation</span>
+            {footerInfo && <span>{footerInfo}</span>}
             <span>Build 97.2026.0213</span>
           </footer>
         </section>

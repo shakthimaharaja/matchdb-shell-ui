@@ -28,7 +28,7 @@ module.exports = (env = {}) => {
     mode: isDev ? "development" : "production",
     devtool: isDev ? "inline-source-map" : false,
     output: {
-      publicPath: "auto",
+      publicPath: "/",
       filename: "[name].[contenthash].js",
       path: path.resolve(__dirname, "dist"),
       clean: true,
