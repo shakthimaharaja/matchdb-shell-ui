@@ -218,146 +218,11 @@
   overflow: hidden;
 }
 
-/* ── MatchDataTable-style Panel ───────────────────────────────────── */
-/* Mirrors .matchdb-panel + .matchdb-panel-title from MatchDataTable.css */
-.matchdb-panel {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
+/* ── Panel / table base styles are in shared/DataTable.css ────────── */
 
-.matchdb-panel-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: linear-gradient(
-    to right,
-    var(--w97-titlebar-from, #235a81),
-    var(--w97-titlebar-to, #1a4565)
-  );
-  color: var(--w97-titlebar-text, #fff);
-  font-size: 13px;
-  font-weight: 800;
-  padding: 3px 8px;
-  flex-shrink: 0;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.3px;
-  font-family: "Courier New", monospace;
-}
-
-.matchdb-panel-title-icon {
-  font-size: 13px;
-}
-
-.matchdb-panel-title-text {
-  flex: 1;
-}
-
-.matchdb-panel-title-meta {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--w97-titlebar-text, #fff);
-  opacity: 0.85;
-  letter-spacing: 0.1px;
-  font-family: "MS Sans Serif", Tahoma, sans-serif;
-}
-
-/* ── Table wrap — no overflow ────────────────────────────────────── */
-.matchdb-table-wrap {
-  flex: 1;
-  overflow: hidden;
-  min-height: 0;
-  border-top: 1px solid var(--w97-btn-shadow, #808080);
-  border-left: 1px solid var(--w97-btn-shadow, #808080);
-}
-
-/* ── MatchDataTable-style table ───────────────────────────────────── */
-.matchdb-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-size: 12px;
-  font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, sans-serif;
-  line-height: 1.4;
-}
 /* Public landing tables fill the viewport; scoped to avoid leaking into MFE */
 .pub-landing .matchdb-table {
   height: 100%;
-}
-
-/* W97 3D raised header cells */
-.matchdb-table th {
-  background: var(--w97-btn-face, #c0c0c0);
-  color: var(--w97-text, #000);
-  border-top: 1px solid var(--w97-btn-highlight, #fff);
-  border-left: 1px solid var(--w97-btn-highlight, #fff);
-  border-right: 1px solid var(--w97-btn-dark, #404040);
-  border-bottom: 1px solid var(--w97-btn-dark, #404040);
-  padding: 2px 5px;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  cursor: default;
-  user-select: none;
-}
-
-.matchdb-table th:hover {
-  background: #d0d0d0;
-}
-
-/* W97 sunken data cells — all-sides border */
-.matchdb-table td {
-  border: 1px solid var(--w97-btn-shadow, #808080);
-  padding: 1px 5px;
-  vertical-align: middle;
-  color: var(--w97-text, #000);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-  line-height: 1.3;
-}
-
-/* Alternating row stripes */
-.matchdb-table tbody tr:nth-child(odd) {
-  background: var(--w97-input-bg, #fff);
-}
-.matchdb-table tbody tr:nth-child(even) {
-  background: var(--w97-sky, #f0f0f0);
-}
-
-/* Hover highlight */
-.matchdb-table tbody tr:hover {
-  background: #d6eaf8 !important;
-}
-.matchdb-table tbody tr:hover td {
-  color: #1a3a55;
-}
-.matchdb-table tbody tr:hover .pub-job-title,
-.matchdb-table tbody tr:hover .pub-skill-tag {
-  color: #1a3a55;
-}
-
-/* ── Skeleton loading rows ────────────────────────────────────────── */
-.matchdb-skeleton-row td {
-  padding: 6px 4px;
-  background: var(--w97-window, #c0c0c0);
-}
-.matchdb-skeleton-row:hover {
-  background: inherit !important;
-}
-.matchdb-skeleton-row:hover td {
-  color: inherit !important;
-  background: var(--w97-window, #c0c0c0) !important;
 }
 
 /* ── Footnote ─────────────────────────────────────────────────────── */
@@ -380,52 +245,12 @@
   color: var(--w97-btn-shadow, #808080);
 }
 
-/* ── Row-number header/cell ───────────────────────────────────────── */
-.pub-th-rn {
-  text-align: right !important;
-  padding: 2px 2px 2px 0 !important;
-  color: var(--w97-text-secondary, #808080) !important;
-  font-weight: 500 !important;
-  font-size: 10px !important;
-  width: 18px !important;
-  min-width: 18px !important;
-  max-width: 18px !important;
-}
-
-.pub-td-rn {
-  text-align: right;
-  font-size: 10px;
-  color: var(--w97-text-secondary, #808080);
-  padding: 0 2px 0 0 !important;
-  background: var(--w97-btn-face, #c0c0c0) !important;
-  border-right: 1px solid var(--w97-btn-shadow, #808080) !important;
-  border-top: 1px solid var(--w97-btn-shadow, #808080) !important;
-  border-left: 1px solid var(--w97-btn-shadow, #808080) !important;
-  border-bottom: 1px solid var(--w97-btn-shadow, #808080) !important;
-  user-select: none;
-  white-space: nowrap;
-  font-family: "Courier New", monospace;
-  width: 18px !important;
-  min-width: 18px !important;
-  max-width: 18px !important;
-}
+/* ── Row-number & empty-row styles are in shared/DataTable.css ────── */
 
 .pub-sort {
   font-size: 11px;
   opacity: 0.5;
   margin-left: 2px;
-}
-
-/* ── Empty padding rows (fills page to 25 rows) ───────────────────── */
-/* No explicit height — let table height:100% distribute space evenly */
-.pub-empty-row td {
-  padding: 1px 5px;
-  color: transparent;
-  user-select: none;
-}
-.pub-empty-row .pub-td-rn {
-  color: var(--w97-text-secondary, #808080);
-  opacity: 0.35;
 }
 
 /* ── Numeric / right-aligned ──────────────────────────────────────── */
@@ -696,76 +521,13 @@
   letter-spacing: 0.3px;
 }
 
-/* ── Row change flash animation (30-second poll) ─────────────────── */
-@keyframes pubRowFlash {
-  0% {
-    background-color: #ffd700;
-  }
-  30% {
-    background-color: #fff8c4;
-  }
-  100% {
-    background-color: transparent;
-  }
-}
+/* ── Row flash & table dark-mode overrides are in shared/DataTable.css ── */
 
-/* Flash data cells only — keep row-number column in its normal grey */
-.pub-row-flash td:not(.pub-td-rn) {
-  animation: pubRowFlash 2.5s ease-out;
-}
-
-/* Dark-mode flash */
-[data-theme="dark"] .pub-row-flash td:not(.pub-td-rn) {
-  animation: pubRowFlashDark 2.5s ease-out;
-}
-@keyframes pubRowFlashDark {
-  0% {
-    background-color: #665500;
-  }
-  30% {
-    background-color: #333300;
-  }
-  100% {
-    background-color: transparent;
-  }
-}
-
-/* ── Dark mode ────────────────────────────────────────────────────── */
-[data-theme="dark"] .matchdb-panel-title {
-  background: linear-gradient(to right, #1a3a55, #132d42);
-}
-[data-theme="dark"] .matchdb-table th {
-  background: #3a3a4a;
-  color: #d0e0f0;
-  border-color: #555 #222 #222 #555;
-}
-[data-theme="dark"] .matchdb-table td {
-  color: #ccc;
-  border-color: #444;
-}
-[data-theme="dark"] .matchdb-table tbody tr:nth-child(odd) {
-  background: #1e1e1e;
-}
-[data-theme="dark"] .matchdb-table tbody tr:nth-child(even) {
-  background: #262626;
-}
-[data-theme="dark"] .matchdb-table tbody tr:hover {
-  background: #2a4a6a !important;
-}
-[data-theme="dark"] .matchdb-table tbody tr:hover td {
-  color: #fff;
-}
+/* ── Dark mode — PublicJobsView-specific ──────────────────────────── */
 [data-theme="dark"] .matchdb-footnote {
   background: #333;
   color: #999;
   border-top-color: #555;
-}
-[data-theme="dark"] .matchdb-table-wrap {
-  border-color: #555;
-}
-[data-theme="dark"] .pub-td-rn {
-  background: #2a2a2a !important;
-  color: #666;
 }
 [data-theme="dark"] .pub-skill-tag {
   background: #333;

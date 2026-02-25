@@ -24,6 +24,8 @@ import React, {
 } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
+import { DataTable } from "../shared";
+import type { DataTableColumnDef } from "../shared";
 import "./PublicJobsView.css";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -816,26 +818,6 @@ const JOB_TYPE_MAP: Record<string, string> = {
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
 
-const PadRows: React.FC<{ dataLen: number; cols: number }> = ({
-  dataLen,
-  cols,
-}) => {
-  const remaining = PAGE_SIZE - dataLen;
-  if (remaining <= 0) return null;
-  return (
-    <>
-      {Array.from({ length: remaining }).map((_, i) => (
-        <tr key={`pad-${i}`} className="pub-empty-row" aria-hidden="true">
-          <td className="pub-td-rn">{dataLen + i + 1}</td>
-          {Array.from({ length: cols - 1 }).map((__, ci) => (
-            <td key={ci}>&nbsp;</td>
-          ))}
-        </tr>
-      ))}
-    </>
-  );
-};
-
 const MatchBar: React.FC<{ score: number }> = ({ score }) => (
   <span className="pub-fit-track">
     <span className="pub-fit-bar">
@@ -865,23 +847,27 @@ const LoginWarningBar: React.FC<{
     <span className="pub-login-warning-icon">⚠️</span>
     <span className="pub-login-warning-text">
       {message ||
-        "Without login you cannot contact recruiters or view important columns such as salary, skills, and match scores."}
+        "Without login you cannot contact recruiters or connect with candidates or view important columns such as salary, skills, and match scores."}
     </span>
-    {viewType && openPricing ? (
-      <span
-        className="pub-login-warning-cta"
-        onClick={openPricing}
-        style={{ cursor: "pointer" }}
-      >
-        {viewType === "vendor"
-          ? "View Vendor Plans & Pricing →"
-          : "View Candidate Plans & Pricing →"}
-      </span>
-    ) : (
-      <span className="pub-login-warning-cta">
-        Sign in to unlock full access →
-      </span>
-    )}
+    <span
+      className="pub-login-warning-cta"
+      onClick={
+        openPricing ||
+        (() =>
+          window.dispatchEvent(
+            new CustomEvent("matchdb:openPricing", {
+              detail: { tab: "vendor" },
+            }),
+          ))
+      }
+      style={{ cursor: "pointer" }}
+    >
+      {viewType === "vendor"
+        ? "View Vendor Plans & Pricing →"
+        : viewType === "candidate"
+          ? "View Candidate Plans & Pricing →"
+          : "See Prices and Plans →"}
+    </span>
   </div>
 );
 
@@ -1004,128 +990,6 @@ const StatusBar: React.FC<{
   </div>
 );
 
-// ── Column definition type ────────────────────────────────────────────────────
-
-interface ColumnDef {
-  key: string;
-  header: React.ReactNode;
-  colWidth?: string;
-  tdClass?: string;
-  render: (item: any, localIndex: number, absIndex: number) => React.ReactNode;
-  tooltip?: (item: any) => string;
-}
-
-// ── Shared data table — MatchDataTable style panel ────────────────────────────
-
-interface PubDataTableProps {
-  panelTitle: string;
-  panelIcon: string;
-  data: any[];
-  columns: ColumnDef[];
-  loading: boolean;
-  keyExtractor: (item: any) => string;
-  flashIds?: Set<string>;
-  rnColWidth?: string;
-}
-
-const PubDataTable: React.FC<PubDataTableProps> = ({
-  panelTitle,
-  panelIcon,
-  data,
-  columns,
-  loading,
-  keyExtractor,
-  flashIds,
-  rnColWidth = "3%",
-}) => {
-  const totalCols = columns.length + 1;
-
-  return (
-    <div className="matchdb-panel">
-      {/* Panel title bar — gradient, W97 style matching MatchDataTable */}
-      <div className="matchdb-panel-title">
-        <span className="matchdb-panel-title-icon">{panelIcon}</span>
-        <span className="matchdb-panel-title-text">{panelTitle}</span>
-        <span className="matchdb-panel-title-meta">
-          {loading ? "Loading..." : `${data.length} rows`}
-        </span>
-      </div>
-
-      {/* Table wrap — overflow hidden, no scroll */}
-      <div className="matchdb-table-wrap">
-        {loading ? (
-          <table className="matchdb-table" aria-busy="true">
-            <tbody>
-              {Array.from({ length: 8 }).map((_, ri) => (
-                <tr
-                  key={`sk-${ri}`}
-                  className="matchdb-skeleton-row"
-                  aria-hidden="true"
-                >
-                  {Array.from({ length: totalCols }).map((_, ci) => (
-                    <td key={ci}>
-                      <span
-                        className="w97-shimmer"
-                        style={{ width: ci === 0 ? 22 : 60 }}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <table className="matchdb-table">
-            <colgroup>
-              <col style={{ width: rnColWidth }} />
-              {columns.map((c) => (
-                <col
-                  key={c.key}
-                  style={c.colWidth ? { width: c.colWidth } : undefined}
-                />
-              ))}
-            </colgroup>
-            <thead>
-              <tr>
-                <th className="pub-th-rn" title="Row number">
-                  #
-                </th>
-                {columns.map((c) => (
-                  <th key={c.key}>{c.header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((item, i) => {
-                const itemKey = keyExtractor(item);
-                const isFlashing = flashIds?.has(itemKey) ?? false;
-                return (
-                  <tr
-                    key={itemKey}
-                    className={isFlashing ? "pub-row-flash" : undefined}
-                  >
-                    <td className="pub-td-rn">{i + 1}</td>
-                    {columns.map((c) => (
-                      <td
-                        key={c.key}
-                        className={c.tdClass}
-                        title={c.tooltip ? c.tooltip(item) : undefined}
-                      >
-                        {c.render(item, i, i)}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-              <PadRows dataLen={data.length} cols={totalCols} />
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // ── TwinView — /jobs ──────────────────────────────────────────────────────────
 
 interface TwinProps {
@@ -1195,7 +1059,7 @@ const TwinView: React.FC<TwinProps> = ({
   const pageJobs = jobsWithCandCount.slice(0, PAGE_SIZE);
   const pageProfiles = profilesWithFit.slice(0, PAGE_SIZE);
 
-  const twinJobColumns: ColumnDef[] = useMemo(
+  const twinJobColumns: DataTableColumnDef[] = useMemo(
     () => [
       {
         key: "title",
@@ -1276,7 +1140,7 @@ const TwinView: React.FC<TwinProps> = ({
     [],
   );
 
-  const twinProfileColumns: ColumnDef[] = useMemo(
+  const twinProfileColumns: DataTableColumnDef[] = useMemo(
     () => [
       {
         key: "name",
@@ -1365,10 +1229,19 @@ const TwinView: React.FC<TwinProps> = ({
           </span>
         </div>
 
-        <LoginWarningBar />
+        <LoginWarningBar
+          message="Without login you cannot contact recruiters or connect with candidates or view important columns such as salary, skills, and match scores."
+          openPricing={() =>
+            window.dispatchEvent(
+              new CustomEvent("matchdb:openPricing", {
+                detail: { tab: "vendor" },
+              }),
+            )
+          }
+        />
 
         <div className="pub-twin-panels">
-          <PubDataTable
+          <DataTable
             panelTitle="Job Openings"
             panelIcon="💼"
             data={pageJobs}
@@ -1377,8 +1250,9 @@ const TwinView: React.FC<TwinProps> = ({
             keyExtractor={(j: any) => j.id}
             flashIds={flashJobIds}
             rnColWidth="3%"
+            rowCount={PAGE_SIZE}
           />
-          <PubDataTable
+          <DataTable
             panelTitle="candidate_profiles"
             panelIcon="👥"
             data={pageProfiles}
@@ -1387,6 +1261,7 @@ const TwinView: React.FC<TwinProps> = ({
             keyExtractor={(p: any) => p.id}
             flashIds={flashProfileIds}
             rnColWidth="3%"
+            rowCount={PAGE_SIZE}
           />
         </div>
 
@@ -1454,7 +1329,7 @@ const CandView: React.FC<CandViewProps> = ({
 
   const pageJobs = sortedJobs.slice(0, PAGE_SIZE);
 
-  const candColumns: ColumnDef[] = useMemo(
+  const candColumns: DataTableColumnDef[] = useMemo(
     () => [
       {
         key: "title",
@@ -1582,7 +1457,7 @@ const CandView: React.FC<CandViewProps> = ({
           }
         />
 
-        <PubDataTable
+        <DataTable
           panelTitle={`Job Openings${jobTypeFilter ? ` [${jobTypeFilter.toUpperCase()}]` : ""}`}
           panelIcon="💼"
           data={pageJobs}
@@ -1591,6 +1466,7 @@ const CandView: React.FC<CandViewProps> = ({
           keyExtractor={(j: any) => j.id}
           flashIds={flashJobIds}
           rnColWidth="2%"
+          rowCount={PAGE_SIZE}
         />
 
         <StatusBar
@@ -1638,7 +1514,7 @@ const VendorView: React.FC<VendorViewProps> = ({
 
   const pageProfiles = sortedProfiles.slice(0, PAGE_SIZE);
 
-  const vendorColumns: ColumnDef[] = useMemo(
+  const vendorColumns: DataTableColumnDef[] = useMemo(
     () => [
       {
         key: "name",
@@ -1752,7 +1628,7 @@ const VendorView: React.FC<VendorViewProps> = ({
           }
         />
 
-        <PubDataTable
+        <DataTable
           panelTitle="Candidate_Profiles"
           panelIcon="👥"
           data={pageProfiles}
@@ -1761,6 +1637,7 @@ const VendorView: React.FC<VendorViewProps> = ({
           keyExtractor={(p: any) => p.id}
           flashIds={flashProfileIds}
           rnColWidth="2%"
+          rowCount={PAGE_SIZE}
         />
 
         <StatusBar
