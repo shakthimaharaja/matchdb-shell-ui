@@ -27,8 +27,7 @@ matchdb-shell-ui/
 ├── public/
 │   └── index.html               # HTML template
 ├── server/
-│   ├── index.ts                 # Express proxy server (port 4000)
-│   └── index.js                 # Compiled proxy (fallback)
+│   └── index.ts                 # Express proxy server (port 4000)
 ├── src/
 │   ├── index.ts                 # Webpack entry point
 │   ├── bootstrap.tsx            # React root render
@@ -107,6 +106,7 @@ new ModuleFederationPlugin({
 
 | Path                | Component         | Auth | Description                   |
 | ------------------- | ----------------- | ---- | ----------------------------- |
+| `/`                 | WelcomePage       | No   | Welcome / landing page        |
 | `/oauth-callback`   | OAuthCallbackPage | No   | Google OAuth redirect handler |
 | `/resume/:username` | ResumeViewPage    | No   | Public candidate resume view  |
 | `/*`                | JobsAppWrapper    | No   | Main app (loads Jobs MFE)     |
@@ -183,7 +183,6 @@ The Windows 97 theme CSS has been extracted to the **matchdb-component-library**
 ## Shared Components (`src/shared/`)
 
 The `shared/index.ts` barrel re-exports `DataTable` and related types from `matchdb-component-library`, making them available to components that import from `../shared`.
-| `index.css` | Barrel — imports both theme and base CSS in one import |
 
 ---
 
@@ -219,13 +218,7 @@ NODE_SERVER_PORT=4000
 # 1. Install dependencies
 npm install
 
-# 2. Start the proxy server (port 4000)
-npm run server
-
-# 3. Start webpack dev server (port 3000) — in a second terminal
-npm start
-
-# Or run both concurrently:
+# 2. Start both webpack dev server + proxy server concurrently
 npm run dev
 ```
 
@@ -235,12 +228,12 @@ The app is available at **http://localhost:3000**.
 
 ## Scripts
 
-| Script           | Description                       |
-| ---------------- | --------------------------------- |
-| `npm start`      | Webpack dev server on port 3000   |
-| `npm run server` | Express proxy server on port 4000 |
-| `npm run dev`    | Both webpack + proxy concurrently |
-| `npm run build`  | Production build to `dist/`       |
+| Script                   | Description                                   |
+| ------------------------ | --------------------------------------------- |
+| `npm run dev`            | Both webpack + proxy concurrently             |
+| `npm run dev:standalone` | Webpack dev server only (port 3000, no proxy) |
+| `npm start`              | Proxy server only (port 4000)                 |
+| `npm run build`          | Production build to `dist/`                   |
 
 ---
 
