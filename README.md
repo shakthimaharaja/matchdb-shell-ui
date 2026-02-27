@@ -172,18 +172,18 @@ The Windows 97 theme CSS has been extracted to the **matchdb-component-library**
 @import "matchdb-component-library/src/styles/components.css";
 ```
 
-| File            | Purpose                                                                   |
-| --------------- | ------------------------------------------------------------------------- |
-| `w97-theme.css` | 50+ `--w97-*` CSS custom properties for light & dark mode color palettes  |
-| `w97-base.css`  | Shared utility classes: `.w97-raised`, `.w97-sunken`, `.w97-scroll`, etc. |
-| `components.css`| Component-level styles (DataTable, Panel, Toolbar, etc.)                  |
+| File             | Purpose                                                                   |
+| ---------------- | ------------------------------------------------------------------------- |
+| `w97-theme.css`  | 50+ `--w97-*` CSS custom properties for light & dark mode color palettes  |
+| `w97-base.css`   | Shared utility classes: `.w97-raised`, `.w97-sunken`, `.w97-scroll`, etc. |
+| `components.css` | Component-level styles (DataTable, Panel, Toolbar, etc.)                  |
 
 ---
 
 ## Shared Components (`src/shared/`)
 
 The `shared/index.ts` barrel re-exports `DataTable` and related types from `matchdb-component-library`, making them available to components that import from `../shared`.
-| `index.css`     | Barrel — imports both theme and base CSS in one import                    |
+| `index.css` | Barrel — imports both theme and base CSS in one import |
 
 ---
 
