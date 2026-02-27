@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store";
 import { expireSession, refreshAuthToken } from "../store/authSlice";
 import axios from "axios";
-import PublicJobsView from "./PublicJobsView";
 
 // Dynamically load the remote Jobs MFE via Module Federation
 const JobsApp = lazy(() => import("matchdbJobs/JobsApp"));
 
-interface ErrorBoundaryState { hasError: boolean; message: string }
+interface ErrorBoundaryState {
+  hasError: boolean;
+  message: string;
+}
 
 class ErrorBoundary extends Component<
   { children: React.ReactNode },
@@ -87,9 +89,12 @@ const JobsAppWrapper: React.FC = () => {
           const expiredType = user?.user_type ?? "candidate";
           dispatch(expireSession(expiredType));
           // Redirect to the login page matching the user's last role.
-          navigate(expiredType === "vendor" ? "/jobs/vendor" : "/jobs/candidate", {
-            replace: true,
-          });
+          navigate(
+            expiredType === "vendor" ? "/jobs/vendor" : "/jobs/candidate",
+            {
+              replace: true,
+            },
+          );
         }
         // For 5xx or network errors, leave the user logged in so they can retry.
       }
@@ -98,17 +103,9 @@ const JobsAppWrapper: React.FC = () => {
     verifyToken();
   }, [token]);
 
-  // Pre-login: render public live data tables directly in shell (no MFE load).
-  // The flex wrapper ensures pub-landing fills legacy-shell-content correctly
-  // on both initial navigation and hard page reloads.
-  if (!token) {
-    return (
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
-        <PublicJobsView />
-      </div>
-    );
-  }
-
+  // Both pre-login (public tables) and post-login (dashboards) are now
+  // handled inside the Jobs MFE. The MFE checks `token` and renders
+  // PublicJobsView when null, or the authenticated routes when present.
   return (
     <ErrorBoundary>
       <Suspense fallback={<LoadingPane />}>
@@ -141,7 +138,12 @@ const LoadingPane: React.FC = () => (
       <div
         key={i}
         className="w97-shimmer"
-        style={{ height: 18, marginBottom: 6, width: `${w}%`, display: "block" }}
+        style={{
+          height: 18,
+          marginBottom: 6,
+          width: `${w}%`,
+          display: "block",
+        }}
       />
     ))}
   </div>

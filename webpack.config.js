@@ -84,6 +84,13 @@ module.exports = (env = {}) => {
       historyApiFallback: true,
       hot: true,
       headers: { "Access-Control-Allow-Origin": "*" },
+      client: {
+        webSocketURL: { pathname: "/hmr" },
+      },
+      webSocketServer: {
+        type: "ws",
+        options: { path: "/hmr" },
+      },
       proxy: [
         {
           context: ["/api/auth", "/api/payments"],
@@ -96,6 +103,12 @@ module.exports = (env = {}) => {
           context: ["/api/jobs"],
           target: "http://localhost:4001",
           changeOrigin: true,
+        },
+        {
+          context: ["/ws"],
+          target: "http://localhost:8001",
+          changeOrigin: true,
+          ws: true,
         },
       ],
     },

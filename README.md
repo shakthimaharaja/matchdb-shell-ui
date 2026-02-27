@@ -13,6 +13,7 @@ Host (shell) microfrontend for the MatchDB staffing platform. Acts as the applic
 | State        | Redux Toolkit (`authSlice`)                          |
 | Routing      | React Router v6                                      |
 | UI Libraries | MUI 5, PrimeReact 10, Tailwind CSS 3                 |
+| UI Shared    | matchdb-component-library (local npm link)           |
 | HTTP         | Axios                                                |
 | Proxy Server | Express + http-proxy-middleware (port 4000)          |
 | Theme        | Windows 97 retro theme, blue-grey palette (#235A81)  |
@@ -43,18 +44,18 @@ matchdb-shell-ui/
 │   │   ├── PricingPage.tsx      # W97-themed subscription + candidate package pricing
 │   │   ├── PricingPage.css      # Pricing modal styling (684 lines, full W97 theme)
 │   │   ├── OAuthCallbackPage.tsx # Google OAuth redirect handler
-│   │   └── ResumeViewPage.tsx   # Public candidate resume view (/resume/:username)
+│   │   ├── ResumeViewPage.tsx   # Public candidate resume view (/resume/:username)
+│   │   ├── WelcomePage.tsx      # Welcome / landing page
+│   │   └── WelcomePage.css      # Welcome page styling
 │   ├── store/
 │   │   ├── index.ts             # Redux store config
 │   │   └── authSlice.ts         # Auth state, login/register/OAuth thunks
+│   ├── shared/
+│   │   └── index.ts             # Re-exports DataTable & types from component library
 │   ├── styles/
-│   │   ├── index.css            # Barrel — imports w97-theme + w97-base
-│   │   ├── w97-theme.css        # 50+ --w97-* CSS custom properties (light + dark)
-│   │   └── w97-base.css         # Shared utility classes (raised, sunken, titlebar, scroll)
-│   ├── types/
-│   │   └── federation.d.ts      # Module Federation type declarations
-│   └── utils/
-│       └── index.ts             # Shared helpers (authHeader, downloadBlob, fmtCurrency, fmtDate)
+│   │   └── index.css            # Barrel — imports theme, base & component styles from library
+│   └── types/
+│       └── federation.d.ts      # Module Federation type declarations
 ├── env/
 │   └── .env.development         # Local env vars
 ├── webpack.config.js            # Webpack + Module Federation config
@@ -73,13 +74,16 @@ Browser :3000  ─── webpack-dev-server ───┐
                                          │  /api/auth, /api/payments
                                          ├──► Express proxy :4000 ──► shell-services :8000
                                          │  /api/jobs
-                                         └──► Express proxy :4001 ──► jobs-services :8001
+                                         ├──► Express proxy :4001 ──► jobs-services :8001
+                                         │  /ws (WebSocket)
+                                         └──► jobs-services :8001
 
 Shell (host)  ──── Module Federation ──── Jobs MFE (remote :3001)
 ```
 
 - The shell webpack dev server proxies `/api/auth` and `/api/payments` to the Node proxy on port 4000, which forwards to `matchdb-shell-services` on port 8000.
 - `/api/jobs` calls are proxied to the Jobs Node proxy on port 4001, then to `matchdb-jobs-services` on port 8001.
+- `/ws` WebSocket connections are proxied directly to `matchdb-jobs-services` on port 8001 (for live counts and public data feeds).
 - The Jobs MFE (`matchdbJobs`) is loaded at runtime from `http://localhost:3001/remoteEntry.js`.
 
 ---
@@ -114,6 +118,7 @@ new ModuleFederationPlugin({
 | Event Name              | Direction    | Payload                                |
 | ----------------------- | ------------ | -------------------------------------- |
 | `matchdb:subnav`        | Jobs → Shell | `{ groups: SubNavGroup[] }`            |
+| `matchdb:breadcrumb`    | Jobs → Shell | `{ label: string }`                    |
 | `matchdb:openLogin`     | Jobs → Shell | `{ context, mode }`                    |
 | `matchdb:jobTypeFilter` | Shell → Jobs | `{ jobType: string }`                  |
 | `matchdb:loginContext`  | Shell → Jobs | `{ loginType: 'candidate'\|'vendor' }` |
@@ -124,7 +129,7 @@ new ModuleFederationPlugin({
 
 The shell renders 8 MFE navigation entries (only **Jobs** is currently active). Under Jobs:
 
-- **Before login**: shows "Candidate Login" and "Vendor Login" sub-rows
+- **Before login**: the Jobs MFE renders a `PublicJobsView` with live WebSocket data (jobs & profiles tables)
 - **After login**: shows job-type filters (C2C, W2, C2H, Full Time) based on user visibility
 
 ---
@@ -158,24 +163,33 @@ The pricing page is rendered as an inline modal within `ShellLayout` (not a sepa
 
 ## Global Styles (`src/styles/`)
 
-The Windows 97 theme is centralized into global style files imported once in `bootstrap.tsx`:
+The Windows 97 theme CSS has been extracted to the **matchdb-component-library** package. The shell imports theme, base, and component styles from the library:
+
+```css
+/* src/styles/index.css */
+@import "matchdb-component-library/src/styles/w97-theme.css";
+@import "matchdb-component-library/src/styles/w97-base.css";
+@import "matchdb-component-library/src/styles/components.css";
+```
 
 | File            | Purpose                                                                   |
 | --------------- | ------------------------------------------------------------------------- |
 | `w97-theme.css` | 50+ `--w97-*` CSS custom properties for light & dark mode color palettes  |
 | `w97-base.css`  | Shared utility classes: `.w97-raised`, `.w97-sunken`, `.w97-scroll`, etc. |
+| `components.css`| Component-level styles (DataTable, Panel, Toolbar, etc.)                  |
+
+---
+
+## Shared Components (`src/shared/`)
+
+The `shared/index.ts` barrel re-exports `DataTable` and related types from `matchdb-component-library`, making them available to components that import from `../shared`.
 | `index.css`     | Barrel — imports both theme and base CSS in one import                    |
 
 ---
 
-## Utilities (`src/utils/`)
+## Utilities
 
-| Export           | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| `authHeader()`   | Builds `{ Authorization: 'Bearer …' }` header     |
-| `downloadBlob()` | Triggers a file download from a Blob response     |
-| `fmtCurrency()`  | Formats a number as currency or returns "—"       |
-| `fmtDate()`      | Formats an ISO date string to short readable form |
+Shared utility functions (`authHeader`, `downloadBlob`, `fmtCurrency`, `fmtDate`) have been extracted to the **matchdb-component-library** package. The shell imports them from the library as needed.
 
 ---
 

@@ -1,10 +1,11 @@
 /**
  * Shared Component Barrel Exports — matchdb-shell-ui
  *
- * Import reusable components:
- *   import { DataTable } from '../shared';
- *   import type { DataTableColumnDef, DataTableProps } from '../shared';
+ * Re-exports from the component library for backward compatibility.
  */
 
-export { default as DataTable } from "./DataTable";
-export type { DataTableColumnDef, DataTableProps } from "./DataTable";
+export { DataTable } from "matchdb-component-library";
+export type {
+  DataTableColumn,
+  DataTableProps,
+} from "matchdb-component-library";
