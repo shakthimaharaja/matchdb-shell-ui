@@ -15,10 +15,12 @@ module.exports = (env = {}) => {
   const envFile = path.resolve(__dirname, `env/.env.${envName}`);
 
   const isDev = envName === "local" || envName === "development";
+  const useHttps = Boolean(env.https);
 
+  // Use https:// for jobs remote when HTTPS dev mode is enabled
   const jobsUiUrls = {
-    local: "http://localhost:3001",
-    development: "http://localhost:3001",
+    local: useHttps ? "https://localhost:3001" : "http://localhost:3001",
+    development: useHttps ? "https://localhost:3001" : "http://localhost:3001",
     qa: "https://jobs-ui.qa.matchdb.com",
     production: "https://matchingdb.com/jobs-remote",
   };
@@ -81,6 +83,8 @@ module.exports = (env = {}) => {
     ],
     devServer: {
       port: 3000,
+      // Pass --env https to enable HTTPS (uses webpack-dev-server's built-in cert)
+      server: useHttps ? "https" : "http",
       historyApiFallback: true,
       hot: true,
       headers: { "Access-Control-Allow-Origin": "*" },
@@ -94,15 +98,17 @@ module.exports = (env = {}) => {
       proxy: [
         {
           context: ["/api/auth", "/api/payments"],
-          target: "http://localhost:4000",
+          target: useHttps ? "https://localhost:4000" : "http://localhost:4000",
           changeOrigin: true,
+          secure: false,
         },
         {
           // Jobs MFE runs inside the shell, so its /api/jobs calls arrive here.
-          // Forward them to the jobs Node server which proxies to Django :8001.
+          // Forward them to the jobs Node server which proxies to jobs-services :8001.
           context: ["/api/jobs"],
-          target: "http://localhost:4001",
+          target: useHttps ? "https://localhost:4001" : "http://localhost:4001",
           changeOrigin: true,
+          secure: false,
         },
         {
           context: ["/ws"],

@@ -1,8 +1,11 @@
 import React, { Component, Suspense, lazy, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store";
-import { expireSession, refreshAuthToken } from "../store/authSlice";
-import axios from "axios";
+import { expireSession } from "../store/authSlice";
+import {
+  useLazyVerifyTokenQuery,
+  useRefreshTokenMutation,
+} from "../api/shellApi";
 
 // Dynamically load the remote Jobs MFE via Module Federation
 const JobsApp = lazy(() => import("matchdbJobs/JobsApp"));
@@ -53,59 +56,50 @@ const JobsAppWrapper: React.FC = () => {
   const navigate = useNavigate();
   const verifyRan = useRef(false);
 
+  const [triggerVerify] = useLazyVerifyTokenQuery();
+  const [refreshToken] = useRefreshTokenMutation();
+
   /**
-   * On mount (and on token change), verify the stored JWT is still valid.
+   * On mount, verify the stored JWT is still valid.
    * If expired → try refresh token.
    * If refresh also fails → expire session and redirect to the appropriate login page.
    */
   useEffect(() => {
-    // Only run when there IS a stored token (logged-in user reloading the page).
     if (!token) return;
-    // Guard: only run once per mount to avoid double-verify on React StrictMode.
     if (verifyRan.current) return;
     verifyRan.current = true;
 
-    const verifyToken = async () => {
+    const verifySession = async () => {
       try {
-        await axios.get("/api/auth/verify", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await triggerVerify().unwrap();
         // Token is valid — nothing to do.
       } catch (err: any) {
-        const status = err?.response?.status;
+        const status = err?.status;
         // Only act on auth errors (401/403) — network errors should not log out.
         if (status === 401 || status === 403) {
-          // Attempt silent refresh.
           if (refresh) {
             try {
-              await dispatch(refreshAuthToken(refresh)).unwrap();
-              // Refresh succeeded — token updated in Redux/localStorage.
+              await refreshToken({ refresh }).unwrap();
+              // shellApi onQueryStarted dispatches setToken — token updated in Redux/localStorage.
               return;
             } catch {
               // Refresh token also expired — fall through to expire session.
             }
           }
-          // Both token and refresh failed → expire session.
           const expiredType = user?.user_type ?? "candidate";
           dispatch(expireSession(expiredType));
-          // Redirect to the login page matching the user's last role.
           navigate(
             expiredType === "vendor" ? "/jobs/vendor" : "/jobs/candidate",
-            {
-              replace: true,
-            },
+            { replace: true },
           );
         }
         // For 5xx or network errors, leave the user logged in so they can retry.
       }
     };
 
-    verifyToken();
-  }, [token]);
+    verifySession();
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Both pre-login (public tables) and post-login (dashboards) are now
-  // handled inside the Jobs MFE. The MFE checks `token` and renders
-  // PublicJobsView when null, or the authenticated routes when present.
   return (
     <ErrorBoundary>
       <Suspense fallback={<LoadingPane />}>

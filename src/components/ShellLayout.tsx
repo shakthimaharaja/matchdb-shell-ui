@@ -10,7 +10,8 @@ import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import { useAppDispatch, useAppSelector } from "../store";
-import { logout, refreshUserData } from "../store/authSlice";
+import { logout } from "../store/authSlice";
+import { useRefreshUserDataMutation } from "../api/shellApi";
 import PricingPage from "../pages/PricingPage";
 import "./ShellLayout.css";
 
@@ -207,6 +208,7 @@ const isPathActive = (itemPath: string, currentPath: string): boolean => {
 const ShellLayout: React.FC<Props> = ({ children }) => {
   const { user, token } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
+  const [refreshUserData] = useRefreshUserDataMutation();
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -295,7 +297,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
       if (isCandSucc) {
         // Refresh user data from server so hasPurchasedVisibility reflects the completed payment,
         // then sequence the profile form after the pricing confirmation modal closes.
-        if (token) dispatch(refreshUserData(token));
+        refreshUserData();
         setPendingProfileOpen(true);
       }
       setPricingModalOpen(true);

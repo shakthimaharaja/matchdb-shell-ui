@@ -1,32 +1,16 @@
-﻿import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useAppSelector, useAppDispatch } from "../store";
-import { refreshUserData } from "../store/authSlice";
+import React, { useEffect, useState } from "react";
+import { useAppSelector } from "../store";
+import {
+  useGetVendorPlansQuery,
+  useGetCandidatePackagesQuery,
+  useCreateVendorCheckoutMutation,
+  useCreateCandidateCheckoutMutation,
+  useOpenBillingPortalMutation,
+  useRefreshUserDataMutation,
+  type VendorPlan,
+  type CandidatePackage,
+} from "../api/shellApi";
 import "./PricingPage.css";
-
-//  Types
-
-interface VendorPlanDef {
-  id: string;
-  name: string;
-  price: number;
-  interval: string | null;
-  features: string[];
-  stripePriceId: string;
-  highlighted?: boolean;
-  jobLimit: number;
-  pokeLimit: number;
-}
-
-interface CandidatePackage {
-  id: string;
-  name: string;
-  price: number;
-  priceCents: number;
-  description: string;
-  details: string;
-  stripePriceId: string;
-}
 
 const CONTRACT_SUBDOMAINS = [
   { value: "c2c", label: "C2C (Corp-to-Corp)" },
@@ -183,7 +167,20 @@ interface PricingPageProps {
 
 const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
   const { token, user } = useAppSelector((s) => s.auth);
-  const dispatch = useAppDispatch();
+
+  // ─── RTK Query hooks ───────────────────────────────────────────────────────
+  const { data: vendorPlans = [] } = useGetVendorPlansQuery();
+  const { data: candidatePkgs = [] } = useGetCandidatePackagesQuery();
+  const [createVendorCheckout, { isLoading: vendorCheckoutLoading }] =
+    useCreateVendorCheckoutMutation();
+  const [createCandidateCheckout, { isLoading: candidateCheckoutLoading }] =
+    useCreateCandidateCheckoutMutation();
+  const [openBillingPortal, { isLoading: portalLoading }] =
+    useOpenBillingPortalMutation();
+  const [refreshUserData] = useRefreshUserDataMutation();
+
+  const checkoutLoading =
+    vendorCheckoutLoading || candidateCheckoutLoading || portalLoading;
 
   const isVendor = user?.user_type === "vendor";
   const isCandidate = user?.user_type === "candidate";
@@ -199,13 +196,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
           : 0;
 
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [vendorPlans, setVendorPlans] = useState<VendorPlanDef[]>([]);
-  const [candidatePkgs, setCandidatePkgs] = useState<CandidatePackage[]>([]);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
   const [loadingPkgId, setLoadingPkgId] = useState<string | null>(null);
-  const [vendorConfirm, setVendorConfirm] = useState<VendorPlanDef | null>(
-    null,
-  );
+  const [vendorConfirm, setVendorConfirm] = useState<VendorPlan | null>(null);
   const [candidateConfirm, setCandidateConfirm] = useState<{
     packageId: string;
     label: string;
@@ -221,23 +214,15 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     text: string;
   } | null>(null);
 
+  // Handle Stripe redirect-back query params
   useEffect(() => {
-    axios
-      .get("/api/payments/plans")
-      .then((r) => setVendorPlans(r.data.plans || []))
-      .catch(() => {});
-    axios
-      .get("/api/payments/candidate-packages")
-      .then((r) => setCandidatePkgs(r.data.packages || []))
-      .catch(() => {});
-
     const params = new URLSearchParams(window.location.search);
     if (params.get("success") === "true") {
       setMessage({
         type: "success",
         text: "Subscription activated! Your vendor plan has been updated.",
       });
-      if (token) dispatch(refreshUserData(token));
+      refreshUserData();
       window.history.replaceState({}, "", window.location.pathname);
     }
     if (params.get("candidate_success") === "true") {
@@ -245,7 +230,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         type: "success",
         text: "Visibility package purchased! You are now visible to employers in the selected categories.",
       });
-      if (token) dispatch(refreshUserData(token));
+      refreshUserData();
       window.history.replaceState({}, "", window.location.pathname);
       setActiveTab(1);
     }
@@ -256,42 +241,36 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
       });
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [dispatch, token]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   //  Vendor
   const handleVendorConfirm = async () => {
     if (!vendorConfirm || !token) return;
     setLoadingPlanId(vendorConfirm.id);
     try {
-      const res = await axios.post(
-        "/api/payments/checkout",
-        { planId: vendorConfirm.id },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      window.location.href = res.data.url;
+      const { url } = await createVendorCheckout({
+        planId: vendorConfirm.id,
+      }).unwrap();
+      window.location.href = url;
     } catch (err: any) {
       setMessage({
         type: "error",
-        text: err.response?.data?.error || "Checkout failed. Please try again.",
+        text: err.data?.error || "Checkout failed. Please try again.",
       });
       setLoadingPlanId(null);
-      setVendorConfirm(null);
     }
   };
 
   const handlePortal = async () => {
     if (!token) return;
     try {
-      const res = await axios.post(
-        "/api/payments/portal",
-        {},
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      window.location.href = res.data.url;
-    } catch {
-      setMessage({ type: "error", text: "Unable to open billing portal." });
+      const { url } = await openBillingPortal().unwrap();
+      window.location.href = url;
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text: err.data?.error || "Could not open billing portal.",
+      });
     }
   };
 
@@ -371,25 +350,23 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     if (!candidateConfirm || !token) return;
     const { packageId } = candidateConfirm;
     setLoadingPkgId(packageId);
-    const body: Record<string, any> = { packageId };
-    if (packageId !== "full_bundle") {
-      body.domain = selectedDomain;
-      if (packageId === "base" && selectedSubs.length > 0)
-        body.subdomains = [selectedSubs[0]];
-      else if (packageId === "subdomain_addon") body.subdomains = selectedSubs;
-    }
     try {
-      const res = await axios.post("/api/payments/candidate-checkout", body, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      window.location.href = res.data.url;
+      const args: { packageId: string; domain?: string; subdomains?: string[] } =
+        { packageId };
+      if (packageId !== "full_bundle") {
+        args.domain = selectedDomain;
+        if (packageId === "base" && selectedSubs.length > 0)
+          args.subdomains = [selectedSubs[0]];
+        else if (packageId === "subdomain_addon") args.subdomains = selectedSubs;
+      }
+      const { url } = await createCandidateCheckout(args).unwrap();
+      window.location.href = url;
     } catch (err: any) {
       setMessage({
         type: "error",
-        text: err.response?.data?.error || "Checkout failed. Please try again.",
+        text: err.data?.error || "Checkout failed. Please try again.",
       });
       setLoadingPkgId(null);
-      setCandidateConfirm(null);
     }
   };
 
@@ -483,7 +460,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         }
         notice="You will be redirected to Stripe to complete payment. This is a one-time charge - no recurring fees."
         confirmLabel={`Buy Now - $${candidateConfirm?.price}`}
-        loading={loadingPkgId === candidateConfirm?.packageId}
+        loading={loadingPkgId === candidateConfirm?.packageId || checkoutLoading}
         onConfirm={handleCandidateConfirm}
         onClose={() => {
           setCandidateConfirm(null);
@@ -507,6 +484,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                   className="pp-btn"
                   style={{ height: 18, fontSize: 10 }}
                   onClick={handlePortal}
+                  disabled={checkoutLoading}
                 >
                   Manage Billing
                 </button>
@@ -620,10 +598,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                 <div className="pp-inline-confirm-footer">
                   <button
                     className="pp-btn pp-btn-primary pp-btn-wide"
-                    disabled={loadingPlanId === vendorConfirm.id}
+                    disabled={loadingPlanId === vendorConfirm.id || checkoutLoading}
                     onClick={handleVendorConfirm}
                   >
-                    {loadingPlanId === vendorConfirm.id
+                    {loadingPlanId === vendorConfirm.id || checkoutLoading
                       ? "Redirecting..."
                       : `Subscribe \u2014 $${vendorConfirm.price}/mo`}
                   </button>
@@ -704,7 +682,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                               <button
                                 className="pp-btn pp-btn-primary"
                                 style={{ width: "100%" }}
-                                disabled={loadingPlanId === plan.id}
+                                disabled={loadingPlanId === plan.id || checkoutLoading}
                                 onClick={() => {
                                   if (!token) {
                                     setMessage({
@@ -908,7 +886,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                 <button
                   className="pp-btn pp-btn-primary pp-btn-wide"
                   style={{ height: 28, fontSize: 12 }}
-                  disabled={loadingPkgId !== null}
+                  disabled={loadingPkgId !== null || checkoutLoading}
                   onClick={() => {
                     if (!token) {
                       setMessage({
@@ -924,7 +902,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                     });
                   }}
                 >
-                  {loadingPkgId
+                  {loadingPkgId || checkoutLoading
                     ? "Please wait..."
                     : `Purchase - $${effectivePrice}`}
                 </button>

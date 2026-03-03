@@ -2,13 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
-import { useAppDispatch, useAppSelector } from "../store";
-import { login, register, clearError } from "../store/authSlice";
+import { useAppSelector } from "../store";
+import { useLoginMutation, useRegisterMutation } from "../api/shellApi";
 import "./LoginModal.css";
 
 type ModalMode = "login" | "register";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface RegForm {
   first_name: string;
@@ -26,11 +24,20 @@ const EMPTY_REG: RegForm = {
   user_type: "candidate",
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 const LoginModal: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { loading, error, token, user } = useAppSelector((state) => state.auth);
+  const { token, user } = useAppSelector((state) => state.auth);
+  const [login, { isLoading: loginLoading, error: loginError, reset: resetLogin }] =
+    useLoginMutation();
+  const [register, { isLoading: registerLoading, error: registerError, reset: resetRegister }] =
+    useRegisterMutation();
+
+  const loading = loginLoading || registerLoading;
+  const rawError = loginError || registerError;
+  const error = rawError
+    ? ((rawError as any).data?.error ??
+       (rawError as any).data?.detail ??
+       "Authentication failed. Please try again.")
+    : null;
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>("login");
@@ -40,7 +47,6 @@ const LoginModal: React.FC = () => {
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  // Check for OAuth error in URL (from failed Google sign-in redirect)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const errParam = params.get("oauth_error");
@@ -51,40 +57,32 @@ const LoginModal: React.FC = () => {
           ? "Google sign-in failed. Please try again."
           : "Google sign-in failed: " + msg,
       );
-      // Open modal automatically so user sees the error
       setOpen(true);
-      // Clean up the URL
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
 
-  const handleOpenModal = useCallback(
-    (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      setContext(detail?.context || "candidate");
-      setMode(detail?.mode || "login");
-      setRegForm({ ...EMPTY_REG, user_type: detail?.context || "candidate" });
-      setOauthError(null);
-      setShowUpgrade(false);
-      setOpen(true);
-      dispatch(clearError());
-    },
-    [dispatch],
-  );
+  const handleOpenModal = useCallback((e: Event) => {
+    const detail = (e as CustomEvent).detail;
+    setContext(detail?.context || "candidate");
+    setMode(detail?.mode || "login");
+    setRegForm({ ...EMPTY_REG, user_type: detail?.context || "candidate" });
+    setOauthError(null);
+    setShowUpgrade(false);
+    setOpen(true);
+    resetLogin();
+    resetRegister();
+  }, [resetLogin, resetRegister]);
 
   useEffect(() => {
     window.addEventListener("matchdb:openLogin", handleOpenModal);
-    return () =>
-      window.removeEventListener("matchdb:openLogin", handleOpenModal);
+    return () => window.removeEventListener("matchdb:openLogin", handleOpenModal);
   }, [handleOpenModal]);
 
-  // After auth succeeds: handle post-auth modal flow
   useEffect(() => {
     if (token && open && !showUpgrade) {
       if (user?.user_type === "candidate") {
         if (!user?.has_purchased_visibility) {
-          // Candidate without a visibility package (new registration OR returning login) —
-          // go directly to pricing with no skip. Both flows are identical from here.
           setOpen(false);
           window.dispatchEvent(
             new CustomEvent("matchdb:openPricing", {
@@ -92,11 +90,9 @@ const LoginModal: React.FC = () => {
             }),
           );
         } else {
-          // Paid candidate — just close the modal
           setOpen(false);
         }
       } else if (user?.plan === "free") {
-        // Free vendor — show upgrade prompt with skip option
         setShowUpgrade(true);
       } else {
         setOpen(false);
@@ -114,7 +110,6 @@ const LoginModal: React.FC = () => {
     const tab = isVendor ? "vendor" : "candidate";
     setShowUpgrade(false);
     setOpen(false);
-    // triggerProfile: true tells ShellLayout to open the profile modal after pricing closes
     window.dispatchEvent(
       new CustomEvent("matchdb:openPricing", {
         detail: { tab, triggerProfile: !isVendor },
@@ -123,40 +118,38 @@ const LoginModal: React.FC = () => {
   };
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(clearError());
+    resetLogin();
     setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
   };
 
   const handleField = (field: keyof RegForm, value: any) => {
-    dispatch(clearError());
+    resetRegister();
     setRegForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await dispatch(login(loginForm));
+    await login(loginForm);
   };
 
   const handleRegSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await dispatch(
-      register({
-        email: regForm.email,
-        password: regForm.password,
-        first_name: regForm.first_name,
-        last_name: regForm.last_name,
-        user_type: regForm.user_type,
-      }),
-    );
+    await register({
+      email: regForm.email,
+      password: regForm.password,
+      firstName: regForm.first_name,
+      lastName: regForm.last_name,
+      userType: regForm.user_type,
+    });
   };
 
   const handleClose = () => {
     setOpen(false);
     setOauthError(null);
-    dispatch(clearError());
+    resetLogin();
+    resetRegister();
   };
 
-  /** Initiates Google OAuth flow. Redirects to backend which redirects to Google. */
   const handleGoogleAuth = (userType: "candidate" | "vendor") => {
     const backendUrl =
       (window as any).__MATCHDB_API_URL__ ||
@@ -169,7 +162,6 @@ const LoginModal: React.FC = () => {
 
   const activeUserType = mode === "login" ? context : regForm.user_type;
 
-  // ── Upgrade prompt (shown after free-account auth) ────────────────────────
   if (showUpgrade) {
     const isVendor = user?.user_type === "vendor";
     return (
@@ -231,7 +223,6 @@ const LoginModal: React.FC = () => {
         aria-modal="true"
         aria-labelledby="lm-title"
       >
-        {/* Title bar */}
         <div className="login-modal-titlebar">
           <span id="lm-title" className="login-modal-title">
             {mode === "login" ? "User Authentication" : "Create Account"}
@@ -239,19 +230,23 @@ const LoginModal: React.FC = () => {
           <span className="login-modal-context">
             {context === "vendor" ? "🏢 Vendor" : "👤 Candidate"}
           </span>
-          <button className="login-modal-close" onClick={handleClose} aria-label="Close dialog">
+          <button
+            className="login-modal-close"
+            onClick={handleClose}
+            aria-label="Close dialog"
+          >
             ✕
           </button>
         </div>
 
-        {/* Tab switcher */}
         <div className="login-modal-tabs">
           <button
             className={`login-modal-tab${mode === "login" ? " active" : ""}`}
             aria-label="Sign In tab"
             onClick={() => {
               setMode("login");
-              dispatch(clearError());
+              resetLogin();
+              resetRegister();
             }}
           >
             Sign In
@@ -261,24 +256,26 @@ const LoginModal: React.FC = () => {
             aria-label="Create Account tab"
             onClick={() => {
               setMode("register");
-              dispatch(clearError());
+              resetLogin();
+              resetRegister();
             }}
           >
             Create Account
           </button>
         </div>
 
-        {/* OAuth error banner (from failed redirect) */}
         {oauthError && (
-          <div className="w97-alert w97-alert-error" role="alert" aria-live="assertive">
+          <div
+            className="w97-alert w97-alert-error"
+            role="alert"
+            aria-live="assertive"
+          >
             ✕ {oauthError}
           </div>
         )}
 
-        {/* ── Login form ── */}
         {mode === "login" && (
           <form onSubmit={handleLoginSubmit} className="login-modal-form">
-            {/* Google OAuth button */}
             <Button
               type="button"
               label="Continue with Google"
@@ -319,7 +316,11 @@ const LoginModal: React.FC = () => {
             </div>
 
             {error && (
-              <div className="w97-alert w97-alert-error" role="alert" aria-live="assertive">
+              <div
+                className="w97-alert w97-alert-error"
+                role="alert"
+                aria-live="assertive"
+              >
                 ✕ {error}
               </div>
             )}
@@ -334,10 +335,8 @@ const LoginModal: React.FC = () => {
           </form>
         )}
 
-        {/* ── Register form ── */}
         {mode === "register" && (
           <form onSubmit={handleRegSubmit} className="login-modal-form">
-            {/* Account type selector — choose first so Google button knows the type */}
             <div className="login-modal-field">
               <label htmlFor="lm-user-type">Account Type</label>
               <select
@@ -356,7 +355,6 @@ const LoginModal: React.FC = () => {
               </select>
             </div>
 
-            {/* Google OAuth button */}
             <Button
               type="button"
               label="Sign up with Google"
@@ -368,7 +366,6 @@ const LoginModal: React.FC = () => {
               <span>or register with email</span>
             </div>
 
-            {/* Vendor info panel */}
             {regForm.user_type === "vendor" && (
               <div className="lm-vendor-info">
                 <div className="lm-vendor-info-title">🏢 Employer Account</div>
@@ -380,7 +377,6 @@ const LoginModal: React.FC = () => {
               </div>
             )}
 
-            {/* Candidate info panel */}
             {regForm.user_type === "candidate" && (
               <div className="lm-vendor-info">
                 <div className="lm-vendor-info-title">👤 Candidate Account</div>
@@ -448,7 +444,11 @@ const LoginModal: React.FC = () => {
             </div>
 
             {error && (
-              <div className="w97-alert w97-alert-error" role="alert" aria-live="assertive">
+              <div
+                className="w97-alert w97-alert-error"
+                role="alert"
+                aria-live="assertive"
+              >
                 ✕ {error}
               </div>
             )}
@@ -458,7 +458,9 @@ const LoginModal: React.FC = () => {
               icon={loading ? "pi pi-spin pi-spinner" : "pi pi-user-plus"}
               disabled={loading}
               className="login-modal-submit"
-              aria-label={loading ? "Creating account, please wait" : "Create Free Account"}
+              aria-label={
+                loading ? "Creating account, please wait" : "Create Free Account"
+              }
             />
           </form>
         )}
