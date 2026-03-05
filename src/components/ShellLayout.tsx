@@ -46,6 +46,7 @@ const JOB_TYPE_SUBS = [
 const LOGIN_MODES = [
   { id: "candidate", label: "Candidate Login", icon: "👤" },
   { id: "vendor", label: "Vendor Login", icon: "🏢" },
+  { id: "marketer", label: "Marketer Login", icon: "📊" },
 ];
 
 interface SubMenu {
@@ -220,10 +221,12 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   const loginTypeFromPath = location.pathname.startsWith("/jobs/vendor")
     ? "vendor"
     : location.pathname.startsWith("/jobs/candidate")
-      ? "candidate"
-      : null;
+    ? "candidate"
+    : location.pathname.startsWith("/jobs/marketer")
+    ? "marketer"
+    : null;
   const [activeLoginType, setActiveLoginType] = useState<
-    "candidate" | "vendor" | null
+    "candidate" | "vendor" | "marketer" | null
   >(loginTypeFromPath);
 
   /* Keep activeLoginType in sync when URL changes (e.g. back/forward) */
@@ -291,8 +294,8 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
       const tab = isCandSucc
         ? "candidate"
         : user?.user_type === "candidate"
-          ? "candidate"
-          : "vendor";
+        ? "candidate"
+        : "vendor";
       setPricingModalTab(tab);
       if (isCandSucc) {
         // Refresh user data from server so hasPurchasedVisibility reflects the completed payment,
@@ -337,8 +340,10 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     user?.user_type === "vendor"
       ? "Candidate Database"
       : user?.user_type === "candidate"
-        ? "Job Openings Database"
-        : "Jobs Database";
+      ? "Job Openings Database"
+      : user?.user_type === "marketer"
+      ? "Marketing Database"
+      : "Jobs Database";
   const navItems = useMemo(
     () =>
       MFE_NAV.map((n) => (n.id === "jobs" ? { ...n, label: jobsLabel } : n)),
@@ -478,12 +483,13 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   }, []);
 
   const initials = user
-    ? `${user.first_name?.charAt(0) ?? ""}${user.last_name?.charAt(0) ?? ""}`.toUpperCase() ||
-      user.email.charAt(0).toUpperCase()
+    ? `${user.first_name?.charAt(0) ?? ""}${
+        user.last_name?.charAt(0) ?? ""
+      }`.toUpperCase() || user.email.charAt(0).toUpperCase()
     : "G";
   const displayName = user?.first_name
     ? `${user.first_name} ${user.last_name ?? ""}`.trim()
-    : (user?.email ?? "Guest");
+    : user?.email ?? "Guest";
 
   /* ── Account age & profile freshness badges ── */
   const accountAgeBadge = useMemo(() => {
@@ -517,7 +523,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     return {
       label,
       color,
-      tooltip: `Account created ${created.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+      tooltip: `Account created ${created.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })}`,
     };
   }, [user?.created_at]);
 
@@ -547,7 +557,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     return {
       label,
       color,
-      tooltip: `Profile updated ${updated.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+      tooltip: `Profile updated ${updated.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })}`,
     };
   }, [user?.updated_at]);
 
@@ -579,8 +593,8 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
   /* Shell-level job type subs — MFE controls the real filtering via membershipConfig */
   const allowedSubdivisions = useMemo(
-    () => (isLoggedIn ? JOB_TYPE_SUBS : []),
-    [isLoggedIn],
+    () => (isLoggedIn && user?.user_type !== "marketer" ? JOB_TYPE_SUBS : []),
+    [isLoggedIn, user?.user_type],
   );
 
   /* Broadcast active login context to MFE (null → "candidate" as safe default) */
@@ -615,13 +629,19 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     );
   };
 
-  /* Open login modal */
+  /* Open login modal.
+   * locked = true  → user_type is fixed (came from Candidate/Vendor nav link)
+   * locked = false → user can choose candidate or vendor (header buttons, Jobs Database)
+   */
   const openLogin = (
-    context: "candidate" | "vendor" = "candidate",
+    context: "candidate" | "vendor" | "marketer" = "candidate",
     mode: "login" | "register" = "login",
+    locked: boolean = false,
   ) => {
     window.dispatchEvent(
-      new CustomEvent("matchdb:openLogin", { detail: { context, mode } }),
+      new CustomEvent("matchdb:openLogin", {
+        detail: { context, mode, locked },
+      }),
     );
   };
 
@@ -688,7 +708,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           {isLoggedIn && user?.user_type && (
             <span style={{ color: "#e8850f", fontWeight: 700, marginLeft: 6 }}>
               · Logged in as{" "}
-              {user.user_type === "vendor" ? "Vendor" : "Candidate"}
+              {user.user_type === "vendor"
+                ? "Vendor"
+                : user.user_type === "marketer"
+                ? "Marketer"
+                : "Candidate"}
             </span>
           )}
         </span>
@@ -755,7 +779,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                 <div className="legacy-shell-user-text">
                   <div className="legacy-shell-user-name">{displayName}</div>
                   <div className="legacy-shell-user-type">
-                    {user?.user_type === "vendor" ? "Vendor" : "Candidate"}
+                    {user?.user_type === "vendor"
+                      ? "Vendor"
+                      : user?.user_type === "marketer"
+                      ? "Marketer"
+                      : "Candidate"}
                   </div>
                 </div>
                 <span className="legacy-shell-user-caret" aria-hidden="true">
@@ -806,7 +834,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                     <div className="shell-account-row">
                       <span className="shell-account-label">Type</span>
                       <span className="shell-account-value">
-                        {user?.user_type === "vendor" ? "Vendor" : "Candidate"}
+                        {user?.user_type === "vendor"
+                          ? "Vendor"
+                          : user?.user_type === "marketer"
+                          ? "Marketer"
+                          : "Candidate"}
                       </span>
                     </div>
                     <div className="shell-account-row">
@@ -892,7 +924,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
               <div className="legacy-shell-sidebar-info">
                 <div className="legacy-shell-sidebar-name">{displayName}</div>
                 <div className="legacy-shell-sidebar-type">
-                  {user?.user_type === "vendor" ? "Vendor" : "Candidate"}
+                  {user?.user_type === "vendor"
+                    ? "Vendor"
+                    : user?.user_type === "marketer"
+                    ? "Marketer"
+                    : "Candidate"}
                 </div>
               </div>
               <div className="legacy-shell-rosettes">
@@ -941,12 +977,19 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           {(() => {
             const item = navItems.find((n) => n.id === "jobs")!;
             const activeItem = active !== null && item.id === active.id;
+            const isMarketerNav = user?.user_type === "marketer" && isLoggedIn;
             return (
               <ul className="legacy-shell-nav-list legacy-shell-apps-list">
                 <li className="legacy-shell-app-entry">
                   <button
                     type="button"
-                    className={`legacy-shell-nav-item${activeItem ? " active" : ""}`}
+                    className={[
+                      "legacy-shell-nav-item",
+                      activeItem ? "active" : "",
+                      isMarketerNav ? "marketer-nav-highlight" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     onClick={() => {
                       navigate(item.path);
                       setActiveLoginType(null);
@@ -981,36 +1024,68 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                     )}
                   </button>
 
-                  {/* Login-mode sub-rows (Candidate / Vendor login selector) */}
+                  {/* Candidate / Vendor login links for unauthenticated users */}
                   {!collapsed && !isLoggedIn && (
                     <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
-                      {LOGIN_MODES.map((lm) => (
-                        <li key={lm.id}>
+                      {LOGIN_MODES.map((mode) => (
+                        <li key={mode.id}>
                           <button
                             type="button"
-                            className={`legacy-shell-nav-item legacy-shell-subnav-item${activeLoginType === lm.id ? " active" : ""}`}
+                            className={`legacy-shell-nav-item legacy-shell-subnav-item${
+                              activeLoginType === mode.id ? " active" : ""
+                            }`}
                             onClick={() => {
-                              const type = lm.id as "candidate" | "vendor";
-                              setActiveLoginType(type);
-                              navigate(`/jobs/${type}`);
+                              setActiveLoginType(
+                                mode.id as "candidate" | "vendor" | "marketer",
+                              );
+                              navigate(
+                                mode.id === "vendor"
+                                  ? "/jobs/vendor"
+                                  : mode.id === "marketer"
+                                  ? "/jobs/marketer"
+                                  : "/jobs/candidate",
+                              );
                             }}
-                            title={
-                              lm.id === "candidate"
-                                ? "Log in as a job seeker"
-                                : "Log in as an employer / recruiter"
-                            }
+                            title={mode.label}
                           >
                             <span className="legacy-shell-subnav-bullet">
-                              {lm.icon}
+                              ▸
                             </span>
                             <span className="legacy-shell-subnav-label">
-                              {lm.label}
+                              {mode.icon} {mode.label}
                             </span>
                           </button>
                         </li>
                       ))}
                     </ul>
                   )}
+
+                  {/* Job-type subdivisions for logged-in users */}
+                  {!collapsed &&
+                    isLoggedIn &&
+                    allowedSubdivisions.length > 0 && (
+                      <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
+                        {allowedSubdivisions.map((sub) => (
+                          <li key={sub.id}>
+                            <button
+                              type="button"
+                              className={`legacy-shell-nav-item legacy-shell-subnav-item${
+                                activeJobType === sub.id ? " active" : ""
+                              }`}
+                              onClick={() => handleJobTypeClick(sub.id)}
+                              title={sub.label}
+                            >
+                              <span className="legacy-shell-subnav-bullet">
+                                ▸
+                              </span>
+                              <span className="legacy-shell-subnav-label">
+                                {sub.label}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                 </li>
               </ul>
             );
@@ -1051,8 +1126,8 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                           item.tooltip
                             ? item.tooltip
                             : item.count !== undefined
-                              ? `${item.label} (${item.count} records)`
-                              : item.label
+                            ? `${item.label} (${item.count} records)`
+                            : item.label
                         }
                       >
                         <span className="legacy-shell-subnav-bullet">
@@ -1104,7 +1179,9 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                   <li key={item.id} className="legacy-shell-app-entry">
                     <button
                       type="button"
-                      className={`legacy-shell-nav-item${isDisabled ? " disabled" : ""}`}
+                      className={`legacy-shell-nav-item${
+                        isDisabled ? " disabled" : ""
+                      }`}
                       onClick={() => {
                         if (isDisabled) {
                           toggleExpand();
@@ -1200,7 +1277,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
           <div className="legacy-shell-pagehead">
             <div>
-              <h2>{isWelcome ? "MatchDB" : (active?.label ?? "")}</h2>
+              <h2>{isWelcome ? "MatchDB" : active?.label ?? ""}</h2>
               {(!isLoggedIn || isWelcome) && (
                 <p>
                   {isWelcome
@@ -1222,6 +1299,8 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                           tab:
                             user?.user_type === "vendor"
                               ? "vendor"
+                              : user?.user_type === "marketer"
+                              ? "marketer"
                               : "candidate",
                         },
                       }),
@@ -1232,36 +1311,10 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
               )}
               {!isLoggedIn && (
                 <div className="legacy-shell-pagehead-auth">
-                  {loginTypeFromPath !== "vendor" && (
-                    <Button
-                      type="button"
-                      icon="pi pi-user"
-                      label="Candidate Login"
-                      className="legacy-shell-signout"
-                      onClick={() => openLogin("candidate", "login")}
-                    />
-                  )}
-                  {loginTypeFromPath !== "candidate" && (
-                    <Button
-                      type="button"
-                      icon="pi pi-building"
-                      label="Vendor Login"
-                      className="legacy-shell-signout"
-                      onClick={() => openLogin("vendor", "login")}
-                    />
-                  )}
-                  <Button
-                    type="button"
-                    icon="pi pi-user-plus"
-                    label="Create Account"
-                    className="legacy-shell-signout"
-                    onClick={() =>
-                      openLogin(
-                        loginTypeFromPath === "vendor" ? "vendor" : "candidate",
-                        "register",
-                      )
-                    }
-                  />
+                  <span style={{ opacity: 0.7, fontSize: 12 }}>
+                    Use <strong>Sign&nbsp;In</strong> /{" "}
+                    <strong>Sign&nbsp;Up</strong> in the top header
+                  </span>
                 </div>
               )}
               {isLoggedIn && profileCountry && (

@@ -39,7 +39,7 @@ export interface RegisterArgs {
   password: string;
   firstName?: string;
   lastName?: string;
-  userType: "candidate" | "vendor";
+  userType: "candidate" | "vendor" | "marketer";
 }
 
 export interface RefreshTokenArgs {
@@ -187,6 +187,14 @@ export const shellApi = createApi({
     openBillingPortal: builder.mutation<{ url: string }, void>({
       query: () => ({ url: "api/payments/portal", method: "POST", body: {} }),
     }),
+
+    createMarketerCheckout: builder.mutation<{ url: string }, void>({
+      query: () => ({
+        url: "api/payments/marketer-checkout",
+        method: "POST",
+        body: {},
+      }),
+    }),
   }),
 });
 
@@ -208,4 +216,5 @@ export const {
   useCreateVendorCheckoutMutation,
   useCreateCandidateCheckoutMutation,
   useOpenBillingPortalMutation,
+  useCreateMarketerCheckoutMutation,
 } = shellApi;

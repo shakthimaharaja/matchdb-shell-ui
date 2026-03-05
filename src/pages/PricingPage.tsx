@@ -5,6 +5,7 @@ import {
   useGetCandidatePackagesQuery,
   useCreateVendorCheckoutMutation,
   useCreateCandidateCheckoutMutation,
+  useCreateMarketerCheckoutMutation,
   useOpenBillingPortalMutation,
   useRefreshUserDataMutation,
   type VendorPlan,
@@ -161,7 +162,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 //  Main Component
 
 interface PricingPageProps {
-  initialTab?: "vendor" | "candidate";
+  initialTab?: "vendor" | "candidate" | "marketer";
   onClose?: () => void;
 }
 
@@ -175,25 +176,35 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     useCreateVendorCheckoutMutation();
   const [createCandidateCheckout, { isLoading: candidateCheckoutLoading }] =
     useCreateCandidateCheckoutMutation();
+  const [createMarketerCheckout, { isLoading: marketerCheckoutLoading }] =
+    useCreateMarketerCheckoutMutation();
   const [openBillingPortal, { isLoading: portalLoading }] =
     useOpenBillingPortalMutation();
   const [refreshUserData] = useRefreshUserDataMutation();
 
   const checkoutLoading =
-    vendorCheckoutLoading || candidateCheckoutLoading || portalLoading;
+    vendorCheckoutLoading ||
+    candidateCheckoutLoading ||
+    marketerCheckoutLoading ||
+    portalLoading;
 
   const isVendor = user?.user_type === "vendor";
   const isCandidate = user?.user_type === "candidate";
+  const isMarketer = user?.user_type === "marketer";
 
   const defaultTab = isVendor
     ? 0
     : isCandidate
-      ? 1
-      : initialTab === "vendor"
-        ? 0
-        : initialTab === "candidate"
-          ? 1
-          : 0;
+    ? 1
+    : isMarketer
+    ? 2
+    : initialTab === "vendor"
+    ? 0
+    : initialTab === "candidate"
+    ? 1
+    : initialTab === "marketer"
+    ? 2
+    : 0;
 
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
@@ -274,6 +285,22 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     }
   };
 
+  const handleMarketerSubscribe = async () => {
+    if (!token) {
+      setMessage({ type: "error", text: "Please sign in to subscribe." });
+      return;
+    }
+    try {
+      const { url } = await createMarketerCheckout().unwrap();
+      window.location.href = url;
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text: err.data?.error || "Checkout failed. Please try again.",
+      });
+    }
+  };
+
   //  Candidate helpers
   const getOwnedSubs = (domain: string): string[] =>
     (user as any)?.membership_config?.[domain] || [];
@@ -334,8 +361,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
   const effectivePrice = !selectedPkg
     ? 0
     : selectedPkg === "subdomain_addon"
-      ? (selectedPkgData?.price || 2) * selectedSubs.length
-      : selectedPkgData?.price || 0;
+    ? (selectedPkgData?.price || 2) * selectedSubs.length
+    : selectedPkgData?.price || 0;
 
   const canPurchase = (): boolean => {
     if (!selectedPkg || !token) return false;
@@ -351,13 +378,17 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     const { packageId } = candidateConfirm;
     setLoadingPkgId(packageId);
     try {
-      const args: { packageId: string; domain?: string; subdomains?: string[] } =
-        { packageId };
+      const args: {
+        packageId: string;
+        domain?: string;
+        subdomains?: string[];
+      } = { packageId };
       if (packageId !== "full_bundle") {
         args.domain = selectedDomain;
         if (packageId === "base" && selectedSubs.length > 0)
           args.subdomains = [selectedSubs[0]];
-        else if (packageId === "subdomain_addon") args.subdomains = selectedSubs;
+        else if (packageId === "subdomain_addon")
+          args.subdomains = selectedSubs;
       }
       const { url } = await createCandidateCheckout(args).unwrap();
       window.location.href = url;
@@ -460,7 +491,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         }
         notice="You will be redirected to Stripe to complete payment. This is a one-time charge - no recurring fees."
         confirmLabel={`Buy Now - $${candidateConfirm?.price}`}
-        loading={loadingPkgId === candidateConfirm?.packageId || checkoutLoading}
+        loading={
+          loadingPkgId === candidateConfirm?.packageId || checkoutLoading
+        }
         onConfirm={handleCandidateConfirm}
         onClose={() => {
           setCandidateConfirm(null);
@@ -474,8 +507,12 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         {user ? (
           <>
             <span className="pp-statusbar-plan">
-              {user.user_type === "vendor" ? "Employer" : "Candidate"} -{" "}
-              {planBadge((user as any).plan ?? "free")}
+              {user.user_type === "vendor"
+                ? "Employer"
+                : user.user_type === "marketer"
+                ? "Marketer"
+                : "Candidate"}{" "}
+              - {planBadge((user as any).plan ?? "free")}
             </span>
             {(user as any).plan && (user as any).plan !== "free" && (
               <>
@@ -497,7 +534,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
       </div>
 
       {/* Only show tabs when both sections are accessible (unauthenticated) */}
-      {!user || (!isVendor && !isCandidate) ? (
+      {!user || (!isVendor && !isCandidate && !isMarketer) ? (
         <div className="pp-tabs">
           <button
             className={`pp-tab${activeTab === 0 ? " pp-tab-active" : ""}`}
@@ -511,6 +548,12 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
           >
             For Candidates
           </button>
+          <button
+            className={`pp-tab${activeTab === 2 ? " pp-tab-active" : ""}`}
+            onClick={() => setActiveTab(2)}
+          >
+            For Marketers
+          </button>
         </div>
       ) : (
         <div className="pp-tabs">
@@ -521,6 +564,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
           )}
           {isCandidate && (
             <button className="pp-tab pp-tab-active">For Candidates</button>
+          )}
+          {isMarketer && (
+            <button className="pp-tab pp-tab-active">For Marketers</button>
           )}
         </div>
       )}
@@ -598,7 +644,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                 <div className="pp-inline-confirm-footer">
                   <button
                     className="pp-btn pp-btn-primary pp-btn-wide"
-                    disabled={loadingPlanId === vendorConfirm.id || checkoutLoading}
+                    disabled={
+                      loadingPlanId === vendorConfirm.id || checkoutLoading
+                    }
                     onClick={handleVendorConfirm}
                   >
                     {loadingPlanId === vendorConfirm.id || checkoutLoading
@@ -632,7 +680,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                         >
                           <span style={{ flex: 1 }}>{plan.name}</span>
                           <span
-                            className={`pp-plan-badge${plan.highlighted ? " pp-plan-badge-popular" : ""}`}
+                            className={`pp-plan-badge${
+                              plan.highlighted ? " pp-plan-badge-popular" : ""
+                            }`}
                           >
                             {plan.highlighted ? "POPULAR" : planBadge(plan.id)}
                           </span>
@@ -658,7 +708,11 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                           <hr className="pp-plan-divider" />
 
                           <ul
-                            className={`pp-plan-features${plan.highlighted ? " pp-plan-features-highlighted" : ""}`}
+                            className={`pp-plan-features${
+                              plan.highlighted
+                                ? " pp-plan-features-highlighted"
+                                : ""
+                            }`}
                           >
                             {plan.features.map((f) => (
                               <li key={f}>{f}</li>
@@ -682,7 +736,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                               <button
                                 className="pp-btn pp-btn-primary"
                                 style={{ width: "100%" }}
-                                disabled={loadingPlanId === plan.id || checkoutLoading}
+                                disabled={
+                                  loadingPlanId === plan.id || checkoutLoading
+                                }
                                 onClick={() => {
                                   if (!token) {
                                     setMessage({
@@ -785,7 +841,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
             </div>
 
             <div
-              className={`pp-domain-map${!selectedPkg ? " pp-domain-map-disabled" : ""}`}
+              className={`pp-domain-map${
+                !selectedPkg ? " pp-domain-map-disabled" : ""
+              }`}
             >
               {(["contract", "full_time"] as const).map((domain) => {
                 const subs =
@@ -926,6 +984,159 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
           </>
         )}
       </div>
+
+      {/* ── Marketer plans (tiered) ─────────────────────────────────── */}
+      {(activeTab === 2 || isMarketer) && !isVendor && !isCandidate && (
+        <div>
+          <p
+            style={{
+              textAlign: "center",
+              marginBottom: 8,
+              fontSize: 13,
+              color: "#888",
+            }}
+          >
+            One account per company · Choose how many job types you need access
+            to
+          </p>
+          <div className="pp-vendor-grid" style={{ maxWidth: 900 }}>
+            {/* Tier 1 – 1 Type */}
+            <div
+              className={`pp-plan-card${
+                isMarketer && user?.plan === "marketer"
+                  ? " pp-plan-highlighted"
+                  : ""
+              }`}
+            >
+              <div className="pp-plan-badge">1 JOB TYPE</div>
+              <div className="pp-plan-name">Starter</div>
+              <div className="pp-plan-price">
+                <span className="pp-plan-amount">$100</span>
+                <span className="pp-plan-interval">/month</span>
+              </div>
+              <ul className="pp-plan-features">
+                <li>Pick 1 of C2C, W2, C2H, Full Time</li>
+                <li>Job openings + candidate profiles</li>
+                <li>Vendor email &amp; phone</li>
+                <li>Download CSV / Excel / Resume PDF</li>
+                <li>0–2 concurrent sessions included</li>
+              </ul>
+              {isMarketer && user?.plan === "marketer" ? (
+                <div style={{ textAlign: "center", marginTop: 8 }}>
+                  <span
+                    className="pp-plan-badge"
+                    style={{ background: "#2e7d32", color: "#fff" }}
+                  >
+                    Active
+                  </span>
+                  <button
+                    className="pp-btn pp-btn-primary pp-btn-wide"
+                    style={{ marginTop: 8 }}
+                    onClick={handlePortal}
+                    disabled={checkoutLoading}
+                  >
+                    Manage Billing
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="pp-btn pp-btn-primary pp-btn-wide"
+                  disabled={checkoutLoading}
+                  onClick={handleMarketerSubscribe}
+                >
+                  {checkoutLoading ? "Please wait..." : "Subscribe — $100/mo"}
+                </button>
+              )}
+            </div>
+
+            {/* Tier 2 – Any 2 Types */}
+            <div className="pp-plan-card">
+              <div className="pp-plan-badge">ANY 2 TYPES</div>
+              <div className="pp-plan-name">Growth</div>
+              <div className="pp-plan-price">
+                <span className="pp-plan-amount">$180</span>
+                <span className="pp-plan-interval">/month</span>
+              </div>
+              <ul className="pp-plan-features">
+                <li>Pick any 2 of C2C, W2, C2H, Full Time</li>
+                <li>Job openings + candidate profiles</li>
+                <li>Vendor email &amp; phone</li>
+                <li>Download CSV / Excel / Resume PDF</li>
+                <li>0–2 concurrent sessions included</li>
+              </ul>
+              <button
+                className="pp-btn pp-btn-primary pp-btn-wide"
+                disabled={checkoutLoading}
+                onClick={handleMarketerSubscribe}
+              >
+                {checkoutLoading ? "Please wait..." : "Subscribe — $180/mo"}
+              </button>
+            </div>
+
+            {/* Tier 3 – Any 3 Types */}
+            <div className="pp-plan-card">
+              <div className="pp-plan-badge">ANY 3 TYPES</div>
+              <div className="pp-plan-name">Professional</div>
+              <div className="pp-plan-price">
+                <span className="pp-plan-amount">$250</span>
+                <span className="pp-plan-interval">/month</span>
+              </div>
+              <ul className="pp-plan-features">
+                <li>Pick any 3 of C2C, W2, C2H, Full Time</li>
+                <li>Job openings + candidate profiles</li>
+                <li>Vendor email &amp; phone</li>
+                <li>Download CSV / Excel / Resume PDF</li>
+                <li>0–2 concurrent sessions included</li>
+              </ul>
+              <button
+                className="pp-btn pp-btn-primary pp-btn-wide"
+                disabled={checkoutLoading}
+                onClick={handleMarketerSubscribe}
+              >
+                {checkoutLoading ? "Please wait..." : "Subscribe — $250/mo"}
+              </button>
+            </div>
+
+            {/* Tier 4 – All Types */}
+            <div className="pp-plan-card">
+              <div className="pp-plan-badge" style={{ background: "#1565c0" }}>
+                ALL TYPES
+              </div>
+              <div className="pp-plan-name">Enterprise</div>
+              <div className="pp-plan-price">
+                <span className="pp-plan-amount">$499</span>
+                <span className="pp-plan-interval">/month</span>
+              </div>
+              <ul className="pp-plan-features">
+                <li>Full access: C2C, W2, C2H, Full Time</li>
+                <li>Job openings + candidate profiles</li>
+                <li>Vendor email &amp; phone</li>
+                <li>Download CSV / Excel / Resume PDF</li>
+                <li>0–2 concurrent sessions included</li>
+              </ul>
+              <button
+                className="pp-btn pp-btn-primary pp-btn-wide"
+                disabled={checkoutLoading}
+                onClick={handleMarketerSubscribe}
+              >
+                {checkoutLoading ? "Please wait..." : "Subscribe — $499/mo"}
+              </button>
+            </div>
+          </div>
+
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: 12,
+              fontSize: 12,
+              color: "#999",
+            }}
+          >
+            <strong>Session add-on:</strong> 0–2 free with every plan · Need up
+            to 5 concurrent sessions? +$100/mo
+          </div>
+        </div>
+      )}
 
       <div className="pp-footer">
         All payments processed securely via Stripe &nbsp;&nbsp; Vendor plans

@@ -138,12 +138,18 @@ const WelcomePage: React.FC = () => {
                   <span>Browse Jobs</span>
                 </button>
                 <button className="wlc-btn" onClick={() => openLogin("candidate")}>
-                  <span>👤</span>
-                  <span>Candidate Login</span>
+                  <span>�</span>
+                  <span>Sign In</span>
                 </button>
-                <button className="wlc-btn" onClick={() => openLogin("vendor")}>
-                  <span>🏢</span>
-                  <span>Vendor Login</span>
+                <button className="wlc-btn" onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("matchdb:openLogin", {
+                      detail: { context: "candidate", mode: "register" },
+                    }),
+                  );
+                }}>
+                  <span>✨</span>
+                  <span>Sign Up</span>
                 </button>
               </div>
             </div>

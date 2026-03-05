@@ -78,6 +78,8 @@ Browser :3000  ─── webpack-dev-server ───┐
                                          └──► jobs-services :8001
 
 Shell (host)  ──── Module Federation ──── Jobs MFE (remote :3001)
+
+Both backend services connect to the same PostgreSQL database (matchdb).
 ```
 
 - The shell webpack dev server proxies `/api/auth` and `/api/payments` to the Node proxy on port 4000, which forwards to `matchdb-shell-services` on port 8000.

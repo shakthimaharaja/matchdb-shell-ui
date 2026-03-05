@@ -13,7 +13,7 @@ interface RegForm {
   last_name: string;
   email: string;
   password: string;
-  user_type: "candidate" | "vendor";
+  user_type: "candidate" | "vendor" | "marketer";
 }
 
 const EMPTY_REG: RegForm = {
@@ -26,22 +26,30 @@ const EMPTY_REG: RegForm = {
 
 const LoginModal: React.FC = () => {
   const { token, user } = useAppSelector((state) => state.auth);
-  const [login, { isLoading: loginLoading, error: loginError, reset: resetLogin }] =
-    useLoginMutation();
-  const [register, { isLoading: registerLoading, error: registerError, reset: resetRegister }] =
-    useRegisterMutation();
+  const [
+    login,
+    { isLoading: loginLoading, error: loginError, reset: resetLogin },
+  ] = useLoginMutation();
+  const [
+    register,
+    { isLoading: registerLoading, error: registerError, reset: resetRegister },
+  ] = useRegisterMutation();
 
   const loading = loginLoading || registerLoading;
   const rawError = loginError || registerError;
   const error = rawError
-    ? ((rawError as any).data?.error ??
-       (rawError as any).data?.detail ??
-       "Authentication failed. Please try again.")
+    ? (rawError as any).data?.error ??
+      (rawError as any).data?.detail ??
+      "Authentication failed. Please try again."
     : null;
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>("login");
-  const [context, setContext] = useState<"candidate" | "vendor">("candidate");
+  const [context, setContext] = useState<"candidate" | "vendor" | "marketer">(
+    "candidate",
+  );
+  /** When true the user_type is locked (came from Candidate/Vendor nav link) */
+  const [locked, setLocked] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [regForm, setRegForm] = useState<RegForm>(EMPTY_REG);
   const [oauthError, setOauthError] = useState<string | null>(null);
@@ -62,21 +70,26 @@ const LoginModal: React.FC = () => {
     }
   }, []);
 
-  const handleOpenModal = useCallback((e: Event) => {
-    const detail = (e as CustomEvent).detail;
-    setContext(detail?.context || "candidate");
-    setMode(detail?.mode || "login");
-    setRegForm({ ...EMPTY_REG, user_type: detail?.context || "candidate" });
-    setOauthError(null);
-    setShowUpgrade(false);
-    setOpen(true);
-    resetLogin();
-    resetRegister();
-  }, [resetLogin, resetRegister]);
+  const handleOpenModal = useCallback(
+    (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setContext(detail?.context || "candidate");
+      setMode(detail?.mode || "login");
+      setLocked(!!detail?.locked);
+      setRegForm({ ...EMPTY_REG, user_type: detail?.context || "candidate" });
+      setOauthError(null);
+      setShowUpgrade(false);
+      setOpen(true);
+      resetLogin();
+      resetRegister();
+    },
+    [resetLogin, resetRegister],
+  );
 
   useEffect(() => {
     window.addEventListener("matchdb:openLogin", handleOpenModal);
-    return () => window.removeEventListener("matchdb:openLogin", handleOpenModal);
+    return () =>
+      window.removeEventListener("matchdb:openLogin", handleOpenModal);
   }, [handleOpenModal]);
 
   useEffect(() => {
@@ -92,6 +105,8 @@ const LoginModal: React.FC = () => {
         } else {
           setOpen(false);
         }
+      } else if (user?.user_type === "marketer" && user?.plan !== "marketer") {
+        setShowUpgrade(true);
       } else if (user?.plan === "free") {
         setShowUpgrade(true);
       } else {
@@ -106,13 +121,14 @@ const LoginModal: React.FC = () => {
   };
 
   const handleGoToPricing = () => {
-    const isVendor = user?.user_type === "vendor";
-    const tab = isVendor ? "vendor" : "candidate";
+    const ut = user?.user_type;
+    const tab =
+      ut === "vendor" ? "vendor" : ut === "marketer" ? "marketer" : "candidate";
     setShowUpgrade(false);
     setOpen(false);
     window.dispatchEvent(
       new CustomEvent("matchdb:openPricing", {
-        detail: { tab, triggerProfile: !isVendor },
+        detail: { tab, triggerProfile: tab === "candidate" },
       }),
     );
   };
@@ -150,7 +166,7 @@ const LoginModal: React.FC = () => {
     resetRegister();
   };
 
-  const handleGoogleAuth = (userType: "candidate" | "vendor") => {
+  const handleGoogleAuth = (userType: "candidate" | "vendor" | "marketer") => {
     const backendUrl =
       (window as any).__MATCHDB_API_URL__ ||
       process.env.SHELL_SERVICES_URL ||
@@ -163,7 +179,15 @@ const LoginModal: React.FC = () => {
   const activeUserType = mode === "login" ? context : regForm.user_type;
 
   if (showUpgrade) {
-    const isVendor = user?.user_type === "vendor";
+    const ut = user?.user_type;
+    const isVendor = ut === "vendor";
+    const isMarketer = ut === "marketer";
+    const ctxIcon = isVendor ? "🏢" : isMarketer ? "📊" : "👤";
+    const ctxLabel = isVendor
+      ? "🏢 Vendor"
+      : isMarketer
+      ? "📊 Marketer"
+      : "👤 Candidate";
     return (
       <div className="login-modal-overlay" onClick={handleUpgradeClose}>
         <div
@@ -174,16 +198,14 @@ const LoginModal: React.FC = () => {
             <span className="login-modal-title">
               {mode === "register" ? "Account Created!" : "Welcome Back"}
             </span>
-            <span className="login-modal-context">
-              {isVendor ? "🏢 Vendor" : "👤 Candidate"}
-            </span>
+            <span className="login-modal-context">{ctxLabel}</span>
             <button className="login-modal-close" onClick={handleUpgradeClose}>
               ✕
             </button>
           </div>
 
           <div className="lm-upgrade-panel">
-            <div className="lm-upgrade-icon">{isVendor ? "🏢" : "👤"}</div>
+            <div className="lm-upgrade-icon">{ctxIcon}</div>
             <h3 className="lm-upgrade-title">
               {mode === "register"
                 ? "Your free account is ready!"
@@ -192,6 +214,8 @@ const LoginModal: React.FC = () => {
             <p className="lm-upgrade-desc">
               {isVendor
                 ? "Free accounts can browse MatchDB but cannot post jobs or view matched candidates. Subscribe to the Basic plan ($22/mo) or higher to unlock full access."
+                : isMarketer
+                ? "Subscribe to the Marketer plan ($100/month) to access the full live database of job openings and candidate profiles."
                 : "Free accounts can browse matched jobs. Purchase a Visibility Package to upload your profile and appear in employer searches — starting at $13."}
             </p>
             <button
@@ -199,7 +223,11 @@ const LoginModal: React.FC = () => {
               className="login-modal-submit lm-upgrade-cta"
               onClick={handleGoToPricing}
             >
-              {isVendor ? "View Subscription Plans →" : "Purchase Visibility →"}
+              {isVendor
+                ? "View Subscription Plans →"
+                : isMarketer
+                ? "Subscribe to Marketer Plan →"
+                : "Purchase Visibility →"}
             </button>
             <button
               type="button"
@@ -228,7 +256,12 @@ const LoginModal: React.FC = () => {
             {mode === "login" ? "User Authentication" : "Create Account"}
           </span>
           <span className="login-modal-context">
-            {context === "vendor" ? "🏢 Vendor" : "👤 Candidate"}
+            {context === "vendor"
+              ? "🏢 Vendor"
+              : context === "marketer"
+              ? "📊 Marketer"
+              : "👤 Candidate"}
+            {locked && " (locked)"}
           </span>
           <button
             className="login-modal-close"
@@ -238,6 +271,27 @@ const LoginModal: React.FC = () => {
             ✕
           </button>
         </div>
+
+        {/* User-type chooser — only when NOT locked (i.e. opened from header or Jobs Database) */}
+        {!locked && mode === "login" && (
+          <div className="login-modal-field" style={{ padding: "8px 16px 0" }}>
+            <label htmlFor="lm-login-type">Login as</label>
+            <select
+              id="lm-login-type"
+              value={context}
+              onChange={(e) =>
+                setContext(
+                  e.target.value as "candidate" | "vendor" | "marketer",
+                )
+              }
+              className="login-modal-select"
+            >
+              <option value="candidate">👤 Candidate (Job Seeker)</option>
+              <option value="vendor">🏢 Vendor / Employer</option>
+              <option value="marketer">📊 Marketer</option>
+            </select>
+          </div>
+        )}
 
         <div className="login-modal-tabs">
           <button
@@ -345,14 +399,24 @@ const LoginModal: React.FC = () => {
                 onChange={(e) =>
                   handleField(
                     "user_type",
-                    e.target.value as "candidate" | "vendor",
+                    e.target.value as "candidate" | "vendor" | "marketer",
                   )
                 }
                 className="login-modal-select"
+                disabled={locked}
+                style={
+                  locked ? { opacity: 0.7, cursor: "not-allowed" } : undefined
+                }
               >
                 <option value="candidate">👤 Candidate (Job Seeker)</option>
                 <option value="vendor">🏢 Vendor / Employer</option>
+                <option value="marketer">📊 Marketer</option>
               </select>
+              {locked && (
+                <span style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>
+                  Account type is pre-selected from your navigation choice
+                </span>
+              )}
             </div>
 
             <Button
@@ -384,6 +448,17 @@ const LoginModal: React.FC = () => {
                   Create your free account and browse matched jobs. Purchase a
                   Visibility Package from the Pricing page to appear in employer
                   searches and get discovered.
+                </div>
+              </div>
+            )}
+
+            {regForm.user_type === "marketer" && (
+              <div className="lm-vendor-info">
+                <div className="lm-vendor-info-title">📊 Marketer Account</div>
+                <div className="lm-vendor-info-desc">
+                  Access a live database of all job openings and candidate
+                  profiles. Subscribe to the Marketer plan ($100/month) from the
+                  Pricing page to unlock the full intelligence dashboard.
                 </div>
               </div>
             )}
@@ -459,7 +534,9 @@ const LoginModal: React.FC = () => {
               disabled={loading}
               className="login-modal-submit"
               aria-label={
-                loading ? "Creating account, please wait" : "Create Free Account"
+                loading
+                  ? "Creating account, please wait"
+                  : "Create Free Account"
               }
             />
           </form>

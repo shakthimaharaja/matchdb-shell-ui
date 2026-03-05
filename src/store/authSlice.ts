@@ -16,10 +16,10 @@ export interface User {
   first_name: string;
   last_name: string;
   username: string;
-  user_type: "candidate" | "vendor";
+  user_type: "candidate" | "vendor" | "marketer";
   membership_config: Record<string, string[]> | null;
   has_purchased_visibility: boolean;
-  plan: "free" | "basic" | "pro" | "pro_plus";
+  plan: "free" | "basic" | "pro" | "pro_plus" | "marketer";
   created_at: string | null;
   updated_at: string | null;
 }
@@ -29,7 +29,7 @@ interface AuthState {
   token: string | null;
   refresh: string | null;
   /** Stores user_type of the user whose session just expired */
-  sessionExpiredUserType: "candidate" | "vendor" | null;
+  sessionExpiredUserType: "candidate" | "vendor" | "marketer" | null;
 }
 
 const token = localStorage.getItem("matchdb_token");
@@ -95,7 +95,7 @@ const authSlice = createSlice({
      * Clears auth state on session expiry, preserving user_type for
      * redirect-to-appropriate-login logic in JobsAppWrapper.
      */
-    expireSession(state, action: PayloadAction<"candidate" | "vendor">) {
+    expireSession(state, action: PayloadAction<"candidate" | "vendor" | "marketer">) {
       state.sessionExpiredUserType = action.payload;
       state.user = null;
       state.token = null;
