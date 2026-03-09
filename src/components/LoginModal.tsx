@@ -234,7 +234,7 @@ const LoginModal: React.FC = () => {
               className="lm-upgrade-skip"
               onClick={handleUpgradeClose}
             >
-              Skip for now — I'll upgrade later
+              Skip for now — I&apos;ll upgrade later
             </button>
           </div>
         </div>
