@@ -199,6 +199,8 @@ const MFE_NAV: NavItem[] = [
 
 interface Props {
   children: React.ReactNode;
+  themeStyle: "legacy" | "modern";
+  onThemeStyleChange: (style: "legacy" | "modern") => void;
 }
 
 const isPathActive = (itemPath: string, currentPath: string): boolean => {
@@ -206,7 +208,11 @@ const isPathActive = (itemPath: string, currentPath: string): boolean => {
   return currentPath.startsWith(itemPath);
 };
 
-const ShellLayout: React.FC<Props> = ({ children }) => {
+const ShellLayout: React.FC<Props> = ({
+  children,
+  themeStyle,
+  onThemeStyleChange,
+}) => {
   const { user, token } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const [refreshUserData] = useRefreshUserDataMutation();
@@ -236,6 +242,16 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem("matchdb_dark") === "1";
   });
+  const [fontSize, setFontSize] = useState<"small" | "medium" | "large">(() => {
+    return (
+      (localStorage.getItem("matchdb_font_size") as
+        | "small"
+        | "medium"
+        | "large") || "medium"
+    );
+  });
+  const [fontSizeOpen, setFontSizeOpen] = useState(false);
+  const fontSizeRef = useRef<HTMLDivElement>(null);
   const [expandedMFEs, setExpandedMFEs] = useState<Record<string, boolean>>({});
 
   const isLoggedIn = !!token;
@@ -246,6 +262,30 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
     // Also set on <body> so MFE CSS can read it
     document.body.setAttribute("data-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
+
+  /* ---- Font size persistence ---- */
+  useEffect(() => {
+    const sizeMap = { small: "11px", medium: "13px", large: "15px" };
+    localStorage.setItem("matchdb_font_size", fontSize);
+    document.documentElement.style.setProperty(
+      "--w97-font-base",
+      sizeMap[fontSize],
+    );
+  }, [fontSize]);
+
+  /* ---- Close font-size dropdown on outside click ---- */
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        fontSizeRef.current &&
+        !fontSizeRef.current.contains(e.target as Node)
+      ) {
+        setFontSizeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   /* ── Pricing modal (triggered by Jobs MFE via custom event OR URL params) ── */
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
@@ -659,40 +699,23 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
         />
 
         <div
-          className="legacy-shell-brand"
+          className="legacy-shell-brand matchdb-clickable"
           onClick={() => navigate("/")}
-          style={{ cursor: "pointer" }}
           title="MatchDB — Home"
         >
           {/* Tiny Windows-97 pixel flag */}
           <div className="legacy-shell-brand-logo">
-            <span
-              className="legacy-shell-brand-pixel"
-              style={{ background: "#235A81" }}
-            />
-            <span
-              className="legacy-shell-brand-pixel"
-              style={{ background: "#1A4565" }}
-            />
-            <span
-              className="legacy-shell-brand-pixel"
-              style={{ background: "#2E7D32" }}
-            />
-            <span
-              className="legacy-shell-brand-pixel"
-              style={{ background: "#0077B5" }}
-            />
-            <span
-              className="legacy-shell-brand-pixel"
-              style={{ background: "#F5A623" }}
-            />
-            <span
-              className="legacy-shell-brand-pixel"
-              style={{ background: "#1565C0" }}
-            />
+            <span className="legacy-shell-brand-pixel" />
+            <span className="legacy-shell-brand-pixel" />
+            <span className="legacy-shell-brand-pixel" />
+            <span className="legacy-shell-brand-pixel" />
+            <span className="legacy-shell-brand-pixel" />
+            <span className="legacy-shell-brand-pixel" />
           </div>
           <span className="legacy-shell-brand-title">MatchDB</span>
-          <span className="legacy-shell-brand-subtitle">97</span>
+          <span className="legacy-shell-brand-subtitle">
+            {themeStyle === "modern" ? "AWS" : "97"}
+          </span>
         </div>
 
         {/* Location / Date / Time — single line in header */}
@@ -706,7 +729,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
             year: "numeric",
           })}
           {isLoggedIn && user?.user_type && (
-            <span style={{ color: "#e8850f", fontWeight: 700, marginLeft: 6 }}>
+            <span className="matchdb-accent legacy-shell-logged-as">
               · Logged in as{" "}
               {user.user_type === "vendor"
                 ? "Vendor"
@@ -719,7 +742,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
         <div className="legacy-shell-header-fill" />
 
-        {/* Dark mode toggle */}
+        {/* Dark / Light mode toggle */}
         <Button
           type="button"
           icon={darkMode ? "pi pi-sun" : "pi pi-moon"}
@@ -727,9 +750,66 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           onClick={() => setDarkMode((prev) => !prev)}
           aria-label="Toggle dark mode"
           title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          tooltip={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          tooltip={darkMode ? "Light Mode" : "Dark Mode"}
           tooltipOptions={{ position: "bottom" }}
         />
+
+        {/* Theme style toggle: Legacy ↔ Modern */}
+        <Button
+          type="button"
+          icon="pi pi-palette"
+          className="legacy-shell-darkmode"
+          onClick={() =>
+            onThemeStyleChange(themeStyle === "modern" ? "legacy" : "modern")
+          }
+          aria-label="Toggle theme style"
+          title={
+            themeStyle === "modern"
+              ? "Switch to Legacy (Win97)"
+              : "Switch to Modern (AWS)"
+          }
+          tooltip={themeStyle === "modern" ? "Legacy Mode" : "Modern Mode"}
+          tooltipOptions={{ position: "bottom" }}
+        />
+
+        {/* Font size dropdown */}
+        <div ref={fontSizeRef} className="matchdb-fontsize-wrapper">
+          <Button
+            type="button"
+            icon="pi pi-arrows-v"
+            className="legacy-shell-darkmode"
+            onClick={() => setFontSizeOpen((prev) => !prev)}
+            aria-label="Change font size"
+            title="Font Size"
+            tooltip="Font Size"
+            tooltipOptions={{ position: "bottom" }}
+          />
+          {fontSizeOpen && (
+            <div className="matchdb-fontsize-dropdown">
+              {(["small", "medium", "large"] as const).map((size) => (
+                <button
+                  key={size}
+                  className={`matchdb-fontsize-option${
+                    fontSize === size ? " matchdb-fontsize-active" : ""
+                  }`}
+                  onClick={() => {
+                    setFontSize(size);
+                    setFontSizeOpen(false);
+                  }}
+                >
+                  <span
+                    className={`matchdb-fontsize-label matchdb-fontsize-${size}`}
+                  >
+                    A
+                  </span>
+                  <span className="matchdb-fontsize-text">
+                    {size.charAt(0).toUpperCase() + size.slice(1)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {!isLoggedIn && (
           <div className="legacy-shell-header-auth">
@@ -763,8 +843,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
               ref={accountPanelContainerRef}
             >
               <div
-                className="legacy-shell-user"
-                style={{ cursor: "pointer" }}
+                className="legacy-shell-user matchdb-clickable"
                 onClick={() => setShowAccountPanel((p) => !p)}
                 title="Click to view account details"
                 role="button"
@@ -964,10 +1043,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
 
           {!collapsed && !isLoggedIn && (
             <div className="legacy-shell-sidebar-user">
-              <div
-                className="legacy-shell-sidebar-name"
-                style={{ fontSize: 10, opacity: 0.7 }}
-              >
+              <div className="legacy-shell-sidebar-name matchdb-hint">
                 ■ Browse as Guest
               </div>
             </div>
@@ -1011,15 +1087,8 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                     {!collapsed && <span>{item.label}</span>}
                     {collapsed && item.chipColor && (
                       <span
-                        className="legacy-shell-mfe-chip"
-                        style={{
-                          background: item.chipColor,
-                          position: "absolute",
-                          right: 2,
-                          top: 2,
-                          width: 5,
-                          height: 5,
-                        }}
+                        className="legacy-shell-mfe-chip legacy-shell-mfe-chip--dot"
+                        style={{ background: item.chipColor }}
                       />
                     )}
                   </button>
@@ -1147,14 +1216,8 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                 </ul>
               )}
               {collapsed && (
-                <div
-                  className="legacy-shell-nav-list"
-                  style={{ textAlign: "center", padding: "4px 0" }}
-                >
-                  <span
-                    title={group.label}
-                    style={{ fontSize: 14, cursor: "default" }}
-                  >
+                <div className="matchdb-collapsed-text">
+                  <span title={group.label} className="matchdb-collapsed-icon">
                     {group.icon}
                   </span>
                 </div>
@@ -1211,28 +1274,17 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                         <span className="legacy-shell-mfe-soon">soon</span>
                       )}
                       {!collapsed && itemSubs.length > 0 && (
-                        <span
-                          style={{
-                            marginLeft: "auto",
-                            fontSize: 9,
-                            opacity: 0.6,
-                          }}
-                        >
+                        <span className="matchdb-chevron">
                           {isExpanded ? "▾" : "▸"}
                         </span>
                       )}
                       {collapsed && item.chipColor && (
                         <span
-                          className="legacy-shell-mfe-chip"
+                          className="legacy-shell-mfe-chip legacy-shell-mfe-chip--dot"
                           style={{
                             background: isDisabled
                               ? "var(--w97-btn-shadow, #808080)"
                               : item.chipColor,
-                            position: "absolute",
-                            right: 2,
-                            top: 2,
-                            width: 5,
-                            height: 5,
                           }}
                         />
                       )}
@@ -1267,10 +1319,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
           {/* Visible-in banner — above pagehead, sent from Jobs MFE */}
           {isLoggedIn && visibleInText && (
             <div className="legacy-shell-visible-in">
-              <i
-                className="pi pi-eye"
-                style={{ marginRight: 6, fontSize: 13 }}
-              />
+              <i className="pi pi-eye legacy-shell-visible-icon" />
               {visibleInText}
             </div>
           )}
@@ -1291,7 +1340,7 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                 <Button
                   type="button"
                   label="Upgrade to Post More"
-                  className="legacy-shell-signout"
+                  className="legacy-shell-signout legacy-shell-upgrade-btn"
                   onClick={() =>
                     window.dispatchEvent(
                       new CustomEvent("matchdb:openPricing", {
@@ -1306,12 +1355,11 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
                       }),
                     )
                   }
-                  style={{ fontWeight: 700 }}
                 />
               )}
               {!isLoggedIn && (
                 <div className="legacy-shell-pagehead-auth">
-                  <span style={{ opacity: 0.7, fontSize: 12 }}>
+                  <span className="matchdb-hint">
                     Use <strong>Sign&nbsp;In</strong> /{" "}
                     <strong>Sign&nbsp;Up</strong> in the top header
                   </span>
@@ -1338,83 +1386,29 @@ const ShellLayout: React.FC<Props> = ({ children }) => {
       {/* ── Pricing modal overlay — triggered by matchdb:openPricing event ── */}
       {pricingModalOpen && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 3000,
-            background: "rgba(0,0,0,0.55)",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            padding: "20px 16px",
-            overflowY: "auto",
-          }}
+          className="matchdb-modal-overlay matchdb-modal-overlay--top"
           onClick={handleClosePricing}
         >
           <div
-            style={{
-              background: "#f5f5f5",
-              width: "fit-content",
-              maxWidth: "95vw",
-              borderTop: "2px solid #fff",
-              borderLeft: "2px solid #fff",
-              borderRight: "2px solid #404040",
-              borderBottom: "2px solid #404040",
-              boxShadow: "4px 4px 12px rgba(0,0,0,0.4)",
-            }}
+            className="matchdb-modal-window matchdb-modal-window--fit"
             onClick={(e) => e.stopPropagation()}
           >
             {/* W97-style title bar */}
-            <div
-              style={{
-                background: "linear-gradient(to right, #235a81, #3b6fa6)",
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                padding: "4px 6px",
-                gap: 6,
-              }}
-            >
-              <span style={{ fontSize: 13 }}>💎</span>
-              <span
-                style={{
-                  fontWeight: 700,
-                  fontSize: 12,
-                  flex: 1,
-                  fontFamily: "MS Sans Serif, Tahoma, Arial, sans-serif",
-                }}
-              >
+            <div className="matchdb-modal-titlebar w97-titlebar">
+              <span className="matchdb-modal-icon">💎</span>
+              <span className="matchdb-modal-title">
                 Plans &amp; Pricing — MatchDB
               </span>
               <button
+                className="w97-close-btn"
                 onClick={handleClosePricing}
-                style={{
-                  background: "#c0c0c0",
-                  border: "1px solid",
-                  borderTopColor: "#fff",
-                  borderLeftColor: "#fff",
-                  borderRightColor: "#404040",
-                  borderBottomColor: "#404040",
-                  width: 18,
-                  height: 18,
-                  cursor: "pointer",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 0,
-                  lineHeight: 1,
-                }}
                 title="Close"
               >
                 ✕
               </button>
             </div>
             {/* PricingPage fills the modal body */}
-            <div
-              style={{ maxHeight: "calc(100vh - 100px)", overflowY: "auto" }}
-            >
+            <div className="matchdb-modal-body">
               <PricingPage
                 initialTab={pricingModalTab}
                 onClose={() => setPricingModalOpen(false)}

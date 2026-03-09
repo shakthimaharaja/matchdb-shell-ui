@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Verdana, Arial, sans-serif;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   color: var(--w97-text);
@@ -115,8 +115,12 @@
 }
 
 /* Scrollbar matching the shell */
-.wlc-term::-webkit-scrollbar { width: 16px; }
-.wlc-term::-webkit-scrollbar-track { background: var(--w97-scrollbar-track, #f0f0f0); }
+.wlc-term::-webkit-scrollbar {
+  width: 16px;
+}
+.wlc-term::-webkit-scrollbar-track {
+  background: var(--w97-scrollbar-track, #f0f0f0);
+}
 .wlc-term::-webkit-scrollbar-thumb {
   background: var(--w97-btn-face, #e5e5e5);
   border-top: 1px solid var(--w97-btn-highlight, #fff);
@@ -134,11 +138,24 @@
   color: var(--w97-text);
 }
 
-.wlc-line-cmd  { color: var(--w97-navy, #235a81); font-weight: bold; }
-.wlc-line-ok   { color: var(--w97-text-secondary, #555); }
-.wlc-line-tbl  { color: var(--w97-btn-shadow, #777); }
-.wlc-line-live { color: var(--w97-green, #2e7d32); font-weight: bold; }
-.wlc-line-res  { color: var(--w97-navy, #235a81); font-style: italic; }
+.wlc-line-cmd {
+  color: var(--w97-navy, #235a81);
+  font-weight: bold;
+}
+.wlc-line-ok {
+  color: var(--w97-text-secondary, #555);
+}
+.wlc-line-tbl {
+  color: var(--w97-btn-shadow, #777);
+}
+.wlc-line-live {
+  color: var(--w97-green, #2e7d32);
+  font-weight: bold;
+}
+.wlc-line-res {
+  color: var(--w97-navy, #235a81);
+  font-style: italic;
+}
 
 .wlc-cursor {
   display: inline-block;
@@ -146,8 +163,13 @@
   animation: wlc-blink 1.05s step-end infinite;
 }
 @keyframes wlc-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* ── CTA section (appears after typewriter) ── */
