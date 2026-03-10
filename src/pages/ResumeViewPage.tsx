@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAppSelector } from "../store";
+import { Button } from "matchdb-component-library";
 import axios from "axios";
 
 interface ProfileData {
@@ -243,15 +244,14 @@ const ResumeViewPage: React.FC = () => {
             </Link>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {token ? (
-                <button
-                  type="button"
-                  className="matchdb-btn matchdb-btn-primary"
-                  style={{ fontSize: 11, padding: "4px 14px" }}
+                <Button
+                  variant="primary"
+                  size="xs"
                   onClick={handleDownload}
                   disabled={downloading}
                 >
                   {downloading ? "Downloading..." : "⬇ Download Resume"}
-                </button>
+                </Button>
               ) : (
                 <span
                   style={{ fontSize: 10, color: "#999", fontStyle: "italic" }}

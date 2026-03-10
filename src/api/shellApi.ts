@@ -157,10 +157,12 @@ export const shellApi = createApi({
 
     getVendorPlans: builder.query<VendorPlan[], void>({
       query: () => "api/payments/plans",
+      transformResponse: (res: { plans: VendorPlan[] }) => res.plans,
     }),
 
     getCandidatePackages: builder.query<CandidatePackage[], void>({
       query: () => "api/payments/candidate-packages",
+      transformResponse: (res: { packages: CandidatePackage[] }) => res.packages,
     }),
 
     createVendorCheckout: builder.mutation<{ url: string }, { planId: string }>(

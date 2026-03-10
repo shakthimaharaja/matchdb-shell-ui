@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "matchdb-component-library";
 import "./WelcomePage.css";
 
 /* ── Terminal lines ── */
@@ -130,27 +131,24 @@ const WelcomePage: React.FC = () => {
                 </div>
               </div>
               <div className="wlc-cta-btns">
-                <button
-                  className="wlc-btn wlc-btn-primary"
+                <Button
+                  variant="primary"
                   onClick={() => navigate("/jobs")}
                 >
-                  <span>💼</span>
-                  <span>Browse Jobs</span>
-                </button>
-                <button className="wlc-btn" onClick={() => openLogin("candidate")}>
-                  <span>�</span>
-                  <span>Sign In</span>
-                </button>
-                <button className="wlc-btn" onClick={() => {
+                  💼 Browse Jobs
+                </Button>
+                <Button onClick={() => openLogin("candidate")}>
+                  🔑 Sign In
+                </Button>
+                <Button onClick={() => {
                   window.dispatchEvent(
                     new CustomEvent("matchdb:openLogin", {
                       detail: { context: "candidate", mode: "register" },
                     }),
                   );
                 }}>
-                  <span>✨</span>
-                  <span>Sign Up</span>
-                </button>
+                  ✨ Sign Up
+                </Button>
               </div>
             </div>
           )}
