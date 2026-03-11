@@ -53,20 +53,47 @@ const ResumeViewPage: React.FC = () => {
   if (loading) {
     return (
       <div style={styles.center}>
-        <div className="matchdb-panel" style={{ maxWidth: 720, width: "100%", padding: 0 }}>
+        <div
+          className="matchdb-panel"
+          style={{ maxWidth: 720, width: "100%", padding: 0 }}
+        >
           <div className="rm-titlebar" style={{ borderRadius: 0 }}>
             <span className="rm-titlebar-icon">📄</span>
             <span className="rm-titlebar-title">Resume — Loading…</span>
           </div>
           <div style={{ padding: "16px 20px" }}>
-            <div className="w97-shimmer w97-shimmer-xl" style={{ height: 14, marginBottom: 8, display: "block" }} />
-            <div className="w97-shimmer w97-shimmer-lg" style={{ height: 12, marginBottom: 16, display: "block" }} />
+            <div
+              className="w97-shimmer w97-shimmer-xl"
+              style={{ height: 14, marginBottom: 8, display: "block" }}
+            />
+            <div
+              className="w97-shimmer w97-shimmer-lg"
+              style={{ height: 12, marginBottom: 16, display: "block" }}
+            />
             {[100, 80, 95, 70, 90].map((w, i) => (
-              <div key={i} className="w97-shimmer" style={{ height: 12, marginBottom: 6, width: `${w}%`, display: "block" }} />
+              <div
+                key={i}
+                className="w97-shimmer"
+                style={{
+                  height: 12,
+                  marginBottom: 6,
+                  width: `${w}%`,
+                  display: "block",
+                }}
+              />
             ))}
             <div style={{ marginTop: 16 }}>
               {[60, 40, 55, 45, 50].map((w, i) => (
-                <div key={i} className="w97-shimmer" style={{ height: 12, marginBottom: 5, width: `${w}%`, display: "block" }} />
+                <div
+                  key={i}
+                  className="w97-shimmer"
+                  style={{
+                    height: 12,
+                    marginBottom: 5,
+                    width: `${w}%`,
+                    display: "block",
+                  }}
+                />
               ))}
             </div>
           </div>

@@ -94,7 +94,7 @@ export const shellApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setAuth(data));
-        } catch {}
+        } catch { /* handled by RTK Query */ }
       },
     }),
 
@@ -104,7 +104,7 @@ export const shellApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setAuth(data));
-        } catch {}
+        } catch { /* handled by RTK Query */ }
       },
     }),
 
@@ -129,7 +129,7 @@ export const shellApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setUser(data));
-        } catch {}
+        } catch { /* handled by RTK Query */ }
       },
     }),
 
@@ -139,7 +139,7 @@ export const shellApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setToken(data.access));
-        } catch {}
+        } catch { /* handled by RTK Query */ }
       },
     }),
 
@@ -149,7 +149,7 @@ export const shellApi = createApi({
         try {
           await queryFulfilled;
           dispatch(logoutAction());
-        } catch {}
+        } catch { /* handled by RTK Query */ }
       },
     }),
 

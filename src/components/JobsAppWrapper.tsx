@@ -89,7 +89,11 @@ const JobsAppWrapper: React.FC = () => {
           const expiredType = user?.user_type ?? "candidate";
           dispatch(expireSession(expiredType));
           navigate(
-            expiredType === "vendor" ? "/jobs/vendor" : "/jobs/candidate",
+            expiredType === "vendor"
+              ? "/jobs/vendor"
+              : expiredType === "marketer"
+              ? "/jobs/marketer"
+              : "/jobs/candidate",
             { replace: true },
           );
         }

@@ -6,41 +6,101 @@ import "./WelcomePage.css";
 /* ── Terminal lines ── */
 type LineStyle = "cmd" | "ok" | "tbl" | "live" | "res" | "";
 
-interface TLine { text: string; delay: number; s: LineStyle }
+interface TLine {
+  text: string;
+  delay: number;
+  s: LineStyle;
+}
 
 const LINES: TLine[] = [
-  { text: "$ matchdb connect --host matchingdb.com --ssl", delay: 0,    s: "cmd" },
-  { text: "  Establishing secure connection...",            delay: 440,  s: "ok"  },
-  { text: "  TLS 1.3 handshake complete          [OK]",    delay: 780,  s: "ok"  },
-  { text: "  Authentication successful            [OK]",   delay: 1020, s: "ok"  },
-  { text: "  Connected to MatchDB v97.2026        [OK]",   delay: 1260, s: "ok"  },
-  { text: "",                                               delay: 1480, s: ""    },
-  { text: "> SHOW DATABASES;",                              delay: 1700, s: "cmd" },
-  { text: "  +---------------------+------------+----------+", delay: 1940, s: "tbl" },
-  { text: "  | database            | status     | records  |", delay: 2000, s: "tbl" },
-  { text: "  +---------------------+------------+----------+", delay: 2060, s: "tbl" },
-  { text: "  | jobs                | LIVE (*)   |  4,821   |", delay: 2240, s: "live" },
-  { text: "  | sales               | coming     |   --     |", delay: 2400, s: "tbl"  },
-  { text: "  | rentals             | coming     |   --     |", delay: 2480, s: "tbl"  },
-  { text: "  | auctions            | coming     |   --     |", delay: 2560, s: "tbl"  },
-  { text: "  | polling             | coming     |   --     |", delay: 2640, s: "tbl"  },
-  { text: "  | matrimony           | coming     |   --     |", delay: 2720, s: "tbl"  },
-  { text: "  | dating              | coming     |   --     |", delay: 2800, s: "tbl"  },
-  { text: "  | personals           | coming     |   --     |", delay: 2880, s: "tbl"  },
-  { text: "  +---------------------+------------+----------+", delay: 2960, s: "tbl"  },
-  { text: "  8 rows in set (0.001 sec)",                     delay: 3120, s: "ok"  },
-  { text: "",                                                delay: 3280, s: ""    },
-  { text: "> SELECT * FROM opportunities WHERE match = 1;",  delay: 3480, s: "cmd" },
-  { text: "  -> Your next opportunity is one query away.",   delay: 4080, s: "res" },
+  { text: "$ matchdb connect --host matchingdb.com --ssl", delay: 0, s: "cmd" },
+  { text: "  Establishing secure connection...", delay: 440, s: "ok" },
+  { text: "  TLS 1.3 handshake complete          [OK]", delay: 780, s: "ok" },
+  { text: "  Authentication successful            [OK]", delay: 1020, s: "ok" },
+  { text: "  Connected to MatchDB v97.2026        [OK]", delay: 1260, s: "ok" },
+  { text: "", delay: 1480, s: "" },
+  { text: "> SHOW DATABASES;", delay: 1700, s: "cmd" },
+  {
+    text: "  +---------------------+------------+----------+",
+    delay: 1940,
+    s: "tbl",
+  },
+  {
+    text: "  | database            | status     | records  |",
+    delay: 2000,
+    s: "tbl",
+  },
+  {
+    text: "  +---------------------+------------+----------+",
+    delay: 2060,
+    s: "tbl",
+  },
+  {
+    text: "  | jobs                | LIVE (*)   |  4,821   |",
+    delay: 2240,
+    s: "live",
+  },
+  {
+    text: "  | sales               | coming     |   --     |",
+    delay: 2400,
+    s: "tbl",
+  },
+  {
+    text: "  | rentals             | coming     |   --     |",
+    delay: 2480,
+    s: "tbl",
+  },
+  {
+    text: "  | auctions            | coming     |   --     |",
+    delay: 2560,
+    s: "tbl",
+  },
+  {
+    text: "  | polling             | coming     |   --     |",
+    delay: 2640,
+    s: "tbl",
+  },
+  {
+    text: "  | matrimony           | coming     |   --     |",
+    delay: 2720,
+    s: "tbl",
+  },
+  {
+    text: "  | dating              | coming     |   --     |",
+    delay: 2800,
+    s: "tbl",
+  },
+  {
+    text: "  | personals           | coming     |   --     |",
+    delay: 2880,
+    s: "tbl",
+  },
+  {
+    text: "  +---------------------+------------+----------+",
+    delay: 2960,
+    s: "tbl",
+  },
+  { text: "  8 rows in set (0.001 sec)", delay: 3120, s: "ok" },
+  { text: "", delay: 3280, s: "" },
+  {
+    text: "> SELECT * FROM opportunities WHERE match = 1;",
+    delay: 3480,
+    s: "cmd",
+  },
+  {
+    text: "  -> Your next opportunity is one query away.",
+    delay: 4080,
+    s: "res",
+  },
 ];
 
 const CLASS_MAP: Record<LineStyle, string> = {
-  cmd:  "wlc-line wlc-line-cmd",
-  ok:   "wlc-line wlc-line-ok",
-  tbl:  "wlc-line wlc-line-tbl",
+  cmd: "wlc-line wlc-line-cmd",
+  ok: "wlc-line wlc-line-ok",
+  tbl: "wlc-line wlc-line-tbl",
   live: "wlc-line wlc-line-live",
-  res:  "wlc-line wlc-line-res",
-  "":   "wlc-line wlc-line-ok",
+  res: "wlc-line wlc-line-res",
+  "": "wlc-line wlc-line-ok",
 };
 
 const WelcomePage: React.FC = () => {
@@ -82,7 +142,6 @@ const WelcomePage: React.FC = () => {
   return (
     <div className="wlc-root">
       <div className="wlc-window">
-
         {/* ── Title bar ── */}
         <div className="wlc-titlebar">
           <span className="wlc-titlebar-icon">🗄️</span>
@@ -104,7 +163,6 @@ const WelcomePage: React.FC = () => {
 
         {/* ── Body ── */}
         <div className="wlc-body">
-
           {/* Sunken terminal output */}
           <div className="wlc-term" ref={termRef}>
             {doneLines.map((line, i) => (
@@ -131,22 +189,21 @@ const WelcomePage: React.FC = () => {
                 </div>
               </div>
               <div className="wlc-cta-btns">
-                <Button
-                  variant="primary"
-                  onClick={() => navigate("/jobs")}
-                >
+                <Button variant="primary" onClick={() => navigate("/jobs")}>
                   💼 Browse Jobs
                 </Button>
                 <Button onClick={() => openLogin("candidate")}>
                   🔑 Sign In
                 </Button>
-                <Button onClick={() => {
-                  window.dispatchEvent(
-                    new CustomEvent("matchdb:openLogin", {
-                      detail: { context: "candidate", mode: "register" },
-                    }),
-                  );
-                }}>
+                <Button
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("matchdb:openLogin", {
+                        detail: { context: "candidate", mode: "register" },
+                      }),
+                    );
+                  }}
+                >
                   ✨ Sign Up
                 </Button>
               </div>
@@ -156,11 +213,12 @@ const WelcomePage: React.FC = () => {
 
         {/* ── Status bar ── */}
         <div className="wlc-statusbar">
-          <span>{ctaVisible ? "Ready" : "Connecting to matchingdb.com..."}</span>
+          <span>
+            {ctaVisible ? "Ready" : "Connecting to matchingdb.com..."}
+          </span>
           <span>matchingdb.com</span>
           <span>8 databases</span>
         </div>
-
       </div>
     </div>
   );
