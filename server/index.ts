@@ -127,7 +127,9 @@ app.get("*", (_req, res) => {
 function logStartup() {
   const proto = config.useHttps ? "https" : "http";
   console.log(
-    `[matchdb-shell-ui] ${proto.toUpperCase()} server on port ${config.port} (${config.env})`,
+    `[matchdb-shell-ui] ${proto.toUpperCase()} server on port ${config.port} (${
+      config.env
+    })`,
   );
   console.log(
     `[matchdb-shell-ui] /api/auth + /api/payments → ${config.shellServicesUrl}`,

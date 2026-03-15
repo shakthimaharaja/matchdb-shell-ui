@@ -93,10 +93,18 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     <dialog open className="pp-confirm-overlay" data-testid="confirm-dialog">
       <div className="rm-backdrop" role="none" onClick={onClose} />
       <div className="pp-confirm-window" data-testid="confirm-dialog-window">
-        <div className="pp-confirm-titlebar" data-testid="confirm-dialog-titlebar">
+        <div
+          className="pp-confirm-titlebar"
+          data-testid="confirm-dialog-titlebar"
+        >
           <span>{icon}</span>
           <span className="pp-confirm-titlebar-title">{title}</span>
-          <button className="pp-confirm-close" onClick={onClose} title="Close" data-testid="confirm-dialog-close">
+          <button
+            className="pp-confirm-close"
+            onClick={onClose}
+            title="Close"
+            data-testid="confirm-dialog-close"
+          >
             x
           </button>
         </div>
@@ -115,7 +123,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <div className="pp-confirm-card" data-testid="confirm-dialog-card">
             <div className="pp-confirm-card-title">{cardTitle}</div>
             <div className="pp-confirm-card-name">{cardName}</div>
-            <div className="pp-confirm-card-price" data-testid="confirm-dialog-price">
+            <div
+              className="pp-confirm-card-price"
+              data-testid="confirm-dialog-price"
+            >
               ${price}{" "}
               <span className="pp-confirm-card-price-note">{priceNote}</span>
             </div>
@@ -123,7 +134,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             {features && features.length > 0 && (
               <>
                 <hr className="pp-confirm-card-divider" />
-                <ul className="pp-confirm-feature-list" data-testid="confirm-dialog-features">
+                <ul
+                  className="pp-confirm-feature-list"
+                  data-testid="confirm-dialog-features"
+                >
                   {features.map((f) => (
                     <li key={f}>{f}</li>
                   ))}
@@ -139,11 +153,21 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             )}
           </div>
 
-          <div className="pp-confirm-notice" data-testid="confirm-dialog-notice">{notice}</div>
+          <div
+            className="pp-confirm-notice"
+            data-testid="confirm-dialog-notice"
+          >
+            {notice}
+          </div>
         </div>
 
         <div className="pp-confirm-footer" data-testid="confirm-dialog-footer">
-          <button className="pp-btn" onClick={onClose} disabled={loading} data-testid="confirm-dialog-cancel">
+          <button
+            className="pp-btn"
+            onClick={onClose}
+            disabled={loading}
+            data-testid="confirm-dialog-cancel"
+          >
             Cancel
           </button>
           <button
@@ -167,7 +191,10 @@ interface PricingPageProps {
   onClose?: () => void;
 }
 
-const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose }) => {
+const PricingPage: React.FC<PricingPageProps> = ({
+  initialTab,
+  onClose: _onClose,
+}) => {
   const { token, user } = useAppSelector((s) => s.auth);
 
   // ─── RTK Query hooks ───────────────────────────────────────────────────────
@@ -193,8 +220,13 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
   const isCandidate = user?.user_type === "candidate";
   const isMarketer = user?.user_type === "marketer";
 
-  const TAB_INDEX: Record<string, number> = { vendor: 0, candidate: 1, marketer: 2 };
-  const defaultTab = TAB_INDEX[user?.user_type ?? ""] ?? TAB_INDEX[initialTab ?? ""] ?? 0;
+  const TAB_INDEX: Record<string, number> = {
+    vendor: 0,
+    candidate: 1,
+    marketer: 2,
+  };
+  const defaultTab =
+    TAB_INDEX[user?.user_type ?? ""] ?? TAB_INDEX[initialTab ?? ""] ?? 0;
 
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
@@ -256,7 +288,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
     } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: (err as { data?: { error?: string } }).data?.error || "Checkout failed. Please try again.",
+        text:
+          (err as { data?: { error?: string } }).data?.error ||
+          "Checkout failed. Please try again.",
       });
       setLoadingPlanId(null);
     }
@@ -270,7 +304,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
     } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: (err as { data?: { error?: string } }).data?.error || "Could not open billing portal.",
+        text:
+          (err as { data?: { error?: string } }).data?.error ||
+          "Could not open billing portal.",
       });
     }
   };
@@ -286,7 +322,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
     } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: (err as { data?: { error?: string } }).data?.error || "Checkout failed. Please try again.",
+        text:
+          (err as { data?: { error?: string } }).data?.error ||
+          "Checkout failed. Please try again.",
       });
     }
   };
@@ -349,7 +387,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
 
   const selectedPkgData = candidatePkgs.find((p) => p.id === selectedPkg);
   let effectivePrice = 0;
-  if (selectedPkg === "subdomain_addon") effectivePrice = (selectedPkgData?.price || 2) * selectedSubs.length;
+  if (selectedPkg === "subdomain_addon")
+    effectivePrice = (selectedPkgData?.price || 2) * selectedSubs.length;
   else if (selectedPkg) effectivePrice = selectedPkgData?.price || 0;
 
   const canPurchase = (): boolean => {
@@ -383,7 +422,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
     } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: (err as { data?: { error?: string } }).data?.error || "Checkout failed. Please try again.",
+        text:
+          (err as { data?: { error?: string } }).data?.error ||
+          "Checkout failed. Please try again.",
       });
       setLoadingPkgId(null);
     }
@@ -443,8 +484,14 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
             </div>
             <div className="pp-confirm-subs">
               {(() => {
-                const domainSubs = selectedDomain === "contract" ? CONTRACT_SUBDOMAINS : FULLTIME_SUBDOMAINS;
-                const values = selectedSubs.length > 0 ? selectedSubs : domainSubs.map((s) => s.value);
+                const domainSubs =
+                  selectedDomain === "contract"
+                    ? CONTRACT_SUBDOMAINS
+                    : FULLTIME_SUBDOMAINS;
+                const values =
+                  selectedSubs.length > 0
+                    ? selectedSubs
+                    : domainSubs.map((s) => s.value);
                 return values.map((s) => (
                   <span key={s} className="pp-confirm-sub-pill">
                     {SUB_LABELS[s] || s.toUpperCase()}
@@ -461,7 +508,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
   function renderPlanAction(plan: VendorPlan, isCurrent: boolean) {
     if (isCurrent) {
       return (
-        <span className="pp-plan-current-badge" data-testid={`vendor-plan-current-${plan.id}`}>
+        <span
+          className="pp-plan-current-badge"
+          data-testid={`vendor-plan-current-${plan.id}`}
+        >
           CURRENT PLAN
         </span>
       );
@@ -482,9 +532,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
       <button
         className="pp-btn pp-btn-primary"
         style={{ width: "100%" }}
-        disabled={
-          loadingPlanId === plan.id || checkoutLoading
-        }
+        disabled={loadingPlanId === plan.id || checkoutLoading}
         onClick={() => {
           if (!token) {
             setMessage({
@@ -497,9 +545,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
         }}
         data-testid={`vendor-plan-select-btn-${plan.id}`}
       >
-        {user?.plan === "free"
-          ? "Get Started"
-          : "Switch Plan"}
+        {user?.plan === "free" ? "Get Started" : "Switch Plan"}
       </button>
     );
   }
@@ -536,14 +582,12 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
 
           <div className="pp-confirm-card" data-testid="vendor-confirm-card">
             <div className="pp-confirm-card-title">Employer Plan</div>
-            <div className="pp-confirm-card-name">
-              {vendorConfirm.name}
-            </div>
+            <div className="pp-confirm-card-name">{vendorConfirm.name}</div>
             <div className="pp-confirm-card-price">
               ${vendorConfirm.price}
               <span className="pp-confirm-card-price-note">
-                &nbsp;/ {vendorConfirm.interval} &nbsp;&middot;&nbsp;
-                billed monthly &nbsp;&middot;&nbsp; cancel anytime
+                &nbsp;/ {vendorConfirm.interval} &nbsp;&middot;&nbsp; billed
+                monthly &nbsp;&middot;&nbsp; cancel anytime
               </span>
             </div>
             {vendorConfirm.features.length > 0 && (
@@ -564,12 +608,13 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
             monthly.
           </div>
 
-          <div className="pp-inline-confirm-footer" data-testid="vendor-confirm-footer">
+          <div
+            className="pp-inline-confirm-footer"
+            data-testid="vendor-confirm-footer"
+          >
             <button
               className="pp-btn pp-btn-primary pp-btn-wide"
-              disabled={
-                loadingPlanId === vendorConfirm.id || checkoutLoading
-              }
+              disabled={loadingPlanId === vendorConfirm.id || checkoutLoading}
               onClick={handleVendorConfirm}
               data-testid="vendor-confirm-subscribe-btn"
             >
@@ -584,8 +629,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
     return (
       <>
         <div className="pp-section-label">
-          Employer Subscription Plans - monthly recurring, cancel
-          anytime
+          Employer Subscription Plans - monthly recurring, cancel anytime
         </div>
         <div className="pp-plan-grid" data-testid="vendor-plan-grid">
           {vendorPlans.map((plan) => {
@@ -599,10 +643,12 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
               .join(" ");
 
             return (
-              <div key={plan.id} className={cardCls} data-testid={`vendor-plan-card-${plan.id}`}>
-                <div
-                  className={`pp-plan-titlebar pp-plan-titlebar-${plan.id}`}
-                >
+              <div
+                key={plan.id}
+                className={cardCls}
+                data-testid={`vendor-plan-card-${plan.id}`}
+              >
+                <div className={`pp-plan-titlebar pp-plan-titlebar-${plan.id}`}>
                   <span style={{ flex: 1 }}>{plan.name}</span>
                   <span
                     className={`pp-plan-badge${
@@ -634,9 +680,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
 
                   <ul
                     className={`pp-plan-features${
-                      plan.highlighted
-                        ? " pp-plan-features-highlighted"
-                        : ""
+                      plan.highlighted ? " pp-plan-features-highlighted" : ""
                     }`}
                   >
                     {plan.features.map((f) => (
@@ -678,30 +722,20 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
           "pp-sub-tile",
           active ? "pp-sub-tile-active" : "",
           isOwned ? "pp-sub-tile-owned" : "",
-          !clickable && !isOwned && !active
-            ? "pp-sub-tile-disabled"
-            : "",
+          !clickable && !isOwned && !active ? "pp-sub-tile-disabled" : "",
         ]
           .filter(Boolean)
           .join(" ")}
-        onClick={() =>
-          clickable && handleSubClick(domain, sub.value)
-        }
+        onClick={() => clickable && handleSubClick(domain, sub.value)}
         style={{
           cursor: clickable ? "pointer" : "default",
         }}
         data-testid={`sub-tile-${domain}-${sub.value}`}
       >
-        <span className="pp-sub-tile-label">
-          {sub.label}
-        </span>
-        {isOwned && (
-          <span className="pp-sub-tile-badge">OWNED</span>
-        )}
+        <span className="pp-sub-tile-label">{sub.label}</span>
+        {isOwned && <span className="pp-sub-tile-badge">OWNED</span>}
         {active && !isOwned && (
-          <span className="pp-sub-tile-check">
-            &#10003;
-          </span>
+          <span className="pp-sub-tile-check">&#10003;</span>
         )}
       </button>
     );
@@ -711,35 +745,31 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
     return (
       <>
         {/* Current visibility */}
-        {user?.has_purchased_visibility &&
-          user?.membership_config && (
-            <div className="pp-visibility-panel" data-testid="candidate-visibility-panel">
-              <div className="pp-visibility-title">
-                Your Current Visibility
+        {user?.has_purchased_visibility && user?.membership_config && (
+          <div
+            className="pp-visibility-panel"
+            data-testid="candidate-visibility-panel"
+          >
+            <div className="pp-visibility-title">Your Current Visibility</div>
+            {Object.entries(user.membership_config).map(([domain, subs]) => (
+              <div key={domain}>
+                <div className="pp-visibility-domain">
+                  {domain.replace("_", " ")}
+                </div>
+                <div className="pp-visibility-subs">
+                  {subs.map((s) => (
+                    <span key={s} className="pp-visibility-sub">
+                      {s.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
               </div>
-              {Object.entries(user.membership_config).map(
-                ([domain, subs]) => (
-                  <div key={domain}>
-                    <div className="pp-visibility-domain">
-                      {domain.replace("_", " ")}
-                    </div>
-                    <div className="pp-visibility-subs">
-                      {(subs as string[]).map((s) => (
-                        <span key={s} className="pp-visibility-sub">
-                          {s.toUpperCase()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ),
-              )}
-            </div>
-          )}
+            ))}
+          </div>
+        )}
 
         {/* Step 1: Select a Package */}
-        <div className="pp-step-header">
-          Step 1 &mdash; Choose a Package
-        </div>
+        <div className="pp-step-header">Step 1 &mdash; Choose a Package</div>
 
         <div className="pp-pkg-grid" data-testid="candidate-pkg-grid">
           {candidatePkgs.map((pkg) => {
@@ -778,9 +808,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
         <div className="pp-step-header">
           Step 2 &mdash; Select Coverage
           {!selectedPkg && (
-            <span className="pp-step-hint">
-              Choose a package above first
-            </span>
+            <span className="pp-step-hint">Choose a package above first</span>
           )}
         </div>
 
@@ -792,9 +820,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
         >
           {(["contract", "full_time"] as const).map((domain) => {
             const subs =
-              domain === "contract"
-                ? CONTRACT_SUBDOMAINS
-                : FULLTIME_SUBDOMAINS;
+              domain === "contract" ? CONTRACT_SUBDOMAINS : FULLTIME_SUBDOMAINS;
             const isDomainActive =
               selectedPkg === "full_bundle" || selectedDomain === domain;
             const isDomainClickable =
@@ -814,9 +840,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
                 <button
                   type="button"
                   className="pp-domain-panel-header"
-                  onClick={() =>
-                    isDomainClickable && handleDomainClick(domain)
-                  }
+                  onClick={() => isDomainClickable && handleDomainClick(domain)}
                   style={{
                     cursor: isDomainClickable ? "pointer" : "default",
                   }}
@@ -828,7 +852,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
                   )}
                 </button>
                 <div className="pp-domain-panel-body">
-                  {subs.map((sub) => renderSubTile(domain, sub, isDomainActive))}
+                  {subs.map((sub) =>
+                    renderSubTile(domain, sub, isDomainActive),
+                  )}
                 </div>
               </div>
             );
@@ -838,11 +864,17 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
         {/* Purchase Bar */}
         {selectedPkg && canPurchase() && (
           <div className="pp-purchase-bar" data-testid="candidate-purchase-bar">
-            <div className="pp-purchase-info" data-testid="candidate-purchase-info">
-              <span className="pp-purchase-pkg">
-                {selectedPkgData?.name}
+            <div
+              className="pp-purchase-info"
+              data-testid="candidate-purchase-info"
+            >
+              <span className="pp-purchase-pkg">{selectedPkgData?.name}</span>
+              <span
+                className="pp-purchase-price"
+                data-testid="candidate-purchase-price"
+              >
+                ${effectivePrice}
               </span>
-              <span className="pp-purchase-price" data-testid="candidate-purchase-price">${effectivePrice}</span>
               <span className="pp-purchase-note">one-time</span>
             </div>
             <button
@@ -902,10 +934,13 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
             color: "#888",
           }}
         >
-          One account per company · Choose how many job types you need access
-          to
+          One account per company · Choose how many job types you need access to
         </p>
-        <div className="pp-vendor-grid" style={{ maxWidth: 900 }} data-testid="marketer-plan-grid">
+        <div
+          className="pp-vendor-grid"
+          style={{ maxWidth: 900 }}
+          data-testid="marketer-plan-grid"
+        >
           {/* Tier 1 – 1 Type */}
           <div
             className={`pp-plan-card${
@@ -1044,8 +1079,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
             color: "#999",
           }}
         >
-          <strong>Session add-on:</strong> 0–2 free with every plan · Need up
-          to 5 concurrent sessions? +$100/mo
+          <strong>Session add-on:</strong> 0–2 free with every plan · Need up to
+          5 concurrent sessions? +$100/mo
         </div>
       </div>
     );
@@ -1085,8 +1120,16 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
         <span className="pp-statusbar-sep">|</span>
         {user ? (
           <>
-            <span className="pp-statusbar-plan" data-testid="statusbar-plan-label">
-              {({ vendor: "Employer", marketer: "Marketer" } as Record<string, string>)[user.user_type] || "Candidate"}{" "}
+            <span
+              className="pp-statusbar-plan"
+              data-testid="statusbar-plan-label"
+            >
+              {(
+                { vendor: "Employer", marketer: "Marketer" } as Record<
+                  string,
+                  string
+                >
+              )[user.user_type] || "Candidate"}{" "}
               - {planBadge(user.plan ?? "free")}
             </span>
             {user.plan && user.plan !== "free" && (
@@ -1142,19 +1185,34 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
             </button>
           )}
           {isCandidate && (
-            <button className="pp-tab pp-tab-active" data-testid="tab-candidate">For Candidates</button>
+            <button
+              className="pp-tab pp-tab-active"
+              data-testid="tab-candidate"
+            >
+              For Candidates
+            </button>
           )}
           {isMarketer && (
-            <button className="pp-tab pp-tab-active" data-testid="tab-marketer">For Marketers</button>
+            <button className="pp-tab pp-tab-active" data-testid="tab-marketer">
+              For Marketers
+            </button>
           )}
         </div>
       )}
 
       <div className="pp-body" data-testid="pricing-body">
         {message && (
-          <div className={`pp-alert pp-alert-${message.type}`} data-testid="pricing-alert" data-alert-type={message.type}>
+          <div
+            className={`pp-alert pp-alert-${message.type}`}
+            data-testid="pricing-alert"
+            data-alert-type={message.type}
+          >
             {message.text}
-            <button className="pp-alert-close" onClick={() => setMessage(null)} data-testid="pricing-alert-close">
+            <button
+              className="pp-alert-close"
+              onClick={() => setMessage(null)}
+              data-testid="pricing-alert-close"
+            >
               x
             </button>
           </div>
@@ -1166,7 +1224,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose
       </div>
 
       {/* ── Marketer plans (tiered) ─────────────────────────────────── */}
-      {(activeTab === 2 || isMarketer) && !isVendor && !isCandidate && renderMarketerTab()}
+      {(activeTab === 2 || isMarketer) &&
+        !isVendor &&
+        !isCandidate &&
+        renderMarketerTab()}
 
       <div className="pp-footer" data-testid="pricing-footer">
         All payments processed securely via Stripe &nbsp;&nbsp; Vendor plans

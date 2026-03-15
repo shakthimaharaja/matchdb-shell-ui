@@ -541,7 +541,9 @@ const LoginModal: React.FC = () => {
               <Password
                 id="lm-reg-password"
                 value={regForm.password}
-                onChange={(e: { target: { value: string } }) => handleField("password", e.target.value)}
+                onChange={(e: { target: { value: string } }) =>
+                  handleField("password", e.target.value)
+                }
                 toggleMask
                 feedback={false}
                 required
