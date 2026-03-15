@@ -1,17 +1,15 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+const ModuleFederationPlugin =
+  require("webpack/lib/container/ModuleFederationPlugin");
 const Dotenv = require("dotenv-webpack");
-const path = require("path");
+const path = require("node:path");
 const deps = require("./package.json").dependencies;
 
-module.exports = (env = {}) => {
-  const envName = env.production
-    ? "production"
-    : env.qa
-      ? "qa"
-      : env.development
-        ? "development"
-        : "local";
+module.exports = function webpackConfig(env = {}) {
+  let envName = "local";
+  if (env.production) envName = "production";
+  else if (env.qa) envName = "qa";
+  else if (env.development) envName = "development";
   const envFile = path.resolve(__dirname, `env/.env.${envName}`);
 
   const isDev = envName === "local" || envName === "development";

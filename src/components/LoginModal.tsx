@@ -7,13 +7,14 @@ import { useLoginMutation, useRegisterMutation } from "../api/shellApi";
 import "./LoginModal.css";
 
 type ModalMode = "login" | "register";
+type UserType = "candidate" | "vendor" | "marketer";
 
 interface RegForm {
   first_name: string;
   last_name: string;
   email: string;
   password: string;
-  user_type: "candidate" | "vendor" | "marketer";
+  user_type: UserType;
 }
 
 const EMPTY_REG: RegForm = {
@@ -22,6 +23,118 @@ const EMPTY_REG: RegForm = {
   email: "",
   password: "",
   user_type: "candidate",
+};
+
+const USER_TYPE_ICONS: Record<UserType, string> = {
+  vendor: "🏢",
+  marketer: "📊",
+  candidate: "👤",
+};
+
+const USER_TYPE_LABELS: Record<UserType, string> = {
+  vendor: "🏢 Vendor",
+  marketer: "📊 Marketer",
+  candidate: "👤 Candidate",
+};
+
+const UPGRADE_DESCS: Record<UserType, string> = {
+  vendor:
+    "Free accounts can browse MatchDB but cannot post jobs or view matched candidates. Subscribe to the Basic plan ($22/mo) or higher to unlock full access.",
+  marketer:
+    "Subscribe to the Marketer plan ($100/month) to access the full live database of job openings and candidate profiles.",
+  candidate:
+    "Free accounts can browse matched jobs. Purchase a Visibility Package to upload your profile and appear in employer searches — starting at $13.",
+};
+
+const UPGRADE_CTAS: Record<UserType, string> = {
+  vendor: "View Subscription Plans →",
+  marketer: "Subscribe to Marketer Plan →",
+  candidate: "Purchase Visibility →",
+};
+
+function resolveErrorMessage(rawError: unknown): string | null {
+  if (!rawError) return null;
+  return (
+    (rawError as any).data?.error ??
+    (rawError as any).data?.detail ??
+    "Authentication failed. Please try again."
+  );
+}
+
+function resolveOauthError(msg: string): string {
+  if (msg === "missing_data" || msg === "parse_error") {
+    return "Google sign-in failed. Please try again.";
+  }
+  return "Google sign-in failed: " + msg;
+}
+
+function resolvePricingTab(userType?: string): string {
+  if (userType === "vendor") return "vendor";
+  if (userType === "marketer") return "marketer";
+  return "candidate";
+}
+
+type PostAuthAction = "close" | "pricing" | "upgrade";
+
+function resolvePostAuthAction(
+  user:
+    | { user_type?: string; has_purchased_visibility?: boolean; plan?: string }
+    | null
+    | undefined,
+): PostAuthAction {
+  if (user?.user_type === "candidate") {
+    return user.has_purchased_visibility ? "close" : "pricing";
+  }
+  if (user?.user_type === "marketer" && user.plan !== "marketer")
+    return "upgrade";
+  if (user?.plan === "free") return "upgrade";
+  return "close";
+}
+
+const UpgradePanel: React.FC<{
+  mode: ModalMode;
+  userType?: string;
+  onClose: () => void;
+  onGoToPricing: () => void;
+}> = ({ mode, userType, onClose, onGoToPricing }) => {
+  const resolvedType: UserType = (userType as UserType) ?? "candidate";
+  const ctxIcon = USER_TYPE_ICONS[resolvedType];
+  const ctxLabel = USER_TYPE_LABELS[resolvedType];
+  const title = mode === "register" ? "Account Created!" : "Welcome Back";
+  const subtitle =
+    mode === "register"
+      ? "Your free account is ready!"
+      : "You're logged in on the free plan";
+
+  return (
+    <dialog open className="login-modal-overlay">
+      <div className="rm-backdrop" role="none" onClick={onClose} />
+      <div className="login-modal-container">
+        <div className="login-modal-titlebar">
+          <span className="login-modal-title">{title}</span>
+          <span className="login-modal-context">{ctxLabel}</span>
+          <button className="login-modal-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+        <div className="lm-upgrade-panel">
+          <div className="lm-upgrade-icon">{ctxIcon}</div>
+          <h3 className="lm-upgrade-title">{subtitle}</h3>
+          <p className="lm-upgrade-desc">{UPGRADE_DESCS[resolvedType]}</p>
+          <button
+            type="button"
+            className="login-modal-submit lm-upgrade-cta"
+            onClick={onGoToPricing}
+          >
+            {UPGRADE_CTAS[resolvedType]}
+          </button>
+          <button type="button" className="lm-upgrade-skip" onClick={onClose}>
+            Skip for now — I&apos;ll upgrade later
+          </button>
+        </div>
+      </div>
+    </dialog>
+  );
 };
 
 const LoginModal: React.FC = () => {
@@ -37,17 +150,11 @@ const LoginModal: React.FC = () => {
 
   const loading = loginLoading || registerLoading;
   const rawError = loginError || registerError;
-  const error = rawError
-    ? (rawError as any).data?.error ??
-      (rawError as any).data?.detail ??
-      "Authentication failed. Please try again."
-    : null;
+  const error = resolveErrorMessage(rawError);
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>("login");
-  const [context, setContext] = useState<"candidate" | "vendor" | "marketer">(
-    "candidate",
-  );
+  const [context, setContext] = useState<UserType>("candidate");
   /** When true the user_type is locked (came from Candidate/Vendor nav link) */
   const [locked, setLocked] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
@@ -56,27 +163,23 @@ const LoginModal: React.FC = () => {
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const errParam = params.get("oauth_error");
     if (errParam) {
-      const msg = decodeURIComponent(errParam);
-      setOauthError(
-        msg === "missing_data" || msg === "parse_error"
-          ? "Google sign-in failed. Please try again."
-          : "Google sign-in failed: " + msg,
-      );
+      setOauthError(resolveOauthError(decodeURIComponent(errParam)));
       setOpen(true);
-      window.history.replaceState({}, "", window.location.pathname);
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
   }, []);
 
   const handleOpenModal = useCallback(
     (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      setContext(detail?.context || "candidate");
-      setMode(detail?.mode || "login");
-      setLocked(!!detail?.locked);
-      setRegForm({ ...EMPTY_REG, user_type: detail?.context || "candidate" });
+      const detail = (e as CustomEvent).detail ?? {};
+      const ctx: UserType = detail.context ?? "candidate";
+      setContext(ctx);
+      setMode(detail.mode ?? "login");
+      setLocked(Boolean(detail.locked));
+      setRegForm({ ...EMPTY_REG, user_type: ctx });
       setOauthError(null);
       setShowUpgrade(false);
       setOpen(true);
@@ -87,31 +190,27 @@ const LoginModal: React.FC = () => {
   );
 
   useEffect(() => {
-    window.addEventListener("matchdb:openLogin", handleOpenModal);
+    globalThis.addEventListener("matchdb:openLogin", handleOpenModal);
     return () =>
-      window.removeEventListener("matchdb:openLogin", handleOpenModal);
+      globalThis.removeEventListener("matchdb:openLogin", handleOpenModal);
   }, [handleOpenModal]);
 
   useEffect(() => {
-    if (token && open && !showUpgrade) {
-      if (user?.user_type === "candidate") {
-        if (!user?.has_purchased_visibility) {
-          setOpen(false);
-          window.dispatchEvent(
-            new CustomEvent("matchdb:openPricing", {
-              detail: { tab: "candidate", triggerProfile: true },
-            }),
-          );
-        } else {
-          setOpen(false);
-        }
-      } else if (user?.user_type === "marketer" && user?.plan !== "marketer") {
-        setShowUpgrade(true);
-      } else if (user?.plan === "free") {
-        setShowUpgrade(true);
-      } else {
-        setOpen(false);
-      }
+    const shouldProcess = token && open && !showUpgrade;
+    if (!shouldProcess) return;
+
+    const action = resolvePostAuthAction(user);
+    if (action === "close") {
+      setOpen(false);
+    } else if (action === "pricing") {
+      setOpen(false);
+      globalThis.dispatchEvent(
+        new CustomEvent("matchdb:openPricing", {
+          detail: { tab: "candidate", triggerProfile: true },
+        }),
+      );
+    } else {
+      setShowUpgrade(true);
     }
   }, [token, open, user, showUpgrade]);
 
@@ -121,12 +220,10 @@ const LoginModal: React.FC = () => {
   };
 
   const handleGoToPricing = () => {
-    const ut = user?.user_type;
-    const tab =
-      ut === "vendor" ? "vendor" : ut === "marketer" ? "marketer" : "candidate";
+    const tab = resolvePricingTab(user?.user_type);
     setShowUpgrade(false);
     setOpen(false);
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new CustomEvent("matchdb:openPricing", {
         detail: { tab, triggerProfile: tab === "candidate" },
       }),
@@ -166,88 +263,32 @@ const LoginModal: React.FC = () => {
     resetRegister();
   };
 
-  const handleGoogleAuth = (userType: "candidate" | "vendor" | "marketer") => {
+  const handleGoogleAuth = (userType: UserType) => {
     const backendUrl =
-      (window as any).__MATCHDB_API_URL__ ||
+      (globalThis as any).__MATCHDB_API_URL__ ||
       process.env.SHELL_SERVICES_URL ||
       "";
-    window.location.href = `${backendUrl}/api/auth/google?userType=${userType}`;
+    globalThis.location.href = `${backendUrl}/api/auth/google?userType=${userType}`;
   };
 
   if (!open) return null;
 
-  const activeUserType = mode === "login" ? context : regForm.user_type;
-
   if (showUpgrade) {
-    const ut = user?.user_type;
-    const isVendor = ut === "vendor";
-    const isMarketer = ut === "marketer";
-    const ctxIcon = isVendor ? "🏢" : isMarketer ? "📊" : "👤";
-    const ctxLabel = isVendor
-      ? "🏢 Vendor"
-      : isMarketer
-      ? "📊 Marketer"
-      : "👤 Candidate";
     return (
-      <div className="login-modal-overlay" onClick={handleUpgradeClose}>
-        <div
-          className="login-modal-container"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="login-modal-titlebar">
-            <span className="login-modal-title">
-              {mode === "register" ? "Account Created!" : "Welcome Back"}
-            </span>
-            <span className="login-modal-context">{ctxLabel}</span>
-            <button className="login-modal-close" onClick={handleUpgradeClose}>
-              ✕
-            </button>
-          </div>
-
-          <div className="lm-upgrade-panel">
-            <div className="lm-upgrade-icon">{ctxIcon}</div>
-            <h3 className="lm-upgrade-title">
-              {mode === "register"
-                ? "Your free account is ready!"
-                : "You're logged in on the free plan"}
-            </h3>
-            <p className="lm-upgrade-desc">
-              {isVendor
-                ? "Free accounts can browse MatchDB but cannot post jobs or view matched candidates. Subscribe to the Basic plan ($22/mo) or higher to unlock full access."
-                : isMarketer
-                ? "Subscribe to the Marketer plan ($100/month) to access the full live database of job openings and candidate profiles."
-                : "Free accounts can browse matched jobs. Purchase a Visibility Package to upload your profile and appear in employer searches — starting at $13."}
-            </p>
-            <button
-              type="button"
-              className="login-modal-submit lm-upgrade-cta"
-              onClick={handleGoToPricing}
-            >
-              {isVendor
-                ? "View Subscription Plans →"
-                : isMarketer
-                ? "Subscribe to Marketer Plan →"
-                : "Purchase Visibility →"}
-            </button>
-            <button
-              type="button"
-              className="lm-upgrade-skip"
-              onClick={handleUpgradeClose}
-            >
-              Skip for now — I&apos;ll upgrade later
-            </button>
-          </div>
-        </div>
-      </div>
+      <UpgradePanel
+        mode={mode}
+        userType={user?.user_type}
+        onClose={handleUpgradeClose}
+        onGoToPricing={handleGoToPricing}
+      />
     );
   }
 
   return (
-    <div className="login-modal-overlay" onClick={handleClose}>
+    <dialog open className="login-modal-overlay">
+      <div className="rm-backdrop" role="none" onClick={handleClose} />
       <div
         className="login-modal-container"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
         aria-modal="true"
         aria-labelledby="lm-title"
       >
@@ -256,11 +297,7 @@ const LoginModal: React.FC = () => {
             {mode === "login" ? "User Authentication" : "Create Account"}
           </span>
           <span className="login-modal-context">
-            {context === "vendor"
-              ? "🏢 Vendor"
-              : context === "marketer"
-              ? "📊 Marketer"
-              : "👤 Candidate"}
+            {USER_TYPE_LABELS[context]}
             {locked && " (locked)"}
           </span>
           <button
@@ -279,11 +316,7 @@ const LoginModal: React.FC = () => {
             <select
               id="lm-login-type"
               value={context}
-              onChange={(e) =>
-                setContext(
-                  e.target.value as "candidate" | "vendor" | "marketer",
-                )
-              }
+              onChange={(e) => setContext(e.target.value as UserType)}
               className="login-modal-select"
             >
               <option value="candidate">👤 Candidate (Job Seeker)</option>
@@ -397,10 +430,7 @@ const LoginModal: React.FC = () => {
                 id="lm-user-type"
                 value={regForm.user_type}
                 onChange={(e) =>
-                  handleField(
-                    "user_type",
-                    e.target.value as "candidate" | "vendor" | "marketer",
-                  )
+                  handleField("user_type", e.target.value as UserType)
                 }
                 className="login-modal-select"
                 disabled={locked}
@@ -542,7 +572,7 @@ const LoginModal: React.FC = () => {
           </form>
         )}
       </div>
-    </div>
+    </dialog>
   );
 };
 

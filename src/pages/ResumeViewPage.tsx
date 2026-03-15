@@ -25,7 +25,7 @@ interface ProfileData {
 
 const ResumeViewPage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
-  const { token, user } = useAppSelector((state) => state.auth);
+  const { token } = useAppSelector((state) => state.auth);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,9 +70,9 @@ const ResumeViewPage: React.FC = () => {
               className="w97-shimmer w97-shimmer-lg"
               style={{ height: 12, marginBottom: 16, display: "block" }}
             />
-            {[100, 80, 95, 70, 90].map((w, i) => (
+            {[100, 80, 95, 70, 90].map((w) => (
               <div
-                key={i}
+                key={`shimmer-${w}`}
                 className="w97-shimmer"
                 style={{
                   height: 12,
@@ -83,9 +83,9 @@ const ResumeViewPage: React.FC = () => {
               />
             ))}
             <div style={{ marginTop: 16 }}>
-              {[60, 40, 55, 45, 50].map((w, i) => (
+              {[60, 40, 55, 45, 50].map((w) => (
                 <div
-                  key={i}
+                  key={`shimmer-${w}`}
                   className="w97-shimmer"
                   style={{
                     height: 12,
@@ -203,9 +203,9 @@ const ResumeViewPage: React.FC = () => {
           {profile.skills?.length > 0 && (
             <Section title="Skills">
               <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                {profile.skills.map((skill, i) => (
+                {profile.skills.map((skill) => (
                   <span
-                    key={i}
+                    key={skill}
                     style={{
                       display: "inline-block",
                       background: "#d4d0c8",

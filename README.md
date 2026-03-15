@@ -123,7 +123,7 @@ new ModuleFederationPlugin({
 | `matchdb:breadcrumb`    | Jobs → Shell | `{ label: string }`                    |
 | `matchdb:openLogin`     | Jobs → Shell | `{ context, mode }`                    |
 | `matchdb:jobTypeFilter` | Shell → Jobs | `{ jobType: string }`                  |
-| `matchdb:loginContext`  | Shell → Jobs | `{ loginType: 'candidate'\|'vendor' }` |
+| `matchdb:loginContext`  | Shell → Jobs | `{ loginType: 'candidate'\|'vendor'\|'marketer' }` |
 
 ---
 
@@ -153,7 +153,7 @@ The pricing page is rendered as an inline modal within `ShellLayout` (not a sepa
 | Prop                     | Type                              | Description                      |
 | ------------------------ | --------------------------------- | -------------------------------- |
 | `token`                  | `string \| null`                  | JWT access token                 |
-| `userType`               | `string \| null`                  | `candidate` or `vendor`          |
+| `userType`               | `string \| null`                  | `candidate`, `vendor`, or `marketer` |
 | `userId`                 | `string \| null`                  | User ID                          |
 | `userEmail`              | `string \| null`                  | User email                       |
 | `username`               | `string \| undefined`             | URL-safe username slug           |

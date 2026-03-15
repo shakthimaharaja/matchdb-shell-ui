@@ -506,11 +506,11 @@
 
 .legacy-shell-sidebar-user {
   border-bottom: 2px solid var(--w97-btn-shadow);
-  padding: 6px;
+  padding: 6px 4px !important;
   display: flex;
-  flex-direction: column;
+  flex-direction: row !important;
   align-items: center;
-  gap: 3px;
+  gap: 6px;
   background: var(--w97-window);
   border-top: 1px solid var(--w97-btn-highlight);
 }
@@ -522,12 +522,6 @@
 }
 
 /* ===== ROSETTE RIBBON BADGES ===== */
-.legacy-shell-sidebar-user {
-  flex-direction: row !important;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 4px !important;
-}
 
 .legacy-shell-sidebar-info {
   flex: 1;
@@ -1051,6 +1045,11 @@
   .legacy-shell-nav-group-title {
     font-size: 11px;
     letter-spacing: 0;
+    padding: 3px 4px;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
   }
   .legacy-shell-sidebar-name {
     display: none;
@@ -1072,13 +1071,6 @@
   .legacy-shell-mfe-soon,
   .legacy-shell-subnav-count {
     display: none;
-  }
-  .legacy-shell-nav-group-title {
-    padding: 3px 4px;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: clip;
   }
 }
 

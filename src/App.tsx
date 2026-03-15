@@ -80,7 +80,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem("matchdb_style", themeStyle);
-    document.body.setAttribute("data-style", themeStyle);
+    document.body.dataset.style = themeStyle;
   }, [themeStyle]);
 
   return (

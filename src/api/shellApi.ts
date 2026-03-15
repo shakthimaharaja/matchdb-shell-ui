@@ -94,7 +94,9 @@ export const shellApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setAuth(data));
-        } catch { /* handled by RTK Query */ }
+        } catch {
+          /* handled by RTK Query */
+        }
       },
     }),
 
@@ -104,7 +106,9 @@ export const shellApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setAuth(data));
-        } catch { /* handled by RTK Query */ }
+        } catch {
+          /* handled by RTK Query */
+        }
       },
     }),
 
@@ -129,7 +133,9 @@ export const shellApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setUser(data));
-        } catch { /* handled by RTK Query */ }
+        } catch {
+          /* handled by RTK Query */
+        }
       },
     }),
 
@@ -139,7 +145,9 @@ export const shellApi = createApi({
         try {
           const { data } = await queryFulfilled;
           dispatch(setToken(data.access));
-        } catch { /* handled by RTK Query */ }
+        } catch {
+          /* handled by RTK Query */
+        }
       },
     }),
 
@@ -149,7 +157,9 @@ export const shellApi = createApi({
         try {
           await queryFulfilled;
           dispatch(logoutAction());
-        } catch { /* handled by RTK Query */ }
+        } catch {
+          /* handled by RTK Query */
+        }
       },
     }),
 
@@ -162,7 +172,8 @@ export const shellApi = createApi({
 
     getCandidatePackages: builder.query<CandidatePackage[], void>({
       query: () => "api/payments/candidate-packages",
-      transformResponse: (res: { packages: CandidatePackage[] }) => res.packages,
+      transformResponse: (res: { packages: CandidatePackage[] }) =>
+        res.packages,
     }),
 
     createVendorCheckout: builder.mutation<{ url: string }, { planId: string }>(

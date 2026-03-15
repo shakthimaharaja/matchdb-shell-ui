@@ -9,7 +9,6 @@ import {
   useOpenBillingPortalMutation,
   useRefreshUserDataMutation,
   type VendorPlan,
-  type CandidatePackage,
 } from "../api/shellApi";
 import "./PricingPage.css";
 
@@ -91,17 +90,18 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 }) => {
   if (!open) return null;
   return (
-    <div className="pp-confirm-overlay" onClick={onClose}>
-      <div className="pp-confirm-window" onClick={(e) => e.stopPropagation()}>
-        <div className="pp-confirm-titlebar">
+    <dialog open className="pp-confirm-overlay" data-testid="confirm-dialog">
+      <div className="rm-backdrop" role="none" onClick={onClose} />
+      <div className="pp-confirm-window" data-testid="confirm-dialog-window">
+        <div className="pp-confirm-titlebar" data-testid="confirm-dialog-titlebar">
           <span>{icon}</span>
           <span className="pp-confirm-titlebar-title">{title}</span>
-          <button className="pp-confirm-close" onClick={onClose} title="Close">
+          <button className="pp-confirm-close" onClick={onClose} title="Close" data-testid="confirm-dialog-close">
             x
           </button>
         </div>
 
-        <div className="pp-confirm-body">
+        <div className="pp-confirm-body" data-testid="confirm-dialog-body">
           <div
             style={{
               fontSize: 10,
@@ -112,10 +112,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             {subtitle}
           </div>
 
-          <div className="pp-confirm-card">
+          <div className="pp-confirm-card" data-testid="confirm-dialog-card">
             <div className="pp-confirm-card-title">{cardTitle}</div>
             <div className="pp-confirm-card-name">{cardName}</div>
-            <div className="pp-confirm-card-price">
+            <div className="pp-confirm-card-price" data-testid="confirm-dialog-price">
               ${price}{" "}
               <span className="pp-confirm-card-price-note">{priceNote}</span>
             </div>
@@ -123,7 +123,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             {features && features.length > 0 && (
               <>
                 <hr className="pp-confirm-card-divider" />
-                <ul className="pp-confirm-feature-list">
+                <ul className="pp-confirm-feature-list" data-testid="confirm-dialog-features">
                   {features.map((f) => (
                     <li key={f}>{f}</li>
                   ))}
@@ -139,23 +139,24 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             )}
           </div>
 
-          <div className="pp-confirm-notice">{notice}</div>
+          <div className="pp-confirm-notice" data-testid="confirm-dialog-notice">{notice}</div>
         </div>
 
-        <div className="pp-confirm-footer">
-          <button className="pp-btn" onClick={onClose} disabled={loading}>
+        <div className="pp-confirm-footer" data-testid="confirm-dialog-footer">
+          <button className="pp-btn" onClick={onClose} disabled={loading} data-testid="confirm-dialog-cancel">
             Cancel
           </button>
           <button
             className="pp-btn pp-btn-primary pp-btn-wide"
             onClick={onConfirm}
             disabled={loading}
+            data-testid="confirm-dialog-confirm"
           >
             {loading ? "Redirecting..." : confirmLabel}
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };
 
@@ -192,19 +193,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
   const isCandidate = user?.user_type === "candidate";
   const isMarketer = user?.user_type === "marketer";
 
-  const defaultTab = isVendor
-    ? 0
-    : isCandidate
-    ? 1
-    : isMarketer
-    ? 2
-    : initialTab === "vendor"
-    ? 0
-    : initialTab === "candidate"
-    ? 1
-    : initialTab === "marketer"
-    ? 2
-    : 0;
+  const TAB_INDEX: Record<string, number> = { vendor: 0, candidate: 1, marketer: 2 };
+  const defaultTab = TAB_INDEX[user?.user_type ?? ""] ?? TAB_INDEX[initialTab ?? ""] ?? 0;
 
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
@@ -227,14 +217,14 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
 
   // Handle Stripe redirect-back query params
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     if (params.get("success") === "true") {
       setMessage({
         type: "success",
         text: "Subscription activated! Your vendor plan has been updated.",
       });
       refreshUserData();
-      window.history.replaceState({}, "", window.location.pathname);
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
     if (params.get("candidate_success") === "true") {
       setMessage({
@@ -242,7 +232,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         text: "Visibility package purchased! You are now visible to employers in the selected categories.",
       });
       refreshUserData();
-      window.history.replaceState({}, "", window.location.pathname);
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
       setActiveTab(1);
     }
     if (params.get("canceled") === "true") {
@@ -250,7 +240,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         type: "error",
         text: "Checkout canceled - no changes were made.",
       });
-      window.history.replaceState({}, "", window.location.pathname);
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -262,7 +252,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
       const { url } = await createVendorCheckout({
         planId: vendorConfirm.id,
       }).unwrap();
-      window.location.href = url;
+      globalThis.location.href = url;
     } catch (err: any) {
       setMessage({
         type: "error",
@@ -276,7 +266,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     if (!token) return;
     try {
       const { url } = await openBillingPortal().unwrap();
-      window.location.href = url;
+      globalThis.location.href = url;
     } catch (err: any) {
       setMessage({
         type: "error",
@@ -292,7 +282,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     }
     try {
       const { url } = await createMarketerCheckout().unwrap();
-      window.location.href = url;
+      globalThis.location.href = url;
     } catch (err: any) {
       setMessage({
         type: "error",
@@ -337,7 +327,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     if (getOwnedSubs(domain).includes(subValue)) return;
     if (domain !== selectedDomain) {
       setSelectedDomain(domain);
-      setSelectedSubs(selectedPkg === "base" ? [subValue] : [subValue]);
+      setSelectedSubs([subValue]);
       return;
     }
     if (selectedPkg === "base") {
@@ -358,11 +348,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
   };
 
   const selectedPkgData = candidatePkgs.find((p) => p.id === selectedPkg);
-  const effectivePrice = !selectedPkg
-    ? 0
-    : selectedPkg === "subdomain_addon"
-    ? (selectedPkgData?.price || 2) * selectedSubs.length
-    : selectedPkgData?.price || 0;
+  let effectivePrice = 0;
+  if (selectedPkg === "subdomain_addon") effectivePrice = (selectedPkgData?.price || 2) * selectedSubs.length;
+  else if (selectedPkg) effectivePrice = selectedPkgData?.price || 0;
 
   const canPurchase = (): boolean => {
     if (!selectedPkg || !token) return false;
@@ -391,7 +379,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
           args.subdomains = selectedSubs;
       }
       const { url } = await createCandidateCheckout(args).unwrap();
-      window.location.href = url;
+      globalThis.location.href = url;
     } catch (err: any) {
       setMessage({
         type: "error",
@@ -454,17 +442,15 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
               {DOMAIN_LABELS[selectedDomain] || selectedDomain}
             </div>
             <div className="pp-confirm-subs">
-              {(selectedSubs.length > 0
-                ? selectedSubs
-                : (selectedDomain === "contract"
-                    ? CONTRACT_SUBDOMAINS
-                    : FULLTIME_SUBDOMAINS
-                  ).map((s) => s.value)
-              ).map((s) => (
-                <span key={s} className="pp-confirm-sub-pill">
-                  {SUB_LABELS[s] || s.toUpperCase()}
-                </span>
-              ))}
+              {(() => {
+                const domainSubs = selectedDomain === "contract" ? CONTRACT_SUBDOMAINS : FULLTIME_SUBDOMAINS;
+                const values = selectedSubs.length > 0 ? selectedSubs : domainSubs.map((s) => s.value);
+                return values.map((s) => (
+                  <span key={s} className="pp-confirm-sub-pill">
+                    {SUB_LABELS[s] || s.toUpperCase()}
+                  </span>
+                ));
+              })()}
             </div>
           </div>
         )}
@@ -472,9 +458,602 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     );
   };
 
+  function renderPlanAction(plan: VendorPlan, isCurrent: boolean) {
+    if (isCurrent) {
+      return (
+        <span className="pp-plan-current-badge" data-testid={`vendor-plan-current-${plan.id}`}>
+          CURRENT PLAN
+        </span>
+      );
+    }
+    if (plan.price === 0) {
+      return (
+        <button
+          className="pp-btn"
+          style={{ width: "100%" }}
+          disabled
+          data-testid={`vendor-plan-free-btn-${plan.id}`}
+        >
+          Free Account
+        </button>
+      );
+    }
+    return (
+      <button
+        className="pp-btn pp-btn-primary"
+        style={{ width: "100%" }}
+        disabled={
+          loadingPlanId === plan.id || checkoutLoading
+        }
+        onClick={() => {
+          if (!token) {
+            setMessage({
+              type: "error",
+              text: "Please sign in to subscribe.",
+            });
+            return;
+          }
+          setVendorConfirm(plan);
+        }}
+        data-testid={`vendor-plan-select-btn-${plan.id}`}
+      >
+        {(user as any)?.plan === "free"
+          ? "Get Started"
+          : "Switch Plan"}
+      </button>
+    );
+  }
+
+  function renderVendorTab() {
+    if (vendorConfirm) {
+      return (
+        <div className="pp-inline-confirm" data-testid="vendor-confirm-view">
+          <div className="pp-inline-confirm-nav">
+            <button
+              className="pp-btn"
+              onClick={() => {
+                setVendorConfirm(null);
+                setLoadingPlanId(null);
+              }}
+              data-testid="vendor-confirm-back-btn"
+            >
+              &#8592; Go Back
+            </button>
+            <span className="pp-inline-confirm-heading">
+              Confirm Subscription
+            </span>
+          </div>
+
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--w97-text-secondary)",
+              marginBottom: 8,
+            }}
+          >
+            Review your selection before proceeding to Stripe
+          </div>
+
+          <div className="pp-confirm-card" data-testid="vendor-confirm-card">
+            <div className="pp-confirm-card-title">Employer Plan</div>
+            <div className="pp-confirm-card-name">
+              {vendorConfirm.name}
+            </div>
+            <div className="pp-confirm-card-price">
+              ${vendorConfirm.price}
+              <span className="pp-confirm-card-price-note">
+                &nbsp;/ {vendorConfirm.interval} &nbsp;&middot;&nbsp;
+                billed monthly &nbsp;&middot;&nbsp; cancel anytime
+              </span>
+            </div>
+            {vendorConfirm.features.length > 0 && (
+              <>
+                <hr className="pp-confirm-card-divider" />
+                <ul className="pp-confirm-feature-list">
+                  {vendorConfirm.features.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+
+          <div className="pp-confirm-notice">
+            You will be redirected to Stripe to complete payment. Your
+            subscription starts immediately after payment and auto-renews
+            monthly.
+          </div>
+
+          <div className="pp-inline-confirm-footer" data-testid="vendor-confirm-footer">
+            <button
+              className="pp-btn pp-btn-primary pp-btn-wide"
+              disabled={
+                loadingPlanId === vendorConfirm.id || checkoutLoading
+              }
+              onClick={handleVendorConfirm}
+              data-testid="vendor-confirm-subscribe-btn"
+            >
+              {loadingPlanId === vendorConfirm.id || checkoutLoading
+                ? "Redirecting..."
+                : `Subscribe \u2014 $${vendorConfirm.price}/mo`}
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <>
+        <div className="pp-section-label">
+          Employer Subscription Plans - monthly recurring, cancel
+          anytime
+        </div>
+        <div className="pp-plan-grid" data-testid="vendor-plan-grid">
+          {vendorPlans.map((plan) => {
+            const isCurrent = (user as any)?.plan === plan.id;
+            const cardCls = [
+              "pp-plan-card",
+              plan.highlighted ? "pp-plan-card-highlighted" : "",
+              isCurrent ? "pp-plan-card-current" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+
+            return (
+              <div key={plan.id} className={cardCls} data-testid={`vendor-plan-card-${plan.id}`}>
+                <div
+                  className={`pp-plan-titlebar pp-plan-titlebar-${plan.id}`}
+                >
+                  <span style={{ flex: 1 }}>{plan.name}</span>
+                  <span
+                    className={`pp-plan-badge${
+                      plan.highlighted ? " pp-plan-badge-popular" : ""
+                    }`}
+                  >
+                    {plan.highlighted ? "POPULAR" : planBadge(plan.id)}
+                  </span>
+                </div>
+
+                <div className="pp-plan-body">
+                  <div>
+                    {plan.price === 0 ? (
+                      <span className="pp-plan-price pp-plan-price-free">
+                        Free
+                      </span>
+                    ) : (
+                      <span className="pp-plan-price">
+                        ${plan.price}
+                        <span className="pp-plan-price-interval">
+                          {" "}
+                          /{plan.interval}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+
+                  <hr className="pp-plan-divider" />
+
+                  <ul
+                    className={`pp-plan-features${
+                      plan.highlighted
+                        ? " pp-plan-features-highlighted"
+                        : ""
+                    }`}
+                  >
+                    {plan.features.map((f) => (
+                      <li key={f}>{f}</li>
+                    ))}
+                  </ul>
+
+                  <div className="pp-plan-action">
+                    {renderPlanAction(plan, isCurrent)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+  }
+
+  function renderSubTile(
+    domain: "contract" | "full_time",
+    sub: { value: string; label: string },
+    isDomainActive: boolean,
+  ) {
+    const isOwned = getOwnedSubs(domain).includes(sub.value);
+    const active = isSubActive(domain, sub.value);
+    const clickable =
+      !!selectedPkg &&
+      selectedPkg !== "full_bundle" &&
+      selectedPkg !== "single_domain_bundle" &&
+      isDomainActive &&
+      !isOwned;
+
+    return (
+      <button
+        type="button"
+        key={sub.value}
+        className={[
+          "pp-sub-tile",
+          active ? "pp-sub-tile-active" : "",
+          isOwned ? "pp-sub-tile-owned" : "",
+          !clickable && !isOwned && !active
+            ? "pp-sub-tile-disabled"
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        onClick={() =>
+          clickable && handleSubClick(domain, sub.value)
+        }
+        style={{
+          cursor: clickable ? "pointer" : "default",
+        }}
+        data-testid={`sub-tile-${domain}-${sub.value}`}
+      >
+        <span className="pp-sub-tile-label">
+          {sub.label}
+        </span>
+        {isOwned && (
+          <span className="pp-sub-tile-badge">OWNED</span>
+        )}
+        {active && !isOwned && (
+          <span className="pp-sub-tile-check">
+            &#10003;
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  function renderCandidateTab() {
+    return (
+      <>
+        {/* Current visibility */}
+        {(user as any)?.has_purchased_visibility &&
+          (user as any)?.membership_config && (
+            <div className="pp-visibility-panel" data-testid="candidate-visibility-panel">
+              <div className="pp-visibility-title">
+                Your Current Visibility
+              </div>
+              {Object.entries((user as any).membership_config).map(
+                ([domain, subs]) => (
+                  <div key={domain}>
+                    <div className="pp-visibility-domain">
+                      {domain.replace("_", " ")}
+                    </div>
+                    <div className="pp-visibility-subs">
+                      {(subs as string[]).map((s) => (
+                        <span key={s} className="pp-visibility-sub">
+                          {s.toUpperCase()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ),
+              )}
+            </div>
+          )}
+
+        {/* Step 1: Select a Package */}
+        <div className="pp-step-header">
+          Step 1 &mdash; Choose a Package
+        </div>
+
+        <div className="pp-pkg-grid" data-testid="candidate-pkg-grid">
+          {candidatePkgs.map((pkg) => {
+            const isActive = selectedPkg === pkg.id;
+            return (
+              <button
+                type="button"
+                key={pkg.id}
+                className={[
+                  "pp-pkg-card",
+                  pkg.id === "full_bundle" ? "pp-pkg-card-best" : "",
+                  isActive ? "pp-pkg-card-selected" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onClick={() => handlePkgSelect(pkg.id)}
+                data-testid={`candidate-pkg-card-${pkg.id}`}
+              >
+                {pkg.id === "full_bundle" && (
+                  <span className="pp-pkg-badge">BEST VALUE</span>
+                )}
+                <div className="pp-pkg-name">{pkg.name}</div>
+                <div className="pp-pkg-price">
+                  ${pkg.price}
+                  <span>
+                    {pkg.id === "subdomain_addon" ? " /each" : " one-time"}
+                  </span>
+                </div>
+                <div className="pp-pkg-desc">{pkg.description}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Step 2: Domain / Subdomain Map */}
+        <div className="pp-step-header">
+          Step 2 &mdash; Select Coverage
+          {!selectedPkg && (
+            <span className="pp-step-hint">
+              Choose a package above first
+            </span>
+          )}
+        </div>
+
+        <div
+          className={`pp-domain-map${
+            selectedPkg ? "" : " pp-domain-map-disabled"
+          }`}
+          data-testid="candidate-domain-map"
+        >
+          {(["contract", "full_time"] as const).map((domain) => {
+            const subs =
+              domain === "contract"
+                ? CONTRACT_SUBDOMAINS
+                : FULLTIME_SUBDOMAINS;
+            const isDomainActive =
+              selectedPkg === "full_bundle" || selectedDomain === domain;
+            const isDomainClickable =
+              !!selectedPkg && selectedPkg !== "full_bundle";
+
+            return (
+              <div
+                key={domain}
+                className={[
+                  "pp-domain-panel",
+                  isDomainActive ? "pp-domain-panel-active" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                data-testid={`domain-panel-${domain}`}
+              >
+                <button
+                  type="button"
+                  className="pp-domain-panel-header"
+                  onClick={() =>
+                    isDomainClickable && handleDomainClick(domain)
+                  }
+                  style={{
+                    cursor: isDomainClickable ? "pointer" : "default",
+                  }}
+                  data-testid={`domain-panel-header-${domain}`}
+                >
+                  <span>{DOMAIN_LABELS[domain]}</span>
+                  {isDomainActive && (
+                    <span className="pp-domain-check">&#10003;</span>
+                  )}
+                </button>
+                <div className="pp-domain-panel-body">
+                  {subs.map((sub) => renderSubTile(domain, sub, isDomainActive))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Purchase Bar */}
+        {selectedPkg && canPurchase() && (
+          <div className="pp-purchase-bar" data-testid="candidate-purchase-bar">
+            <div className="pp-purchase-info" data-testid="candidate-purchase-info">
+              <span className="pp-purchase-pkg">
+                {selectedPkgData?.name}
+              </span>
+              <span className="pp-purchase-price" data-testid="candidate-purchase-price">${effectivePrice}</span>
+              <span className="pp-purchase-note">one-time</span>
+            </div>
+            <button
+              className="pp-btn pp-btn-primary pp-btn-wide"
+              style={{ height: 28, fontSize: 12 }}
+              disabled={loadingPkgId !== null || checkoutLoading}
+              onClick={() => {
+                if (!token) {
+                  setMessage({
+                    type: "error",
+                    text: "Please sign in to purchase.",
+                  });
+                  return;
+                }
+                setCandidateConfirm({
+                  packageId: selectedPkg,
+                  label: selectedPkgData?.name || selectedPkg,
+                  price: effectivePrice,
+                });
+              }}
+              data-testid="candidate-purchase-btn"
+            >
+              {loadingPkgId || checkoutLoading
+                ? "Please wait..."
+                : `Purchase - $${effectivePrice}`}
+            </button>
+          </div>
+        )}
+
+        {/* Hint when package selected but selection incomplete */}
+        {selectedPkg &&
+          !canPurchase() &&
+          selectedPkg !== "full_bundle" &&
+          selectedPkg !== "single_domain_bundle" && (
+            <div
+              className="pp-alert pp-alert-info"
+              style={{ marginTop: 0 }}
+              data-testid="candidate-selection-hint"
+            >
+              {selectedPkg === "base"
+                ? "Select 1 subdomain from the map above"
+                : "Select one or more subdomains from the map above"}
+            </div>
+          )}
+      </>
+    );
+  }
+
+  function renderMarketerTab() {
+    return (
+      <div data-testid="marketer-section">
+        <p
+          style={{
+            textAlign: "center",
+            marginBottom: 8,
+            fontSize: 13,
+            color: "#888",
+          }}
+        >
+          One account per company · Choose how many job types you need access
+          to
+        </p>
+        <div className="pp-vendor-grid" style={{ maxWidth: 900 }} data-testid="marketer-plan-grid">
+          {/* Tier 1 – 1 Type */}
+          <div
+            className={`pp-plan-card${
+              isMarketer && user?.plan === "marketer"
+                ? " pp-plan-highlighted"
+                : ""
+            }`}
+            data-testid="marketer-tier-1-card"
+          >
+            <div className="pp-plan-badge">1 JOB TYPE</div>
+            <div className="pp-plan-name">Starter</div>
+            <div className="pp-plan-price">
+              <span className="pp-plan-amount">$100</span>
+              <span className="pp-plan-interval">/month</span>
+            </div>
+            <ul className="pp-plan-features">
+              <li>Pick 1 of C2C, W2, C2H, Full Time</li>
+              <li>Job openings + candidate profiles</li>
+              <li>Vendor email &amp; phone</li>
+              <li>Download CSV / Excel / Resume PDF</li>
+              <li>0–2 concurrent sessions included</li>
+            </ul>
+            {isMarketer && user?.plan === "marketer" ? (
+              <div style={{ textAlign: "center", marginTop: 8 }}>
+                <span
+                  className="pp-plan-badge"
+                  style={{ background: "#2e7d32", color: "#fff" }}
+                >
+                  Active
+                </span>
+                <button
+                  className="pp-btn pp-btn-primary pp-btn-wide"
+                  style={{ marginTop: 8 }}
+                  onClick={handlePortal}
+                  disabled={checkoutLoading}
+                  data-testid="marketer-manage-billing-btn"
+                >
+                  Manage Billing
+                </button>
+              </div>
+            ) : (
+              <button
+                className="pp-btn pp-btn-primary pp-btn-wide"
+                disabled={checkoutLoading}
+                onClick={handleMarketerSubscribe}
+                data-testid="marketer-tier-1-subscribe-btn"
+              >
+                {checkoutLoading ? "Please wait..." : "Subscribe — $100/mo"}
+              </button>
+            )}
+          </div>
+
+          {/* Tier 2 – Any 2 Types */}
+          <div className="pp-plan-card" data-testid="marketer-tier-2-card">
+            <div className="pp-plan-badge">ANY 2 TYPES</div>
+            <div className="pp-plan-name">Growth</div>
+            <div className="pp-plan-price">
+              <span className="pp-plan-amount">$180</span>
+              <span className="pp-plan-interval">/month</span>
+            </div>
+            <ul className="pp-plan-features">
+              <li>Pick any 2 of C2C, W2, C2H, Full Time</li>
+              <li>Job openings + candidate profiles</li>
+              <li>Vendor email &amp; phone</li>
+              <li>Download CSV / Excel / Resume PDF</li>
+              <li>0–2 concurrent sessions included</li>
+            </ul>
+            <button
+              className="pp-btn pp-btn-primary pp-btn-wide"
+              disabled={checkoutLoading}
+              onClick={handleMarketerSubscribe}
+              data-testid="marketer-tier-2-subscribe-btn"
+            >
+              {checkoutLoading ? "Please wait..." : "Subscribe — $180/mo"}
+            </button>
+          </div>
+
+          {/* Tier 3 – Any 3 Types */}
+          <div className="pp-plan-card" data-testid="marketer-tier-3-card">
+            <div className="pp-plan-badge">ANY 3 TYPES</div>
+            <div className="pp-plan-name">Professional</div>
+            <div className="pp-plan-price">
+              <span className="pp-plan-amount">$250</span>
+              <span className="pp-plan-interval">/month</span>
+            </div>
+            <ul className="pp-plan-features">
+              <li>Pick any 3 of C2C, W2, C2H, Full Time</li>
+              <li>Job openings + candidate profiles</li>
+              <li>Vendor email &amp; phone</li>
+              <li>Download CSV / Excel / Resume PDF</li>
+              <li>0–2 concurrent sessions included</li>
+            </ul>
+            <button
+              className="pp-btn pp-btn-primary pp-btn-wide"
+              disabled={checkoutLoading}
+              onClick={handleMarketerSubscribe}
+              data-testid="marketer-tier-3-subscribe-btn"
+            >
+              {checkoutLoading ? "Please wait..." : "Subscribe — $250/mo"}
+            </button>
+          </div>
+
+          {/* Tier 4 – All Types */}
+          <div className="pp-plan-card" data-testid="marketer-tier-4-card">
+            <div className="pp-plan-badge" style={{ background: "#1565c0" }}>
+              ALL TYPES
+            </div>
+            <div className="pp-plan-name">Enterprise</div>
+            <div className="pp-plan-price">
+              <span className="pp-plan-amount">$499</span>
+              <span className="pp-plan-interval">/month</span>
+            </div>
+            <ul className="pp-plan-features">
+              <li>Full access: C2C, W2, C2H, Full Time</li>
+              <li>Job openings + candidate profiles</li>
+              <li>Vendor email &amp; phone</li>
+              <li>Download CSV / Excel / Resume PDF</li>
+              <li>0–2 concurrent sessions included</li>
+            </ul>
+            <button
+              className="pp-btn pp-btn-primary pp-btn-wide"
+              disabled={checkoutLoading}
+              onClick={handleMarketerSubscribe}
+              data-testid="marketer-tier-4-subscribe-btn"
+            >
+              {checkoutLoading ? "Please wait..." : "Subscribe — $499/mo"}
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: 12,
+            fontSize: 12,
+            color: "#999",
+          }}
+        >
+          <strong>Session add-on:</strong> 0–2 free with every plan · Need up
+          to 5 concurrent sessions? +$100/mo
+        </div>
+      </div>
+    );
+  }
+
   //  Render
   return (
-    <div className="pp-root">
+    <div className="pp-root" data-testid="pricing-page">
       <ConfirmDialog
         open={candidateConfirm !== null}
         icon=""
@@ -501,17 +1080,13 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         }}
       />
 
-      <div className="pp-statusbar">
+      <div className="pp-statusbar" data-testid="pricing-statusbar">
         <span>Plans &amp; Pricing</span>
         <span className="pp-statusbar-sep">|</span>
         {user ? (
           <>
-            <span className="pp-statusbar-plan">
-              {user.user_type === "vendor"
-                ? "Employer"
-                : user.user_type === "marketer"
-                ? "Marketer"
-                : "Candidate"}{" "}
+            <span className="pp-statusbar-plan" data-testid="statusbar-plan-label">
+              {({ vendor: "Employer", marketer: "Marketer" } as Record<string, string>)[user.user_type] || "Candidate"}{" "}
               - {planBadge((user as any).plan ?? "free")}
             </span>
             {(user as any).plan && (user as any).plan !== "free" && (
@@ -522,6 +1097,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
                   style={{ height: 18, fontSize: 10 }}
                   onClick={handlePortal}
                   disabled={checkoutLoading}
+                  data-testid="statusbar-manage-billing-btn"
                 >
                   Manage Billing
                 </button>
@@ -529,616 +1105,70 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
             )}
           </>
         ) : (
-          <span>Sign in to subscribe</span>
+          <span data-testid="statusbar-sign-in-hint">Sign in to subscribe</span>
         )}
       </div>
 
       {/* Only show tabs when both sections are accessible (unauthenticated) */}
       {!user || (!isVendor && !isCandidate && !isMarketer) ? (
-        <div className="pp-tabs">
+        <div className="pp-tabs" data-testid="pricing-tabs">
           <button
             className={`pp-tab${activeTab === 0 ? " pp-tab-active" : ""}`}
             onClick={() => setActiveTab(0)}
+            data-testid="tab-vendor"
           >
             For Employers (Vendors)
           </button>
           <button
             className={`pp-tab${activeTab === 1 ? " pp-tab-active" : ""}`}
             onClick={() => setActiveTab(1)}
+            data-testid="tab-candidate"
           >
             For Candidates
           </button>
           <button
             className={`pp-tab${activeTab === 2 ? " pp-tab-active" : ""}`}
             onClick={() => setActiveTab(2)}
+            data-testid="tab-marketer"
           >
             For Marketers
           </button>
         </div>
       ) : (
-        <div className="pp-tabs">
+        <div className="pp-tabs" data-testid="pricing-tabs">
           {isVendor && (
-            <button className="pp-tab pp-tab-active">
+            <button className="pp-tab pp-tab-active" data-testid="tab-vendor">
               For Employers (Vendors)
             </button>
           )}
           {isCandidate && (
-            <button className="pp-tab pp-tab-active">For Candidates</button>
+            <button className="pp-tab pp-tab-active" data-testid="tab-candidate">For Candidates</button>
           )}
           {isMarketer && (
-            <button className="pp-tab pp-tab-active">For Marketers</button>
+            <button className="pp-tab pp-tab-active" data-testid="tab-marketer">For Marketers</button>
           )}
         </div>
       )}
 
-      <div className="pp-body">
+      <div className="pp-body" data-testid="pricing-body">
         {message && (
-          <div className={`pp-alert pp-alert-${message.type}`}>
+          <div className={`pp-alert pp-alert-${message.type}`} data-testid="pricing-alert" data-alert-type={message.type}>
             {message.text}
-            <button className="pp-alert-close" onClick={() => setMessage(null)}>
+            <button className="pp-alert-close" onClick={() => setMessage(null)} data-testid="pricing-alert-close">
               x
             </button>
           </div>
         )}
 
-        {(activeTab === 0 || isVendor) && !isCandidate && (
-          <>
-            {vendorConfirm ? (
-              /* ── Inline confirmation view ── */
-              <div className="pp-inline-confirm">
-                <div className="pp-inline-confirm-nav">
-                  <button
-                    className="pp-btn"
-                    onClick={() => {
-                      setVendorConfirm(null);
-                      setLoadingPlanId(null);
-                    }}
-                  >
-                    &#8592; Go Back
-                  </button>
-                  <span className="pp-inline-confirm-heading">
-                    Confirm Subscription
-                  </span>
-                </div>
+        {(activeTab === 0 || isVendor) && !isCandidate && renderVendorTab()}
 
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: "var(--w97-text-secondary)",
-                    marginBottom: 8,
-                  }}
-                >
-                  Review your selection before proceeding to Stripe
-                </div>
-
-                <div className="pp-confirm-card">
-                  <div className="pp-confirm-card-title">Employer Plan</div>
-                  <div className="pp-confirm-card-name">
-                    {vendorConfirm.name}
-                  </div>
-                  <div className="pp-confirm-card-price">
-                    ${vendorConfirm.price}
-                    <span className="pp-confirm-card-price-note">
-                      &nbsp;/ {vendorConfirm.interval} &nbsp;&middot;&nbsp;
-                      billed monthly &nbsp;&middot;&nbsp; cancel anytime
-                    </span>
-                  </div>
-                  {vendorConfirm.features.length > 0 && (
-                    <>
-                      <hr className="pp-confirm-card-divider" />
-                      <ul className="pp-confirm-feature-list">
-                        {vendorConfirm.features.map((f) => (
-                          <li key={f}>{f}</li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                </div>
-
-                <div className="pp-confirm-notice">
-                  You will be redirected to Stripe to complete payment. Your
-                  subscription starts immediately after payment and auto-renews
-                  monthly.
-                </div>
-
-                <div className="pp-inline-confirm-footer">
-                  <button
-                    className="pp-btn pp-btn-primary pp-btn-wide"
-                    disabled={
-                      loadingPlanId === vendorConfirm.id || checkoutLoading
-                    }
-                    onClick={handleVendorConfirm}
-                  >
-                    {loadingPlanId === vendorConfirm.id || checkoutLoading
-                      ? "Redirecting..."
-                      : `Subscribe \u2014 $${vendorConfirm.price}/mo`}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* ── Plan grid ── */
-              <>
-                <div className="pp-section-label">
-                  Employer Subscription Plans - monthly recurring, cancel
-                  anytime
-                </div>
-                <div className="pp-plan-grid">
-                  {vendorPlans.map((plan) => {
-                    const isCurrent = (user as any)?.plan === plan.id;
-                    const cardCls = [
-                      "pp-plan-card",
-                      plan.highlighted ? "pp-plan-card-highlighted" : "",
-                      isCurrent ? "pp-plan-card-current" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ");
-
-                    return (
-                      <div key={plan.id} className={cardCls}>
-                        <div
-                          className={`pp-plan-titlebar pp-plan-titlebar-${plan.id}`}
-                        >
-                          <span style={{ flex: 1 }}>{plan.name}</span>
-                          <span
-                            className={`pp-plan-badge${
-                              plan.highlighted ? " pp-plan-badge-popular" : ""
-                            }`}
-                          >
-                            {plan.highlighted ? "POPULAR" : planBadge(plan.id)}
-                          </span>
-                        </div>
-
-                        <div className="pp-plan-body">
-                          <div>
-                            {plan.price === 0 ? (
-                              <span className="pp-plan-price pp-plan-price-free">
-                                Free
-                              </span>
-                            ) : (
-                              <span className="pp-plan-price">
-                                ${plan.price}
-                                <span className="pp-plan-price-interval">
-                                  {" "}
-                                  /{plan.interval}
-                                </span>
-                              </span>
-                            )}
-                          </div>
-
-                          <hr className="pp-plan-divider" />
-
-                          <ul
-                            className={`pp-plan-features${
-                              plan.highlighted
-                                ? " pp-plan-features-highlighted"
-                                : ""
-                            }`}
-                          >
-                            {plan.features.map((f) => (
-                              <li key={f}>{f}</li>
-                            ))}
-                          </ul>
-
-                          <div className="pp-plan-action">
-                            {isCurrent ? (
-                              <span className="pp-plan-current-badge">
-                                CURRENT PLAN
-                              </span>
-                            ) : plan.price === 0 ? (
-                              <button
-                                className="pp-btn"
-                                style={{ width: "100%" }}
-                                disabled
-                              >
-                                Free Account
-                              </button>
-                            ) : (
-                              <button
-                                className="pp-btn pp-btn-primary"
-                                style={{ width: "100%" }}
-                                disabled={
-                                  loadingPlanId === plan.id || checkoutLoading
-                                }
-                                onClick={() => {
-                                  if (!token) {
-                                    setMessage({
-                                      type: "error",
-                                      text: "Please sign in to subscribe.",
-                                    });
-                                    return;
-                                  }
-                                  setVendorConfirm(plan);
-                                }}
-                              >
-                                {(user as any)?.plan === "free"
-                                  ? "Get Started"
-                                  : "Switch Plan"}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        {(activeTab === 1 || isCandidate) && !isVendor && (
-          <>
-            {/* Current visibility */}
-            {(user as any)?.has_purchased_visibility &&
-              (user as any)?.membership_config && (
-                <div className="pp-visibility-panel">
-                  <div className="pp-visibility-title">
-                    Your Current Visibility
-                  </div>
-                  {Object.entries((user as any).membership_config).map(
-                    ([domain, subs]) => (
-                      <div key={domain}>
-                        <div className="pp-visibility-domain">
-                          {domain.replace("_", " ")}
-                        </div>
-                        <div className="pp-visibility-subs">
-                          {(subs as string[]).map((s) => (
-                            <span key={s} className="pp-visibility-sub">
-                              {s.toUpperCase()}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ),
-                  )}
-                </div>
-              )}
-
-            {/* ── Step 1: Select a Package ── */}
-            <div className="pp-step-header">
-              Step 1 &mdash; Choose a Package
-            </div>
-
-            <div className="pp-pkg-grid">
-              {candidatePkgs.map((pkg) => {
-                const isActive = selectedPkg === pkg.id;
-                return (
-                  <div
-                    key={pkg.id}
-                    className={[
-                      "pp-pkg-card",
-                      pkg.id === "full_bundle" ? "pp-pkg-card-best" : "",
-                      isActive ? "pp-pkg-card-selected" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    onClick={() => handlePkgSelect(pkg.id)}
-                  >
-                    {pkg.id === "full_bundle" && (
-                      <span className="pp-pkg-badge">BEST VALUE</span>
-                    )}
-                    <div className="pp-pkg-name">{pkg.name}</div>
-                    <div className="pp-pkg-price">
-                      ${pkg.price}
-                      <span>
-                        {pkg.id === "subdomain_addon" ? " /each" : " one-time"}
-                      </span>
-                    </div>
-                    <div className="pp-pkg-desc">{pkg.description}</div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* ── Step 2: Domain / Subdomain Map ── */}
-            <div className="pp-step-header">
-              Step 2 &mdash; Select Coverage
-              {!selectedPkg && (
-                <span className="pp-step-hint">
-                  Choose a package above first
-                </span>
-              )}
-            </div>
-
-            <div
-              className={`pp-domain-map${
-                !selectedPkg ? " pp-domain-map-disabled" : ""
-              }`}
-            >
-              {(["contract", "full_time"] as const).map((domain) => {
-                const subs =
-                  domain === "contract"
-                    ? CONTRACT_SUBDOMAINS
-                    : FULLTIME_SUBDOMAINS;
-                const owned = getOwnedSubs(domain);
-                const isDomainActive =
-                  selectedPkg === "full_bundle" || selectedDomain === domain;
-                const isDomainClickable =
-                  !!selectedPkg && selectedPkg !== "full_bundle";
-
-                return (
-                  <div
-                    key={domain}
-                    className={[
-                      "pp-domain-panel",
-                      isDomainActive ? "pp-domain-panel-active" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    <div
-                      className="pp-domain-panel-header"
-                      onClick={() =>
-                        isDomainClickable && handleDomainClick(domain)
-                      }
-                      style={{
-                        cursor: isDomainClickable ? "pointer" : "default",
-                      }}
-                    >
-                      <span>{DOMAIN_LABELS[domain]}</span>
-                      {isDomainActive && (
-                        <span className="pp-domain-check">&#10003;</span>
-                      )}
-                    </div>
-                    <div className="pp-domain-panel-body">
-                      {subs.map((sub) => {
-                        const isOwned = owned.includes(sub.value);
-                        const active = isSubActive(domain, sub.value);
-                        const clickable =
-                          !!selectedPkg &&
-                          selectedPkg !== "full_bundle" &&
-                          selectedPkg !== "single_domain_bundle" &&
-                          isDomainActive &&
-                          !isOwned;
-
-                        return (
-                          <div
-                            key={sub.value}
-                            className={[
-                              "pp-sub-tile",
-                              active ? "pp-sub-tile-active" : "",
-                              isOwned ? "pp-sub-tile-owned" : "",
-                              !clickable && !isOwned && !active
-                                ? "pp-sub-tile-disabled"
-                                : "",
-                            ]
-                              .filter(Boolean)
-                              .join(" ")}
-                            onClick={() =>
-                              clickable && handleSubClick(domain, sub.value)
-                            }
-                            style={{
-                              cursor: clickable ? "pointer" : "default",
-                            }}
-                          >
-                            <span className="pp-sub-tile-label">
-                              {sub.label}
-                            </span>
-                            {isOwned && (
-                              <span className="pp-sub-tile-badge">OWNED</span>
-                            )}
-                            {active && !isOwned && (
-                              <span className="pp-sub-tile-check">
-                                &#10003;
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* ── Purchase Bar ── */}
-            {selectedPkg && canPurchase() && (
-              <div className="pp-purchase-bar">
-                <div className="pp-purchase-info">
-                  <span className="pp-purchase-pkg">
-                    {selectedPkgData?.name}
-                  </span>
-                  <span className="pp-purchase-price">${effectivePrice}</span>
-                  <span className="pp-purchase-note">one-time</span>
-                </div>
-                <button
-                  className="pp-btn pp-btn-primary pp-btn-wide"
-                  style={{ height: 28, fontSize: 12 }}
-                  disabled={loadingPkgId !== null || checkoutLoading}
-                  onClick={() => {
-                    if (!token) {
-                      setMessage({
-                        type: "error",
-                        text: "Please sign in to purchase.",
-                      });
-                      return;
-                    }
-                    setCandidateConfirm({
-                      packageId: selectedPkg,
-                      label: selectedPkgData?.name || selectedPkg,
-                      price: effectivePrice,
-                    });
-                  }}
-                >
-                  {loadingPkgId || checkoutLoading
-                    ? "Please wait..."
-                    : `Purchase - $${effectivePrice}`}
-                </button>
-              </div>
-            )}
-
-            {/* Hint when package selected but selection incomplete */}
-            {selectedPkg &&
-              !canPurchase() &&
-              selectedPkg !== "full_bundle" &&
-              selectedPkg !== "single_domain_bundle" && (
-                <div
-                  className="pp-alert pp-alert-info"
-                  style={{ marginTop: 0 }}
-                >
-                  {selectedPkg === "base"
-                    ? "Select 1 subdomain from the map above"
-                    : "Select one or more subdomains from the map above"}
-                </div>
-              )}
-          </>
-        )}
+        {(activeTab === 1 || isCandidate) && !isVendor && renderCandidateTab()}
       </div>
 
       {/* ── Marketer plans (tiered) ─────────────────────────────────── */}
-      {(activeTab === 2 || isMarketer) && !isVendor && !isCandidate && (
-        <div>
-          <p
-            style={{
-              textAlign: "center",
-              marginBottom: 8,
-              fontSize: 13,
-              color: "#888",
-            }}
-          >
-            One account per company · Choose how many job types you need access
-            to
-          </p>
-          <div className="pp-vendor-grid" style={{ maxWidth: 900 }}>
-            {/* Tier 1 – 1 Type */}
-            <div
-              className={`pp-plan-card${
-                isMarketer && user?.plan === "marketer"
-                  ? " pp-plan-highlighted"
-                  : ""
-              }`}
-            >
-              <div className="pp-plan-badge">1 JOB TYPE</div>
-              <div className="pp-plan-name">Starter</div>
-              <div className="pp-plan-price">
-                <span className="pp-plan-amount">$100</span>
-                <span className="pp-plan-interval">/month</span>
-              </div>
-              <ul className="pp-plan-features">
-                <li>Pick 1 of C2C, W2, C2H, Full Time</li>
-                <li>Job openings + candidate profiles</li>
-                <li>Vendor email &amp; phone</li>
-                <li>Download CSV / Excel / Resume PDF</li>
-                <li>0–2 concurrent sessions included</li>
-              </ul>
-              {isMarketer && user?.plan === "marketer" ? (
-                <div style={{ textAlign: "center", marginTop: 8 }}>
-                  <span
-                    className="pp-plan-badge"
-                    style={{ background: "#2e7d32", color: "#fff" }}
-                  >
-                    Active
-                  </span>
-                  <button
-                    className="pp-btn pp-btn-primary pp-btn-wide"
-                    style={{ marginTop: 8 }}
-                    onClick={handlePortal}
-                    disabled={checkoutLoading}
-                  >
-                    Manage Billing
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="pp-btn pp-btn-primary pp-btn-wide"
-                  disabled={checkoutLoading}
-                  onClick={handleMarketerSubscribe}
-                >
-                  {checkoutLoading ? "Please wait..." : "Subscribe — $100/mo"}
-                </button>
-              )}
-            </div>
+      {(activeTab === 2 || isMarketer) && !isVendor && !isCandidate && renderMarketerTab()}
 
-            {/* Tier 2 – Any 2 Types */}
-            <div className="pp-plan-card">
-              <div className="pp-plan-badge">ANY 2 TYPES</div>
-              <div className="pp-plan-name">Growth</div>
-              <div className="pp-plan-price">
-                <span className="pp-plan-amount">$180</span>
-                <span className="pp-plan-interval">/month</span>
-              </div>
-              <ul className="pp-plan-features">
-                <li>Pick any 2 of C2C, W2, C2H, Full Time</li>
-                <li>Job openings + candidate profiles</li>
-                <li>Vendor email &amp; phone</li>
-                <li>Download CSV / Excel / Resume PDF</li>
-                <li>0–2 concurrent sessions included</li>
-              </ul>
-              <button
-                className="pp-btn pp-btn-primary pp-btn-wide"
-                disabled={checkoutLoading}
-                onClick={handleMarketerSubscribe}
-              >
-                {checkoutLoading ? "Please wait..." : "Subscribe — $180/mo"}
-              </button>
-            </div>
-
-            {/* Tier 3 – Any 3 Types */}
-            <div className="pp-plan-card">
-              <div className="pp-plan-badge">ANY 3 TYPES</div>
-              <div className="pp-plan-name">Professional</div>
-              <div className="pp-plan-price">
-                <span className="pp-plan-amount">$250</span>
-                <span className="pp-plan-interval">/month</span>
-              </div>
-              <ul className="pp-plan-features">
-                <li>Pick any 3 of C2C, W2, C2H, Full Time</li>
-                <li>Job openings + candidate profiles</li>
-                <li>Vendor email &amp; phone</li>
-                <li>Download CSV / Excel / Resume PDF</li>
-                <li>0–2 concurrent sessions included</li>
-              </ul>
-              <button
-                className="pp-btn pp-btn-primary pp-btn-wide"
-                disabled={checkoutLoading}
-                onClick={handleMarketerSubscribe}
-              >
-                {checkoutLoading ? "Please wait..." : "Subscribe — $250/mo"}
-              </button>
-            </div>
-
-            {/* Tier 4 – All Types */}
-            <div className="pp-plan-card">
-              <div className="pp-plan-badge" style={{ background: "#1565c0" }}>
-                ALL TYPES
-              </div>
-              <div className="pp-plan-name">Enterprise</div>
-              <div className="pp-plan-price">
-                <span className="pp-plan-amount">$499</span>
-                <span className="pp-plan-interval">/month</span>
-              </div>
-              <ul className="pp-plan-features">
-                <li>Full access: C2C, W2, C2H, Full Time</li>
-                <li>Job openings + candidate profiles</li>
-                <li>Vendor email &amp; phone</li>
-                <li>Download CSV / Excel / Resume PDF</li>
-                <li>0–2 concurrent sessions included</li>
-              </ul>
-              <button
-                className="pp-btn pp-btn-primary pp-btn-wide"
-                disabled={checkoutLoading}
-                onClick={handleMarketerSubscribe}
-              >
-                {checkoutLoading ? "Please wait..." : "Subscribe — $499/mo"}
-              </button>
-            </div>
-          </div>
-
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: 12,
-              fontSize: 12,
-              color: "#999",
-            }}
-          >
-            <strong>Session add-on:</strong> 0–2 free with every plan · Need up
-            to 5 concurrent sessions? +$100/mo
-          </div>
-        </div>
-      )}
-
-      <div className="pp-footer">
+      <div className="pp-footer" data-testid="pricing-footer">
         All payments processed securely via Stripe &nbsp;&nbsp; Vendor plans
         cancel anytime &nbsp;&nbsp; Candidate visibility packages are one-time
         purchases

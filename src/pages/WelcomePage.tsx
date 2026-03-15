@@ -111,13 +111,14 @@ const WelcomePage: React.FC = () => {
 
   /* Reveal lines one by one */
   useEffect(() => {
+    function revealLine(i: number) {
+      setShown(i + 1);
+      if (i === LINES.length - 1) {
+        setTimeout(() => setCtaVisible(true), 600);
+      }
+    }
     LINES.forEach((line, i) => {
-      setTimeout(() => {
-        setShown(i + 1);
-        if (i === LINES.length - 1) {
-          setTimeout(() => setCtaVisible(true), 600);
-        }
-      }, line.delay);
+      setTimeout(() => revealLine(i), line.delay);
     });
   }, []);
 
@@ -129,7 +130,7 @@ const WelcomePage: React.FC = () => {
 
   const openLogin = (type: "candidate" | "vendor") => {
     navigate(`/jobs/${type}`);
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new CustomEvent("matchdb:openLogin", {
         detail: { context: type, mode: "login" },
       }),
@@ -166,7 +167,7 @@ const WelcomePage: React.FC = () => {
           {/* Sunken terminal output */}
           <div className="wlc-term" ref={termRef}>
             {doneLines.map((line, i) => (
-              <div key={i} className={CLASS_MAP[line.s]}>
+              <div key={`line-${line.delay}-${i}`} className={CLASS_MAP[line.s]}>
                 {line.text || "\u00A0"}
               </div>
             ))}
@@ -197,7 +198,7 @@ const WelcomePage: React.FC = () => {
                 </Button>
                 <Button
                   onClick={() => {
-                    window.dispatchEvent(
+                    globalThis.dispatchEvent(
                       new CustomEvent("matchdb:openLogin", {
                         detail: { context: "candidate", mode: "register" },
                       }),

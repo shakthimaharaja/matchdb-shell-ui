@@ -1,5 +1,20 @@
 /* ===== Login/Register Modal — Windows 97 Theme ===== */
 
+dialog[open].login-modal-overlay {
+  display: flex !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .login-modal-overlay {
   position: fixed;
   inset: 0;
@@ -14,6 +29,8 @@
 }
 
 .login-modal-container {
+  position: relative;
+  z-index: 1;
   background: var(--w97-window, #c0c0c0);
   border-top: 2px solid var(--w97-btn-highlight, #ffffff);
   border-left: 2px solid var(--w97-btn-highlight, #ffffff);

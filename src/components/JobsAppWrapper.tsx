@@ -38,7 +38,7 @@ class ErrorBoundary extends Component<
             ⚠ Failed to load Jobs Portal: {this.state.message}
             <button
               aria-label="Reload Jobs Portal"
-              onClick={() => window.location.reload()}
+              onClick={() => globalThis.location.reload()}
             >
               ↺ Reload
             </button>
@@ -88,14 +88,12 @@ const JobsAppWrapper: React.FC = () => {
           }
           const expiredType = user?.user_type ?? "candidate";
           dispatch(expireSession(expiredType));
-          navigate(
-            expiredType === "vendor"
-              ? "/jobs/vendor"
-              : expiredType === "marketer"
-              ? "/jobs/marketer"
-              : "/jobs/candidate",
-            { replace: true },
-          );
+          const redirectPath = (() => {
+            if (expiredType === "vendor") return "/jobs/vendor";
+            if (expiredType === "marketer") return "/jobs/marketer";
+            return "/jobs/candidate";
+          })();
+          navigate(redirectPath, { replace: true });
         }
         // For 5xx or network errors, leave the user logged in so they can retry.
       }
@@ -132,9 +130,9 @@ const LoadingPane: React.FC = () => (
       className="w97-shimmer w97-shimmer-lg"
       style={{ height: 16, marginBottom: 16, display: "block" }}
     />
-    {[85, 70, 60, 75, 50, 65].map((w, i) => (
+    {[85, 70, 60, 75, 50, 65].map((w) => (
       <div
-        key={i}
+        key={w}
         className="w97-shimmer"
         style={{
           height: 18,

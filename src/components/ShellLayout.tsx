@@ -208,6 +208,15 @@ const isPathActive = (itemPath: string, currentPath: string): boolean => {
   return currentPath.startsWith(itemPath);
 };
 
+const USER_TYPE_LABELS: Record<string, string> = {
+  vendor: "Vendor",
+  marketer: "Marketer",
+  candidate: "Candidate",
+};
+function userTypeLabel(ut?: string) {
+  return (ut && USER_TYPE_LABELS[ut]) || "Candidate";
+}
+
 const ShellLayout: React.FC<Props> = ({
   children,
   themeStyle,
@@ -220,17 +229,16 @@ const ShellLayout: React.FC<Props> = ({
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [subNavGroups, setSubNavGroups] = useState<SubNavGroup[]>([]);
-  const [mfeBreadcrumb, setMfeBreadcrumb] = useState<string[]>([]);
+  const mfeBreadcrumbRef = useRef<string[]>([]);
   const [footerInfo, setFooterInfo] = useState("");
   const [activeJobType, setActiveJobType] = useState<string>("");
   /** null = no sub-item selected (user is on /jobs or elsewhere) */
-  const loginTypeFromPath = location.pathname.startsWith("/jobs/vendor")
-    ? "vendor"
-    : location.pathname.startsWith("/jobs/candidate")
-    ? "candidate"
-    : location.pathname.startsWith("/jobs/marketer")
-    ? "marketer"
-    : null;
+  const loginTypeFromPath = (() => {
+    if (location.pathname.startsWith("/jobs/vendor")) return "vendor";
+    if (location.pathname.startsWith("/jobs/candidate")) return "candidate";
+    if (location.pathname.startsWith("/jobs/marketer")) return "marketer";
+    return null;
+  })();
   const [activeLoginType, setActiveLoginType] = useState<
     "candidate" | "vendor" | "marketer" | null
   >(loginTypeFromPath);
@@ -260,7 +268,7 @@ const ShellLayout: React.FC<Props> = ({
   useEffect(() => {
     localStorage.setItem("matchdb_dark", darkMode ? "1" : "0");
     // Also set on <body> so MFE CSS can read it
-    document.body.setAttribute("data-theme", darkMode ? "dark" : "light");
+    document.body.dataset.theme = darkMode ? "dark" : "light";
   }, [darkMode]);
 
   /* ---- Font size persistence ---- */
@@ -308,34 +316,31 @@ const ShellLayout: React.FC<Props> = ({
 
   const handleClosePricing = useCallback(() => {
     setPricingModalOpen(false);
-    window.dispatchEvent(new CustomEvent("matchdb:pricingClosed"));
+    globalThis.dispatchEvent(new CustomEvent("matchdb:pricingClosed"));
     if (pendingProfileOpen) {
       setPendingProfileOpen(false);
       // Small delay so pricing overlay fully unmounts before profile modal appears
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("matchdb:openProfile"));
+        globalThis.dispatchEvent(new CustomEvent("matchdb:openProfile"));
       }, 80);
     }
   }, [pendingProfileOpen]);
 
   useEffect(() => {
-    window.addEventListener("matchdb:openPricing", handleOpenPricing);
+    globalThis.addEventListener("matchdb:openPricing", handleOpenPricing);
     return () =>
-      window.removeEventListener("matchdb:openPricing", handleOpenPricing);
+      globalThis.removeEventListener("matchdb:openPricing", handleOpenPricing);
   }, [handleOpenPricing]);
 
   /* Auto-open pricing modal on Stripe post-checkout redirects (e.g. /?success=true) */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const isSuccess = params.get("success") === "true";
     const isCandSucc = params.get("candidate_success") === "true";
     const isCanceled = params.get("canceled") === "true";
     if (isSuccess || isCandSucc || isCanceled) {
-      const tab = isCandSucc
-        ? "candidate"
-        : user?.user_type === "candidate"
-        ? "candidate"
-        : "vendor";
+      const tab =
+        isCandSucc || user?.user_type === "candidate" ? "candidate" : "vendor";
       setPricingModalTab(tab);
       if (isCandSucc) {
         // Refresh user data from server so hasPurchasedVisibility reflects the completed payment,
@@ -345,7 +350,7 @@ const ShellLayout: React.FC<Props> = ({
       }
       setPricingModalOpen(true);
       // Clean up the URL so the modal doesn't re-open on navigation
-      window.history.replaceState({}, "", window.location.pathname);
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
   }, [user?.user_type]);
 
@@ -357,33 +362,29 @@ const ShellLayout: React.FC<Props> = ({
 
   const handleBreadcrumb = useCallback((e: Event) => {
     const detail = (e as CustomEvent).detail;
-    setMfeBreadcrumb(Array.isArray(detail) ? detail : []);
+    mfeBreadcrumbRef.current = Array.isArray(detail) ? detail : [];
   }, []);
 
   useEffect(() => {
-    window.addEventListener("matchdb:subnav", handleSubNav);
-    window.addEventListener("matchdb:breadcrumb", handleBreadcrumb);
+    globalThis.addEventListener("matchdb:subnav", handleSubNav);
+    globalThis.addEventListener("matchdb:breadcrumb", handleBreadcrumb);
     const handleFooterInfo = (e: Event) => {
       const text = (e as CustomEvent).detail?.text || "";
       setFooterInfo(text);
     };
-    window.addEventListener("matchdb:footerInfo", handleFooterInfo);
+    globalThis.addEventListener("matchdb:footerInfo", handleFooterInfo);
     return () => {
-      window.removeEventListener("matchdb:subnav", handleSubNav);
-      window.removeEventListener("matchdb:breadcrumb", handleBreadcrumb);
-      window.removeEventListener("matchdb:footerInfo", handleFooterInfo);
+      globalThis.removeEventListener("matchdb:subnav", handleSubNav);
+      globalThis.removeEventListener("matchdb:breadcrumb", handleBreadcrumb);
+      globalThis.removeEventListener("matchdb:footerInfo", handleFooterInfo);
     };
   }, [handleSubNav, handleBreadcrumb]);
 
   /* Nav = all 10 MFEs always visible; override 'Jobs Database' label per user type */
-  const jobsLabel =
-    user?.user_type === "vendor"
-      ? "Candidate Database"
-      : user?.user_type === "candidate"
-      ? "Job Openings Database"
-      : user?.user_type === "marketer"
-      ? "Marketing Database"
-      : "Jobs Database";
+  let jobsLabel = "Jobs Database";
+  if (user?.user_type === "vendor") jobsLabel = "Candidate Database";
+  else if (user?.user_type === "candidate") jobsLabel = "Job Openings Database";
+  else if (user?.user_type === "marketer") jobsLabel = "Marketing Database";
   const navItems = useMemo(
     () =>
       MFE_NAV.map((n) => (n.id === "jobs" ? { ...n, label: jobsLabel } : n)),
@@ -392,7 +393,7 @@ const ShellLayout: React.FC<Props> = ({
 
   const [tzCity, setTzCity] = useState(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return tz.split("/").pop()?.replace(/_/g, " ") || tz;
+    return tz.split("/").pop()?.replaceAll("_", " ") || tz;
   });
 
   useEffect(() => {
@@ -501,7 +502,7 @@ const ShellLayout: React.FC<Props> = ({
   const profileCountry = useMemo(() => {
     if (!profileLocation) return "";
     const parts = profileLocation.split(",").map((s: string) => s.trim());
-    const lastPart = parts[parts.length - 1]?.toUpperCase();
+    const lastPart = parts.at(-1)?.toUpperCase();
     if (lastPart && US_STATES.has(lastPart)) return "🇺🇸 United States";
     return profileLocation; // fallback: show raw location
   }, [profileLocation]);
@@ -514,11 +515,11 @@ const ShellLayout: React.FC<Props> = ({
       const text = (e as CustomEvent).detail?.text;
       setVisibleInText(text || "");
     };
-    window.addEventListener("matchdb:profileLocation", locHandler);
-    window.addEventListener("matchdb:visibleIn", visHandler);
+    globalThis.addEventListener("matchdb:profileLocation", locHandler);
+    globalThis.addEventListener("matchdb:visibleIn", visHandler);
     return () => {
-      window.removeEventListener("matchdb:profileLocation", locHandler);
-      window.removeEventListener("matchdb:visibleIn", visHandler);
+      globalThis.removeEventListener("matchdb:profileLocation", locHandler);
+      globalThis.removeEventListener("matchdb:visibleIn", visHandler);
     };
   }, []);
 
@@ -639,22 +640,12 @@ const ShellLayout: React.FC<Props> = ({
 
   /* Broadcast active login context to MFE (null → "candidate" as safe default) */
   useEffect(() => {
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new CustomEvent("matchdb:loginContext", {
         detail: { loginType: activeLoginType ?? "candidate" },
       }),
     );
   }, [activeLoginType]);
-
-  /* Get submenu items for a nav item (respects candidate visibility for Jobs) */
-  const getSubsForItem = useCallback(
-    (item: NavItem): SubMenu[] => {
-      if (!item.subs) return [];
-      if (item.id === "jobs") return allowedSubdivisions;
-      return item.subs;
-    },
-    [allowedSubdivisions],
-  );
 
   /* All non-disabled MFE submenus are always visible */
 
@@ -662,7 +653,7 @@ const ShellLayout: React.FC<Props> = ({
   const handleJobTypeClick = (typeId: string) => {
     const newType = activeJobType === typeId ? "" : typeId;
     setActiveJobType(newType);
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new CustomEvent("matchdb:jobTypeFilter", {
         detail: { jobType: newType },
       }),
@@ -678,15 +669,15 @@ const ShellLayout: React.FC<Props> = ({
     mode: "login" | "register" = "login",
     locked: boolean = false,
   ) => {
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new CustomEvent("matchdb:openLogin", {
         detail: { context, mode, locked },
       }),
     );
   };
 
-  return (
-    <div className={`legacy-shell-root${darkMode ? " dark" : ""}`}>
+  function renderHeader() {
+    return (
       <header className="legacy-shell-header">
         <Button
           type="button"
@@ -698,9 +689,13 @@ const ShellLayout: React.FC<Props> = ({
           aria-label="Toggle sidebar"
         />
 
-        <div
+        <a
+          href="/"
           className="legacy-shell-brand matchdb-clickable"
-          onClick={() => navigate("/")}
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/");
+          }}
           title="MatchDB — Home"
         >
           {/* Tiny Windows-97 pixel flag */}
@@ -716,7 +711,7 @@ const ShellLayout: React.FC<Props> = ({
           <span className="legacy-shell-brand-subtitle">
             {themeStyle === "modern" ? "AWS" : "97"}
           </span>
-        </div>
+        </a>
 
         {/* Location / Date / Time — single line in header */}
         <span className="legacy-shell-date-inline">
@@ -730,12 +725,7 @@ const ShellLayout: React.FC<Props> = ({
           })}
           {isLoggedIn && user?.user_type && (
             <span className="matchdb-accent legacy-shell-logged-as">
-              · Logged in as{" "}
-              {user.user_type === "vendor"
-                ? "Vendor"
-                : user.user_type === "marketer"
-                ? "Marketer"
-                : "Candidate"}
+              · Logged in as {userTypeLabel(user.user_type)}
             </span>
           )}
         </span>
@@ -842,11 +832,11 @@ const ShellLayout: React.FC<Props> = ({
               className="legacy-shell-user-container"
               ref={accountPanelContainerRef}
             >
-              <div
+              <button
+                type="button"
                 className="legacy-shell-user matchdb-clickable"
                 onClick={() => setShowAccountPanel((p) => !p)}
                 title="Click to view account details"
-                role="button"
                 aria-expanded={showAccountPanel}
                 aria-haspopup="true"
               >
@@ -858,23 +848,19 @@ const ShellLayout: React.FC<Props> = ({
                 <div className="legacy-shell-user-text">
                   <div className="legacy-shell-user-name">{displayName}</div>
                   <div className="legacy-shell-user-type">
-                    {user?.user_type === "vendor"
-                      ? "Vendor"
-                      : user?.user_type === "marketer"
-                      ? "Marketer"
-                      : "Candidate"}
+                    {userTypeLabel(user?.user_type)}
                   </div>
                 </div>
                 <span className="legacy-shell-user-caret" aria-hidden="true">
                   {showAccountPanel ? "▲" : "▼"}
                 </span>
-              </div>
+              </button>
 
               {/* W97-style account details dropdown */}
               {showAccountPanel && (
-                <div
+                <dialog
+                  open
                   className="shell-account-panel"
-                  role="dialog"
                   aria-label="Account Details"
                 >
                   <div className="shell-account-panel-title">
@@ -913,11 +899,7 @@ const ShellLayout: React.FC<Props> = ({
                     <div className="shell-account-row">
                       <span className="shell-account-label">Type</span>
                       <span className="shell-account-value">
-                        {user?.user_type === "vendor"
-                          ? "Vendor"
-                          : user?.user_type === "marketer"
-                          ? "Marketer"
-                          : "Candidate"}
+                        {userTypeLabel(user?.user_type)}
                       </span>
                     </div>
                     <div className="shell-account-row">
@@ -967,7 +949,7 @@ const ShellLayout: React.FC<Props> = ({
                       Sign Out
                     </button>
                   </div>
-                </div>
+                </dialog>
               )}
             </div>
             <Button
@@ -985,12 +967,17 @@ const ShellLayout: React.FC<Props> = ({
           </>
         )}
       </header>
+    );
+  }
+
+  return (
+    <div className={`legacy-shell-root${darkMode ? " dark" : ""}`}>
+      {renderHeader()}
 
       <div className="legacy-shell-body">
-        <aside
+        <nav
           className={`legacy-shell-sidebar${collapsed ? " collapsed" : ""}`}
           style={{ width: drawerWidth }}
-          role="navigation"
           aria-label="Main navigation"
         >
           {!collapsed && isLoggedIn && (
@@ -1003,11 +990,7 @@ const ShellLayout: React.FC<Props> = ({
               <div className="legacy-shell-sidebar-info">
                 <div className="legacy-shell-sidebar-name">{displayName}</div>
                 <div className="legacy-shell-sidebar-type">
-                  {user?.user_type === "vendor"
-                    ? "Vendor"
-                    : user?.user_type === "marketer"
-                    ? "Marketer"
-                    : "Candidate"}
+                  {userTypeLabel(user?.user_type)}
                 </div>
               </div>
               <div className="legacy-shell-rosettes">
@@ -1107,13 +1090,7 @@ const ShellLayout: React.FC<Props> = ({
                               setActiveLoginType(
                                 mode.id as "candidate" | "vendor" | "marketer",
                               );
-                              navigate(
-                                mode.id === "vendor"
-                                  ? "/jobs/vendor"
-                                  : mode.id === "marketer"
-                                  ? "/jobs/marketer"
-                                  : "/jobs/candidate",
-                              );
+                              navigate(`/jobs/${mode.id}`);
                             }}
                             title={mode.label}
                           >
@@ -1161,9 +1138,9 @@ const ShellLayout: React.FC<Props> = ({
           })()}
 
           {/* ---- MFE sub-nav groups (Profile, Actions, Job Type from MFE) ---- */}
-          {subNavGroups.map((group, gi) => (
+          {subNavGroups.map((group) => (
             <div
-              key={`sub-${gi}`}
+              key={group.label}
               className="legacy-shell-nav-group legacy-shell-subnav-group"
             >
               {!collapsed && (
@@ -1178,41 +1155,41 @@ const ShellLayout: React.FC<Props> = ({
               )}
               {!collapsed && (
                 <ul className="legacy-shell-nav-list">
-                  {group.items.map((item) => (
-                    <li key={item.id}>
-                      <button
-                        type="button"
-                        className={[
-                          "legacy-shell-nav-item",
-                          "legacy-shell-subnav-item",
-                          item.depth === 1 ? "depth-1" : "",
-                          item.active ? "active" : "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                        onClick={item.onClick}
-                        title={
-                          item.tooltip
-                            ? item.tooltip
-                            : item.count !== undefined
-                            ? `${item.label} (${item.count} records)`
-                            : item.label
-                        }
-                      >
-                        <span className="legacy-shell-subnav-bullet">
-                          {item.depth === 1 ? "└" : "▸"}
-                        </span>
-                        <span className="legacy-shell-subnav-label">
-                          {item.label}
-                        </span>
-                        {item.count !== undefined && (
-                          <span className="legacy-shell-subnav-count">
-                            {item.count}
+                  {group.items.map((item) => {
+                    let itemTitle = item.label;
+                    if (item.tooltip) itemTitle = item.tooltip;
+                    else if (item.count !== undefined)
+                      itemTitle = `${item.label} (${item.count} records)`;
+                    return (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          className={[
+                            "legacy-shell-nav-item",
+                            "legacy-shell-subnav-item",
+                            item.depth === 1 ? "depth-1" : "",
+                            item.active ? "active" : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          onClick={item.onClick}
+                          title={itemTitle}
+                        >
+                          <span className="legacy-shell-subnav-bullet">
+                            {item.depth === 1 ? "└" : "▸"}
                           </span>
-                        )}
-                      </button>
-                    </li>
-                  ))}
+                          <span className="legacy-shell-subnav-label">
+                            {item.label}
+                          </span>
+                          {item.count !== undefined && (
+                            <span className="legacy-shell-subnav-count">
+                              {item.count}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
               {collapsed && (
@@ -1313,9 +1290,9 @@ const ShellLayout: React.FC<Props> = ({
                 );
               })}
           </ul>
-        </aside>
+        </nav>
 
-        <section className="legacy-shell-main" role="main">
+        <main className="legacy-shell-main">
           {/* Visible-in banner — above pagehead, sent from Jobs MFE */}
           {isLoggedIn && visibleInText && (
             <div className="legacy-shell-visible-in">
@@ -1342,15 +1319,10 @@ const ShellLayout: React.FC<Props> = ({
                   label="Upgrade to Post More"
                   className="legacy-shell-signout legacy-shell-upgrade-btn"
                   onClick={() =>
-                    window.dispatchEvent(
+                    globalThis.dispatchEvent(
                       new CustomEvent("matchdb:openPricing", {
                         detail: {
-                          tab:
-                            user?.user_type === "vendor"
-                              ? "vendor"
-                              : user?.user_type === "marketer"
-                              ? "marketer"
-                              : "candidate",
+                          tab: user?.user_type ?? "candidate",
                         },
                       }),
                     )
@@ -1380,19 +1352,21 @@ const ShellLayout: React.FC<Props> = ({
             {footerInfo && <span>{footerInfo}</span>}
             <span>Build 97.2026.0213</span>
           </footer>
-        </section>
+        </main>
       </div>
 
       {/* ── Pricing modal overlay — triggered by matchdb:openPricing event ── */}
       {pricingModalOpen && (
-        <div
+        <dialog
+          open
           className="matchdb-modal-overlay matchdb-modal-overlay--top"
-          onClick={handleClosePricing}
         >
           <div
-            className="matchdb-modal-window matchdb-modal-window--fit"
-            onClick={(e) => e.stopPropagation()}
-          >
+            className="rm-backdrop"
+            role="none"
+            onClick={handleClosePricing}
+          />
+          <div className="matchdb-modal-window matchdb-modal-window--fit">
             {/* W97-style title bar */}
             <div className="matchdb-modal-titlebar w97-titlebar">
               <span className="matchdb-modal-icon">💎</span>
@@ -1415,7 +1389,7 @@ const ShellLayout: React.FC<Props> = ({
               />
             </div>
           </div>
-        </div>
+        </dialog>
       )}
     </div>
   );

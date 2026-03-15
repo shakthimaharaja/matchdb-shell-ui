@@ -16,7 +16,7 @@ const OAuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const token = params.get("token");
     const refresh = params.get("refresh");
     const userRaw = params.get("user");

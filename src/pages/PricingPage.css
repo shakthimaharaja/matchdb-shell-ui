@@ -8,8 +8,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  font-family:
-    "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Arial, sans-serif;
+  font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Arial,
+    sans-serif;
   font-size: 13px;
   color: var(--w97-text, #000);
   background: var(--w97-window, #f3f3f3);
@@ -782,6 +782,21 @@
 }
 
 /* ── Confirm dialog (overlay inside the main pricing overlay) ── */
+dialog[open].pp-confirm-overlay {
+  display: flex !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .pp-confirm-overlay {
   position: fixed;
   inset: 0;
