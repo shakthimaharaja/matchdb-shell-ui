@@ -54,9 +54,10 @@ const UPGRADE_CTAS: Record<UserType, string> = {
 
 function resolveErrorMessage(rawError: unknown): string | null {
   if (!rawError) return null;
+  const err = rawError as { data?: { error?: string; detail?: string } };
   return (
-    (rawError as any).data?.error ??
-    (rawError as any).data?.detail ??
+    err.data?.error ??
+    err.data?.detail ??
     "Authentication failed. Please try again."
   );
 }
@@ -235,7 +236,7 @@ const LoginModal: React.FC = () => {
     setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
   };
 
-  const handleField = (field: keyof RegForm, value: any) => {
+  const handleField = (field: keyof RegForm, value: string) => {
     resetRegister();
     setRegForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -265,7 +266,7 @@ const LoginModal: React.FC = () => {
 
   const handleGoogleAuth = (userType: UserType) => {
     const backendUrl =
-      (globalThis as any).__MATCHDB_API_URL__ ||
+      (globalThis as unknown as Record<string, string>).__MATCHDB_API_URL__ ||
       process.env.SHELL_SERVICES_URL ||
       "";
     globalThis.location.href = `${backendUrl}/api/auth/google?userType=${userType}`;
@@ -540,7 +541,7 @@ const LoginModal: React.FC = () => {
               <Password
                 id="lm-reg-password"
                 value={regForm.password}
-                onChange={(e: any) => handleField("password", e.target.value)}
+                onChange={(e: { target: { value: string } }) => handleField("password", e.target.value)}
                 toggleMask
                 feedback={false}
                 required

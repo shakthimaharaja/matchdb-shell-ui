@@ -73,8 +73,8 @@ const JobsAppWrapper: React.FC = () => {
       try {
         await triggerVerify().unwrap();
         // Token is valid — nothing to do.
-      } catch (err: any) {
-        const status = err?.status;
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status;
         // Only act on auth errors (401/403) — network errors should not log out.
         if (status === 401 || status === 403) {
           if (refresh) {

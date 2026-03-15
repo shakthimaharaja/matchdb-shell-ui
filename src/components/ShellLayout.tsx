@@ -246,6 +246,7 @@ const ShellLayout: React.FC<Props> = ({
   /* Keep activeLoginType in sync when URL changes (e.g. back/forward) */
   useEffect(() => {
     setActiveLoginType(loginTypeFromPath);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem("matchdb_dark") === "1";
@@ -352,7 +353,7 @@ const ShellLayout: React.FC<Props> = ({
       // Clean up the URL so the modal doesn't re-open on navigation
       globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
-  }, [user?.user_type]);
+  }, [user?.user_type]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Listen for sub-nav events emitted by the Jobs MFE */
   const handleSubNav = useCallback((e: Event) => {
@@ -505,6 +506,7 @@ const ShellLayout: React.FC<Props> = ({
     const lastPart = parts.at(-1)?.toUpperCase();
     if (lastPart && US_STATES.has(lastPart)) return "🇺🇸 United States";
     return profileLocation; // fallback: show raw location
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLocation]);
   useEffect(() => {
     const locHandler = (e: Event) => {

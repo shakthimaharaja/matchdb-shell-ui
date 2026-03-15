@@ -167,7 +167,7 @@ interface PricingPageProps {
   onClose?: () => void;
 }
 
-const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
+const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose: _onClose }) => {
   const { token, user } = useAppSelector((s) => s.auth);
 
   // ─── RTK Query hooks ───────────────────────────────────────────────────────
@@ -253,10 +253,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         planId: vendorConfirm.id,
       }).unwrap();
       globalThis.location.href = url;
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: err.data?.error || "Checkout failed. Please try again.",
+        text: (err as { data?: { error?: string } }).data?.error || "Checkout failed. Please try again.",
       });
       setLoadingPlanId(null);
     }
@@ -267,10 +267,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     try {
       const { url } = await openBillingPortal().unwrap();
       globalThis.location.href = url;
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: err.data?.error || "Could not open billing portal.",
+        text: (err as { data?: { error?: string } }).data?.error || "Could not open billing portal.",
       });
     }
   };
@@ -283,17 +283,17 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     try {
       const { url } = await createMarketerCheckout().unwrap();
       globalThis.location.href = url;
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: err.data?.error || "Checkout failed. Please try again.",
+        text: (err as { data?: { error?: string } }).data?.error || "Checkout failed. Please try again.",
       });
     }
   };
 
   //  Candidate helpers
   const getOwnedSubs = (domain: string): string[] =>
-    (user as any)?.membership_config?.[domain] || [];
+    user?.membership_config?.[domain] || [];
 
   const handlePkgSelect = (pkgId: string) => {
     if (selectedPkg === pkgId) {
@@ -380,10 +380,10 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
       }
       const { url } = await createCandidateCheckout(args).unwrap();
       globalThis.location.href = url;
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: err.data?.error || "Checkout failed. Please try again.",
+        text: (err as { data?: { error?: string } }).data?.error || "Checkout failed. Please try again.",
       });
       setLoadingPkgId(null);
     }
@@ -497,7 +497,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         }}
         data-testid={`vendor-plan-select-btn-${plan.id}`}
       >
-        {(user as any)?.plan === "free"
+        {user?.plan === "free"
           ? "Get Started"
           : "Switch Plan"}
       </button>
@@ -589,7 +589,7 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
         </div>
         <div className="pp-plan-grid" data-testid="vendor-plan-grid">
           {vendorPlans.map((plan) => {
-            const isCurrent = (user as any)?.plan === plan.id;
+            const isCurrent = user?.plan === plan.id;
             const cardCls = [
               "pp-plan-card",
               plan.highlighted ? "pp-plan-card-highlighted" : "",
@@ -711,13 +711,13 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
     return (
       <>
         {/* Current visibility */}
-        {(user as any)?.has_purchased_visibility &&
-          (user as any)?.membership_config && (
+        {user?.has_purchased_visibility &&
+          user?.membership_config && (
             <div className="pp-visibility-panel" data-testid="candidate-visibility-panel">
               <div className="pp-visibility-title">
                 Your Current Visibility
               </div>
-              {Object.entries((user as any).membership_config).map(
+              {Object.entries(user.membership_config).map(
                 ([domain, subs]) => (
                   <div key={domain}>
                     <div className="pp-visibility-domain">
@@ -1087,9 +1087,9 @@ const PricingPage: React.FC<PricingPageProps> = ({ initialTab, onClose }) => {
           <>
             <span className="pp-statusbar-plan" data-testid="statusbar-plan-label">
               {({ vendor: "Employer", marketer: "Marketer" } as Record<string, string>)[user.user_type] || "Candidate"}{" "}
-              - {planBadge((user as any).plan ?? "free")}
+              - {planBadge(user.plan ?? "free")}
             </span>
-            {(user as any).plan && (user as any).plan !== "free" && (
+            {user.plan && user.plan !== "free" && (
               <>
                 <span className="pp-statusbar-sep">|</span>
                 <button
