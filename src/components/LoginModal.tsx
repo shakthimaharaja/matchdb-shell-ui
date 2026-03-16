@@ -5,9 +5,16 @@ import { Password } from "primereact/password";
 import { useAppSelector } from "../store";
 import { useLoginMutation, useRegisterMutation } from "../api/shellApi";
 import "./LoginModal.css";
+import {
+  USER_TYPE_ICONS,
+  USER_TYPE_LABELS,
+  EVT_OPEN_PRICING,
+  EVT_OPEN_LOGIN,
+} from "../constants";
+import { AUTH_GOOGLE } from "../constants/endpoints";
+import type { UserType } from "../constants";
 
 type ModalMode = "login" | "register";
-type UserType = "candidate" | "vendor" | "marketer";
 
 interface RegForm {
   first_name: string;
@@ -23,18 +30,6 @@ const EMPTY_REG: RegForm = {
   email: "",
   password: "",
   user_type: "candidate",
-};
-
-const USER_TYPE_ICONS: Record<UserType, string> = {
-  vendor: "🏢",
-  marketer: "📊",
-  candidate: "👤",
-};
-
-const USER_TYPE_LABELS: Record<UserType, string> = {
-  vendor: "🏢 Vendor",
-  marketer: "📊 Marketer",
-  candidate: "👤 Candidate",
 };
 
 const UPGRADE_DESCS: Record<UserType, string> = {
@@ -191,9 +186,9 @@ const LoginModal: React.FC = () => {
   );
 
   useEffect(() => {
-    globalThis.addEventListener("matchdb:openLogin", handleOpenModal);
+    globalThis.addEventListener(EVT_OPEN_LOGIN, handleOpenModal);
     return () =>
-      globalThis.removeEventListener("matchdb:openLogin", handleOpenModal);
+      globalThis.removeEventListener(EVT_OPEN_LOGIN, handleOpenModal);
   }, [handleOpenModal]);
 
   useEffect(() => {
@@ -206,7 +201,7 @@ const LoginModal: React.FC = () => {
     } else if (action === "pricing") {
       setOpen(false);
       globalThis.dispatchEvent(
-        new CustomEvent("matchdb:openPricing", {
+        new CustomEvent(EVT_OPEN_PRICING, {
           detail: { tab: "candidate", triggerProfile: true },
         }),
       );
@@ -225,7 +220,7 @@ const LoginModal: React.FC = () => {
     setShowUpgrade(false);
     setOpen(false);
     globalThis.dispatchEvent(
-      new CustomEvent("matchdb:openPricing", {
+      new CustomEvent(EVT_OPEN_PRICING, {
         detail: { tab, triggerProfile: tab === "candidate" },
       }),
     );
@@ -269,7 +264,7 @@ const LoginModal: React.FC = () => {
       (globalThis as unknown as Record<string, string>).__MATCHDB_API_URL__ ||
       process.env.SHELL_SERVICES_URL ||
       "";
-    globalThis.location.href = `${backendUrl}/api/auth/google?userType=${userType}`;
+    globalThis.location.href = `${backendUrl}${AUTH_GOOGLE(userType)}`;
   };
 
   if (!open) return null;

@@ -10,66 +10,21 @@ import {
   useRefreshUserDataMutation,
   type VendorPlan,
 } from "../api/shellApi";
+import {
+  CONTRACT_SUBDOMAINS,
+  FULLTIME_SUBDOMAINS,
+  DOMAIN_LABELS,
+  SUB_LABELS,
+  TAB_INDEX,
+  planBadge,
+  MARKETER_TIERS,
+  MARKETER_COMMON_FEATURES,
+  type PricingPageProps,
+  type ConfirmDialogProps,
+} from "./pricingPageHelpers";
 import "./PricingPage.css";
 
-const CONTRACT_SUBDOMAINS = [
-  { value: "c2c", label: "C2C (Corp-to-Corp)" },
-  { value: "c2h", label: "C2H (Contract-to-Hire)" },
-  { value: "w2", label: "W2" },
-  { value: "1099", label: "1099 / Independent" },
-];
-const FULLTIME_SUBDOMAINS = [
-  { value: "c2h", label: "C2H (Contract-to-Hire)" },
-  { value: "w2", label: "W2" },
-  { value: "direct_hire", label: "Direct Hire" },
-  { value: "salary", label: "Salaried" },
-];
-
-const DOMAIN_LABELS: Record<string, string> = {
-  contract: "Contract",
-  full_time: "Full Time",
-};
-const SUB_LABELS: Record<string, string> = {
-  c2c: "C2C",
-  c2h: "C2H",
-  w2: "W2",
-  "1099": "1099",
-  direct_hire: "Direct Hire",
-  salary: "Salaried",
-};
-
-function planBadge(id: string) {
-  switch (id) {
-    case "basic":
-      return "BASIC";
-    case "pro":
-      return "PRO";
-    case "pro_plus":
-      return "PRO+";
-    default:
-      return "FREE";
-  }
-}
-
 //  Confirm Dialog (W97-native)
-
-interface ConfirmDialogProps {
-  open: boolean;
-  icon: string;
-  title: string;
-  subtitle: string;
-  cardTitle: string;
-  cardName: string;
-  price: number;
-  priceNote: string;
-  features?: string[];
-  domainLine?: React.ReactNode;
-  notice: string;
-  confirmLabel: string;
-  loading: boolean;
-  onConfirm: () => void;
-  onClose: () => void;
-}
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   open,
@@ -186,11 +141,6 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
 //  Main Component
 
-interface PricingPageProps {
-  initialTab?: "vendor" | "candidate" | "marketer";
-  onClose?: () => void;
-}
-
 const PricingPage: React.FC<PricingPageProps> = ({
   initialTab,
   onClose: _onClose,
@@ -220,11 +170,6 @@ const PricingPage: React.FC<PricingPageProps> = ({
   const isCandidate = user?.user_type === "candidate";
   const isMarketer = user?.user_type === "marketer";
 
-  const TAB_INDEX: Record<string, number> = {
-    vendor: 0,
-    candidate: 1,
-    marketer: 2,
-  };
   const defaultTab =
     TAB_INDEX[user?.user_type ?? ""] ?? TAB_INDEX[initialTab ?? ""] ?? 0;
 
@@ -941,134 +886,66 @@ const PricingPage: React.FC<PricingPageProps> = ({
           style={{ maxWidth: 900 }}
           data-testid="marketer-plan-grid"
         >
-          {/* Tier 1 – 1 Type */}
-          <div
-            className={`pp-plan-card${
-              isMarketer && user?.plan === "marketer"
-                ? " pp-plan-highlighted"
-                : ""
-            }`}
-            data-testid="marketer-tier-1-card"
-          >
-            <div className="pp-plan-badge">1 JOB TYPE</div>
-            <div className="pp-plan-name">Starter</div>
-            <div className="pp-plan-price">
-              <span className="pp-plan-amount">$100</span>
-              <span className="pp-plan-interval">/month</span>
-            </div>
-            <ul className="pp-plan-features">
-              <li>Pick 1 of C2C, W2, C2H, Full Time</li>
-              <li>Job openings + candidate profiles</li>
-              <li>Vendor email &amp; phone</li>
-              <li>Download CSV / Excel / Resume PDF</li>
-              <li>0–2 concurrent sessions included</li>
-            </ul>
-            {isMarketer && user?.plan === "marketer" ? (
-              <div style={{ textAlign: "center", marginTop: 8 }}>
-                <span
-                  className="pp-plan-badge"
-                  style={{ background: "#2e7d32", color: "#fff" }}
-                >
-                  Active
-                </span>
-                <button
-                  className="pp-btn pp-btn-primary pp-btn-wide"
-                  style={{ marginTop: 8 }}
-                  onClick={handlePortal}
-                  disabled={checkoutLoading}
-                  data-testid="marketer-manage-billing-btn"
-                >
-                  Manage Billing
-                </button>
-              </div>
-            ) : (
-              <button
-                className="pp-btn pp-btn-primary pp-btn-wide"
-                disabled={checkoutLoading}
-                onClick={handleMarketerSubscribe}
-                data-testid="marketer-tier-1-subscribe-btn"
+          {MARKETER_TIERS.map((tier) => {
+            const isCurrent =
+              isMarketer &&
+              user?.plan === "marketer" &&
+              tier.testIdSuffix === "1";
+            return (
+              <div
+                key={tier.testIdSuffix}
+                className={`pp-plan-card${
+                  isCurrent ? " pp-plan-highlighted" : ""
+                }`}
+                data-testid={`marketer-tier-${tier.testIdSuffix}-card`}
               >
-                {checkoutLoading ? "Please wait..." : "Subscribe — $100/mo"}
-              </button>
-            )}
-          </div>
-
-          {/* Tier 2 – Any 2 Types */}
-          <div className="pp-plan-card" data-testid="marketer-tier-2-card">
-            <div className="pp-plan-badge">ANY 2 TYPES</div>
-            <div className="pp-plan-name">Growth</div>
-            <div className="pp-plan-price">
-              <span className="pp-plan-amount">$180</span>
-              <span className="pp-plan-interval">/month</span>
-            </div>
-            <ul className="pp-plan-features">
-              <li>Pick any 2 of C2C, W2, C2H, Full Time</li>
-              <li>Job openings + candidate profiles</li>
-              <li>Vendor email &amp; phone</li>
-              <li>Download CSV / Excel / Resume PDF</li>
-              <li>0–2 concurrent sessions included</li>
-            </ul>
-            <button
-              className="pp-btn pp-btn-primary pp-btn-wide"
-              disabled={checkoutLoading}
-              onClick={handleMarketerSubscribe}
-              data-testid="marketer-tier-2-subscribe-btn"
-            >
-              {checkoutLoading ? "Please wait..." : "Subscribe — $180/mo"}
-            </button>
-          </div>
-
-          {/* Tier 3 – Any 3 Types */}
-          <div className="pp-plan-card" data-testid="marketer-tier-3-card">
-            <div className="pp-plan-badge">ANY 3 TYPES</div>
-            <div className="pp-plan-name">Professional</div>
-            <div className="pp-plan-price">
-              <span className="pp-plan-amount">$250</span>
-              <span className="pp-plan-interval">/month</span>
-            </div>
-            <ul className="pp-plan-features">
-              <li>Pick any 3 of C2C, W2, C2H, Full Time</li>
-              <li>Job openings + candidate profiles</li>
-              <li>Vendor email &amp; phone</li>
-              <li>Download CSV / Excel / Resume PDF</li>
-              <li>0–2 concurrent sessions included</li>
-            </ul>
-            <button
-              className="pp-btn pp-btn-primary pp-btn-wide"
-              disabled={checkoutLoading}
-              onClick={handleMarketerSubscribe}
-              data-testid="marketer-tier-3-subscribe-btn"
-            >
-              {checkoutLoading ? "Please wait..." : "Subscribe — $250/mo"}
-            </button>
-          </div>
-
-          {/* Tier 4 – All Types */}
-          <div className="pp-plan-card" data-testid="marketer-tier-4-card">
-            <div className="pp-plan-badge" style={{ background: "#1565c0" }}>
-              ALL TYPES
-            </div>
-            <div className="pp-plan-name">Enterprise</div>
-            <div className="pp-plan-price">
-              <span className="pp-plan-amount">$499</span>
-              <span className="pp-plan-interval">/month</span>
-            </div>
-            <ul className="pp-plan-features">
-              <li>Full access: C2C, W2, C2H, Full Time</li>
-              <li>Job openings + candidate profiles</li>
-              <li>Vendor email &amp; phone</li>
-              <li>Download CSV / Excel / Resume PDF</li>
-              <li>0–2 concurrent sessions included</li>
-            </ul>
-            <button
-              className="pp-btn pp-btn-primary pp-btn-wide"
-              disabled={checkoutLoading}
-              onClick={handleMarketerSubscribe}
-              data-testid="marketer-tier-4-subscribe-btn"
-            >
-              {checkoutLoading ? "Please wait..." : "Subscribe — $499/mo"}
-            </button>
-          </div>
+                <div className="pp-plan-badge" style={tier.badgeStyle}>
+                  {tier.types}
+                </div>
+                <div className="pp-plan-name">{tier.name}</div>
+                <div className="pp-plan-price">
+                  <span className="pp-plan-amount">${tier.price}</span>
+                  <span className="pp-plan-interval">/month</span>
+                </div>
+                <ul className="pp-plan-features">
+                  <li>{tier.featurePrefix}</li>
+                  {MARKETER_COMMON_FEATURES.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+                {isCurrent ? (
+                  <div style={{ textAlign: "center", marginTop: 8 }}>
+                    <span
+                      className="pp-plan-badge"
+                      style={{ background: "#2e7d32", color: "#fff" }}
+                    >
+                      Active
+                    </span>
+                    <button
+                      className="pp-btn pp-btn-primary pp-btn-wide"
+                      style={{ marginTop: 8 }}
+                      onClick={handlePortal}
+                      disabled={checkoutLoading}
+                      data-testid="marketer-manage-billing-btn"
+                    >
+                      Manage Billing
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="pp-btn pp-btn-primary pp-btn-wide"
+                    disabled={checkoutLoading}
+                    onClick={handleMarketerSubscribe}
+                    data-testid={`marketer-tier-${tier.testIdSuffix}-subscribe-btn`}
+                  >
+                    {checkoutLoading
+                      ? "Please wait..."
+                      : `Subscribe — $${tier.price}/mo`}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div

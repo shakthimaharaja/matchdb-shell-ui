@@ -13,211 +13,44 @@ import { useAppDispatch, useAppSelector } from "../store";
 import { logout } from "../store/authSlice";
 import { useRefreshUserDataMutation } from "../api/shellApi";
 import PricingPage from "../pages/PricingPage";
+import {
+  type ShellLayoutProps,
+  type SubNavGroup,
+  SIDEBAR_EXPANDED,
+  SIDEBAR_COLLAPSED,
+  JOB_TYPE_SUBS,
+  LOGIN_MODES,
+  MFE_NAV,
+  isPathActive,
+  userTypeLabel,
+  computeAccountAgeBadge,
+  computeProfileFreshBadge,
+  deriveProfileCountry,
+} from "./shellLayoutHelpers";
 import "./ShellLayout.css";
+import {
+  LS_DARK,
+  LS_FONT_SIZE,
+  FONT_SIZE_MAP,
+  GEOCODE_URL,
+  GEOCODE_TIMEOUT,
+  EVT_OPEN_PRICING,
+  EVT_PRICING_CLOSED,
+  EVT_OPEN_PROFILE,
+  EVT_SUBNAV,
+  EVT_BREADCRUMB,
+  EVT_FOOTER_INFO,
+  EVT_PROFILE_LOCATION,
+  EVT_VISIBLE_IN,
+  EVT_LOGIN_CONTEXT,
+  EVT_JOB_TYPE_FILTER,
+  EVT_OPEN_LOGIN,
+  STRIPE_SUCCESS_PARAM,
+  STRIPE_CANDIDATE_SUCCESS_PARAM,
+  STRIPE_CANCELED_PARAM,
+} from "../constants";
 
-/* ---- types shared with the Jobs MFE via CustomEvent ---- */
-interface SubNavItem {
-  id: string;
-  label: string;
-  count?: number;
-  active?: boolean;
-  depth?: number;
-  tooltip?: string; // custom tooltip text (e.g. profile URL for copy action)
-  onClick?: () => void;
-}
-interface SubNavGroup {
-  label: string;
-  icon: string;
-  items: SubNavItem[];
-}
-
-const SIDEBAR_EXPANDED = 210;
-const SIDEBAR_COLLAPSED = 40;
-
-/* ---- Job type subdivisions (shown after login) ---- */
-const JOB_TYPE_SUBS = [
-  { id: "c2c", label: "C2C" },
-  { id: "w2", label: "W2" },
-  { id: "c2h", label: "C2H" },
-  { id: "fulltime", label: "Full Time" },
-];
-
-/* ---- Login-mode sub-items shown under Jobs when NOT logged in ---- */
-const LOGIN_MODES = [
-  { id: "candidate", label: "Candidate Login", icon: "👤" },
-  { id: "vendor", label: "Vendor Login", icon: "🏢" },
-  { id: "marketer", label: "Marketer Login", icon: "📊" },
-];
-
-interface SubMenu {
-  id: string;
-  label: string;
-}
-
-interface NavItem {
-  id: string;
-  label: string;
-  icon: string;
-  path: string;
-  section: string;
-  port?: number; // which MFE port this maps to
-  chipColor?: string; // CSS variable name for sidebar color chip
-  disabled?: boolean; // true = MFE not yet implemented
-  subs?: SubMenu[]; // sub-menu items under this MFE
-}
-
-/*
- * 8 MFE entries in left nav.
- * Shell host = port 3000, MFEs on 3001..3008 (incremental).
- * Only "Jobs" (3001) is implemented;  the rest are disabled placeholders.
- */
-const MFE_NAV: NavItem[] = [
-  {
-    id: "jobs",
-    label: "Jobs Database",
-    icon: "pi pi-briefcase",
-    path: "/jobs",
-    section: "MARKETPLACE",
-    port: 3001,
-    chipColor: "var(--mfe-chip-1)",
-    disabled: false,
-    subs: JOB_TYPE_SUBS,
-  },
-  {
-    id: "sales",
-    label: "Sales",
-    icon: "pi pi-shopping-cart",
-    path: "/sales",
-    section: "MARKETPLACE",
-    port: 3002,
-    chipColor: "var(--mfe-chip-2)",
-    disabled: true,
-    subs: [
-      { id: "new", label: "New" },
-      { id: "used", label: "Used" },
-      { id: "wholesale", label: "Wholesale" },
-      { id: "clearance", label: "Clearance" },
-    ],
-  },
-  {
-    id: "rentals",
-    label: "Rentals",
-    icon: "pi pi-home",
-    path: "/rentals",
-    section: "MARKETPLACE",
-    port: 3003,
-    chipColor: "var(--mfe-chip-3)",
-    disabled: true,
-    subs: [
-      { id: "apartments", label: "Apartments" },
-      { id: "houses", label: "Houses" },
-      { id: "commercial", label: "Commercial" },
-      { id: "vehicles", label: "Vehicles" },
-    ],
-  },
-  {
-    id: "auctions",
-    label: "Auctions",
-    icon: "pi pi-megaphone",
-    path: "/auctions",
-    section: "MARKETPLACE",
-    port: 3004,
-    chipColor: "var(--mfe-chip-4)",
-    disabled: true,
-    subs: [
-      { id: "live", label: "Live" },
-      { id: "silent", label: "Silent" },
-      { id: "online", label: "Online" },
-      { id: "estate", label: "Estate" },
-    ],
-  },
-  {
-    id: "polling",
-    label: "Polling",
-    icon: "pi pi-chart-bar",
-    path: "/polling",
-    section: "CONNECTIONS",
-    port: 3005,
-    chipColor: "var(--mfe-chip-5)",
-    disabled: true,
-    subs: [
-      { id: "surveys", label: "Surveys" },
-      { id: "elections", label: "Elections" },
-      { id: "feedback", label: "Feedback" },
-      { id: "quizzes", label: "Quizzes" },
-    ],
-  },
-  {
-    id: "matrimony",
-    label: "Matrimony",
-    icon: "pi pi-heart",
-    path: "/matrimony",
-    section: "CONNECTIONS",
-    port: 3006,
-    chipColor: "var(--mfe-chip-6)",
-    disabled: true,
-    subs: [
-      { id: "profiles", label: "Profiles" },
-      { id: "matches", label: "Matches" },
-      { id: "horoscope", label: "Horoscope" },
-      { id: "events", label: "Events" },
-    ],
-  },
-  {
-    id: "dating",
-    label: "Dating",
-    icon: "pi pi-heart-fill",
-    path: "/dating",
-    section: "CONNECTIONS",
-    port: 3007,
-    chipColor: "var(--mfe-chip-7)",
-    disabled: true,
-    subs: [
-      { id: "discover", label: "Discover" },
-      { id: "matches", label: "Matches" },
-      { id: "chat", label: "Chat" },
-      { id: "events", label: "Events" },
-    ],
-  },
-  {
-    id: "personals",
-    label: "Personals",
-    icon: "pi pi-user",
-    path: "/personals",
-    section: "CONNECTIONS",
-    port: 3008,
-    chipColor: "var(--mfe-chip-8)",
-    disabled: true,
-    subs: [
-      { id: "missed", label: "Missed Connections" },
-      { id: "platonic", label: "Platonic" },
-      { id: "activity", label: "Activity Partners" },
-      { id: "casual", label: "Casual" },
-    ],
-  },
-];
-
-interface Props {
-  children: React.ReactNode;
-  themeStyle: "legacy" | "modern";
-  onThemeStyleChange: (style: "legacy" | "modern") => void;
-}
-
-const isPathActive = (itemPath: string, currentPath: string): boolean => {
-  if (itemPath === "/") return currentPath === "/";
-  return currentPath.startsWith(itemPath);
-};
-
-const USER_TYPE_LABELS: Record<string, string> = {
-  vendor: "Vendor",
-  marketer: "Marketer",
-  candidate: "Candidate",
-};
-function userTypeLabel(ut?: string) {
-  return (ut && USER_TYPE_LABELS[ut]) || "Candidate";
-}
-
-const ShellLayout: React.FC<Props> = ({
+const ShellLayout: React.FC<ShellLayoutProps> = ({
   children,
   themeStyle,
   onThemeStyleChange,
@@ -249,14 +82,12 @@ const ShellLayout: React.FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
   const [darkMode, setDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem("matchdb_dark") === "1";
+    return localStorage.getItem(LS_DARK) === "1";
   });
   const [fontSize, setFontSize] = useState<"small" | "medium" | "large">(() => {
     return (
-      (localStorage.getItem("matchdb_font_size") as
-        | "small"
-        | "medium"
-        | "large") || "medium"
+      (localStorage.getItem(LS_FONT_SIZE) as "small" | "medium" | "large") ||
+      "medium"
     );
   });
   const [fontSizeOpen, setFontSizeOpen] = useState(false);
@@ -267,15 +98,15 @@ const ShellLayout: React.FC<Props> = ({
 
   /* ---- Dark mode persistence ---- */
   useEffect(() => {
-    localStorage.setItem("matchdb_dark", darkMode ? "1" : "0");
+    localStorage.setItem(LS_DARK, darkMode ? "1" : "0");
     // Also set on <body> so MFE CSS can read it
     document.body.dataset.theme = darkMode ? "dark" : "light";
   }, [darkMode]);
 
   /* ---- Font size persistence ---- */
   useEffect(() => {
-    const sizeMap = { small: "11px", medium: "13px", large: "15px" };
-    localStorage.setItem("matchdb_font_size", fontSize);
+    const sizeMap = FONT_SIZE_MAP;
+    localStorage.setItem(LS_FONT_SIZE, fontSize);
     document.documentElement.style.setProperty(
       "--w97-font-base",
       sizeMap[fontSize],
@@ -317,28 +148,28 @@ const ShellLayout: React.FC<Props> = ({
 
   const handleClosePricing = useCallback(() => {
     setPricingModalOpen(false);
-    globalThis.dispatchEvent(new CustomEvent("matchdb:pricingClosed"));
+    globalThis.dispatchEvent(new CustomEvent(EVT_PRICING_CLOSED));
     if (pendingProfileOpen) {
       setPendingProfileOpen(false);
       // Small delay so pricing overlay fully unmounts before profile modal appears
       setTimeout(() => {
-        globalThis.dispatchEvent(new CustomEvent("matchdb:openProfile"));
+        globalThis.dispatchEvent(new CustomEvent(EVT_OPEN_PROFILE));
       }, 80);
     }
   }, [pendingProfileOpen]);
 
   useEffect(() => {
-    globalThis.addEventListener("matchdb:openPricing", handleOpenPricing);
+    globalThis.addEventListener(EVT_OPEN_PRICING, handleOpenPricing);
     return () =>
-      globalThis.removeEventListener("matchdb:openPricing", handleOpenPricing);
+      globalThis.removeEventListener(EVT_OPEN_PRICING, handleOpenPricing);
   }, [handleOpenPricing]);
 
   /* Auto-open pricing modal on Stripe post-checkout redirects (e.g. /?success=true) */
   useEffect(() => {
     const params = new URLSearchParams(globalThis.location.search);
-    const isSuccess = params.get("success") === "true";
-    const isCandSucc = params.get("candidate_success") === "true";
-    const isCanceled = params.get("canceled") === "true";
+    const isSuccess = params.get(STRIPE_SUCCESS_PARAM) === "true";
+    const isCandSucc = params.get(STRIPE_CANDIDATE_SUCCESS_PARAM) === "true";
+    const isCanceled = params.get(STRIPE_CANCELED_PARAM) === "true";
     if (isSuccess || isCandSucc || isCanceled) {
       const tab =
         isCandSucc || user?.user_type === "candidate" ? "candidate" : "vendor";
@@ -367,17 +198,17 @@ const ShellLayout: React.FC<Props> = ({
   }, []);
 
   useEffect(() => {
-    globalThis.addEventListener("matchdb:subnav", handleSubNav);
-    globalThis.addEventListener("matchdb:breadcrumb", handleBreadcrumb);
+    globalThis.addEventListener(EVT_SUBNAV, handleSubNav);
+    globalThis.addEventListener(EVT_BREADCRUMB, handleBreadcrumb);
     const handleFooterInfo = (e: Event) => {
       const text = (e as CustomEvent).detail?.text || "";
       setFooterInfo(text);
     };
-    globalThis.addEventListener("matchdb:footerInfo", handleFooterInfo);
+    globalThis.addEventListener(EVT_FOOTER_INFO, handleFooterInfo);
     return () => {
-      globalThis.removeEventListener("matchdb:subnav", handleSubNav);
-      globalThis.removeEventListener("matchdb:breadcrumb", handleBreadcrumb);
-      globalThis.removeEventListener("matchdb:footerInfo", handleFooterInfo);
+      globalThis.removeEventListener(EVT_SUBNAV, handleSubNav);
+      globalThis.removeEventListener(EVT_BREADCRUMB, handleBreadcrumb);
+      globalThis.removeEventListener(EVT_FOOTER_INFO, handleFooterInfo);
     };
   }, [handleSubNav, handleBreadcrumb]);
 
@@ -406,7 +237,7 @@ const ShellLayout: React.FC<Props> = ({
           try {
             const { latitude, longitude } = pos.coords;
             const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`,
+              `${GEOCODE_URL}?lat=${latitude}&lon=${longitude}&format=json&zoom=10`,
               { headers: { "Accept-Language": "en-US" } },
             );
             if (!res.ok) return;
@@ -423,7 +254,7 @@ const ShellLayout: React.FC<Props> = ({
         () => {
           /* geolocation denied – keep timezone fallback */
         },
-        { timeout: 5000 },
+        { timeout: GEOCODE_TIMEOUT },
       );
     }
     return () => {
@@ -446,68 +277,10 @@ const ShellLayout: React.FC<Props> = ({
   /* ── Visible-in text — sent from Jobs MFE ── */
   const [visibleInText, setVisibleInText] = useState<string>("");
 
-  /* Derive country + flag from location string (e.g. "Indianapolis, IN" → "🇺🇸 United States") */
-  const US_STATES = new Set([
-    "AL",
-    "AK",
-    "AZ",
-    "AR",
-    "CA",
-    "CO",
-    "CT",
-    "DE",
-    "FL",
-    "GA",
-    "HI",
-    "ID",
-    "IL",
-    "IN",
-    "IA",
-    "KS",
-    "KY",
-    "LA",
-    "ME",
-    "MD",
-    "MA",
-    "MI",
-    "MN",
-    "MS",
-    "MO",
-    "MT",
-    "NE",
-    "NV",
-    "NH",
-    "NJ",
-    "NM",
-    "NY",
-    "NC",
-    "ND",
-    "OH",
-    "OK",
-    "OR",
-    "PA",
-    "RI",
-    "SC",
-    "SD",
-    "TN",
-    "TX",
-    "UT",
-    "VT",
-    "VA",
-    "WA",
-    "WV",
-    "WI",
-    "WY",
-    "DC",
-  ]);
-  const profileCountry = useMemo(() => {
-    if (!profileLocation) return "";
-    const parts = profileLocation.split(",").map((s: string) => s.trim());
-    const lastPart = parts.at(-1)?.toUpperCase();
-    if (lastPart && US_STATES.has(lastPart)) return "🇺🇸 United States";
-    return profileLocation; // fallback: show raw location
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileLocation]);
+  const profileCountry = useMemo(
+    () => deriveProfileCountry(profileLocation),
+    [profileLocation],
+  );
   useEffect(() => {
     const locHandler = (e: Event) => {
       const loc = (e as CustomEvent).detail?.location;
@@ -517,11 +290,11 @@ const ShellLayout: React.FC<Props> = ({
       const text = (e as CustomEvent).detail?.text;
       setVisibleInText(text || "");
     };
-    globalThis.addEventListener("matchdb:profileLocation", locHandler);
-    globalThis.addEventListener("matchdb:visibleIn", visHandler);
+    globalThis.addEventListener(EVT_PROFILE_LOCATION, locHandler);
+    globalThis.addEventListener(EVT_VISIBLE_IN, visHandler);
     return () => {
-      globalThis.removeEventListener("matchdb:profileLocation", locHandler);
-      globalThis.removeEventListener("matchdb:visibleIn", visHandler);
+      globalThis.removeEventListener(EVT_PROFILE_LOCATION, locHandler);
+      globalThis.removeEventListener(EVT_VISIBLE_IN, visHandler);
     };
   }, []);
 
@@ -535,78 +308,14 @@ const ShellLayout: React.FC<Props> = ({
     : user?.email ?? "Guest";
 
   /* ── Account age & profile freshness badges ── */
-  const accountAgeBadge = useMemo(() => {
-    if (!user?.created_at) return null;
-    const created = new Date(user.created_at);
-    const now = new Date();
-    const diffMs = now.getTime() - created.getTime();
-    const days = Math.floor(diffMs / 86400000);
-    let label: string;
-    let color: "green" | "yellow" | "orange" | "red";
-    if (days < 30) {
-      label = `${days}d`;
-      color = "green";
-    } else if (days < 90) {
-      const m = Math.floor(days / 30);
-      label = `${m}mo`;
-      color = "green";
-    } else if (days < 180) {
-      const m = Math.floor(days / 30);
-      label = `${m}mo`;
-      color = "yellow";
-    } else if (days < 365) {
-      const m = Math.floor(days / 30);
-      label = `${m}mo`;
-      color = "orange";
-    } else {
-      const y = Math.floor(days / 365);
-      label = `${y}yr`;
-      color = "red";
-    }
-    return {
-      label,
-      color,
-      tooltip: `Account created ${created.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}`,
-    };
-  }, [user?.created_at]);
-
-  const profileFreshBadge = useMemo(() => {
-    if (!user?.updated_at) return null;
-    const updated = new Date(user.updated_at);
-    const now = new Date();
-    const diffMs = now.getTime() - updated.getTime();
-    const days = Math.floor(diffMs / 86400000);
-    let label: string;
-    let color: "green" | "yellow" | "orange" | "red";
-    if (days < 7) {
-      label = "Fresh";
-      color = "green";
-    } else if (days < 30) {
-      label = `${days}d ago`;
-      color = "yellow";
-    } else if (days < 90) {
-      const m = Math.floor(days / 30);
-      label = `${m}mo ago`;
-      color = "orange";
-    } else {
-      const m = Math.floor(days / 30);
-      label = m < 12 ? `${m}mo ago` : `${Math.floor(days / 365)}yr ago`;
-      color = "red";
-    }
-    return {
-      label,
-      color,
-      tooltip: `Profile updated ${updated.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}`,
-    };
-  }, [user?.updated_at]);
+  const accountAgeBadge = useMemo(
+    () => computeAccountAgeBadge(user?.created_at),
+    [user?.created_at],
+  );
+  const profileFreshBadge = useMemo(
+    () => computeProfileFreshBadge(user?.updated_at),
+    [user?.updated_at],
+  );
 
   /* ── Account details panel ── */
   const [showAccountPanel, setShowAccountPanel] = useState(false);
@@ -643,7 +352,7 @@ const ShellLayout: React.FC<Props> = ({
   /* Broadcast active login context to MFE (null → "candidate" as safe default) */
   useEffect(() => {
     globalThis.dispatchEvent(
-      new CustomEvent("matchdb:loginContext", {
+      new CustomEvent(EVT_LOGIN_CONTEXT, {
         detail: { loginType: activeLoginType ?? "candidate" },
       }),
     );
@@ -656,7 +365,7 @@ const ShellLayout: React.FC<Props> = ({
     const newType = activeJobType === typeId ? "" : typeId;
     setActiveJobType(newType);
     globalThis.dispatchEvent(
-      new CustomEvent("matchdb:jobTypeFilter", {
+      new CustomEvent(EVT_JOB_TYPE_FILTER, {
         detail: { jobType: newType },
       }),
     );
@@ -672,7 +381,7 @@ const ShellLayout: React.FC<Props> = ({
     locked: boolean = false,
   ) => {
     globalThis.dispatchEvent(
-      new CustomEvent("matchdb:openLogin", {
+      new CustomEvent(EVT_OPEN_LOGIN, {
         detail: { context, mode, locked },
       }),
     );
@@ -1322,7 +1031,7 @@ const ShellLayout: React.FC<Props> = ({
                   className="legacy-shell-signout legacy-shell-upgrade-btn"
                   onClick={() =>
                     globalThis.dispatchEvent(
-                      new CustomEvent("matchdb:openPricing", {
+                      new CustomEvent(EVT_OPEN_PRICING, {
                         detail: {
                           tab: user?.user_type ?? "candidate",
                         },

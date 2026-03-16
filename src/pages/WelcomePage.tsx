@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "matchdb-component-library";
+import { EVT_OPEN_LOGIN } from "../constants";
 import "./WelcomePage.css";
 
 /* ── Terminal lines ── */
@@ -131,7 +132,7 @@ const WelcomePage: React.FC = () => {
   const openLogin = (type: "candidate" | "vendor") => {
     navigate(`/jobs/${type}`);
     globalThis.dispatchEvent(
-      new CustomEvent("matchdb:openLogin", {
+      new CustomEvent(EVT_OPEN_LOGIN, {
         detail: { context: type, mode: "login" },
       }),
     );
@@ -167,7 +168,10 @@ const WelcomePage: React.FC = () => {
           {/* Sunken terminal output */}
           <div className="wlc-term" ref={termRef}>
             {doneLines.map((line, i) => (
-              <div key={`line-${line.delay}-${i}`} className={CLASS_MAP[line.s]}>
+              <div
+                key={`line-${line.delay}-${i}`}
+                className={CLASS_MAP[line.s]}
+              >
                 {line.text || "\u00A0"}
               </div>
             ))}
@@ -199,7 +203,7 @@ const WelcomePage: React.FC = () => {
                 <Button
                   onClick={() => {
                     globalThis.dispatchEvent(
-                      new CustomEvent("matchdb:openLogin", {
+                      new CustomEvent(EVT_OPEN_LOGIN, {
                         detail: { context: "candidate", mode: "register" },
                       }),
                     );

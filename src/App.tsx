@@ -7,6 +7,7 @@ import WelcomePage from "./pages/WelcomePage";
 import ShellLayout from "./components/ShellLayout";
 import JobsAppWrapper from "./components/JobsAppWrapper";
 import LoginModal from "./components/LoginModal";
+import { LS_STYLE } from "./constants";
 
 const IOS_FONT =
   '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif';
@@ -75,11 +76,11 @@ const AnimatedRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   const [themeStyle, setThemeStyle] = useState<"legacy" | "modern">(() =>
-    localStorage.getItem("matchdb_style") === "modern" ? "modern" : "legacy",
+    localStorage.getItem(LS_STYLE) === "modern" ? "modern" : "legacy",
   );
 
   useEffect(() => {
-    localStorage.setItem("matchdb_style", themeStyle);
+    localStorage.setItem(LS_STYLE, themeStyle);
     document.body.dataset.style = themeStyle;
   }, [themeStyle]);
 

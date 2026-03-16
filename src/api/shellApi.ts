@@ -14,6 +14,20 @@
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
+  AUTH_LOGIN,
+  AUTH_REGISTER,
+  AUTH_LOGOUT,
+  AUTH_VERIFY,
+  AUTH_REFRESH,
+  AUTH_ACCOUNT,
+  PAYMENTS_PLANS,
+  PAYMENTS_CANDIDATE_PACKAGES,
+  PAYMENTS_CHECKOUT,
+  PAYMENTS_CANDIDATE_CHECKOUT,
+  PAYMENTS_PORTAL,
+  PAYMENTS_MARKETER_CHECKOUT,
+} from "../constants/endpoints";
+import {
   setAuth,
   setUser,
   setToken,
@@ -89,7 +103,7 @@ export const shellApi = createApi({
     // ── Auth ──────────────────────────────────────────────────────────────────
 
     login: builder.mutation<AuthResponse, LoginArgs>({
-      query: (body) => ({ url: "api/auth/login", method: "POST", body }),
+      query: (body) => ({ url: AUTH_LOGIN, method: "POST", body }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
@@ -101,7 +115,7 @@ export const shellApi = createApi({
     }),
 
     register: builder.mutation<AuthResponse, RegisterArgs>({
-      query: (body) => ({ url: "api/auth/register", method: "POST", body }),
+      query: (body) => ({ url: AUTH_REGISTER, method: "POST", body }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
@@ -113,7 +127,7 @@ export const shellApi = createApi({
     }),
 
     logoutUser: builder.mutation<void, void>({
-      query: () => ({ url: "api/auth/logout", method: "POST" }),
+      query: () => ({ url: AUTH_LOGOUT, method: "POST" }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -124,11 +138,11 @@ export const shellApi = createApi({
     }),
 
     verifyToken: builder.query<{ user: User }, void>({
-      query: () => "api/auth/verify",
+      query: () => AUTH_VERIFY,
     }),
 
     refreshUserData: builder.mutation<User, void>({
-      query: () => "api/auth/verify",
+      query: () => AUTH_VERIFY,
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
@@ -140,7 +154,7 @@ export const shellApi = createApi({
     }),
 
     refreshToken: builder.mutation<{ access: string }, RefreshTokenArgs>({
-      query: (body) => ({ url: "api/auth/refresh", method: "POST", body }),
+      query: (body) => ({ url: AUTH_REFRESH, method: "POST", body }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
@@ -152,7 +166,7 @@ export const shellApi = createApi({
     }),
 
     deleteAccount: builder.mutation<void, void>({
-      query: () => ({ url: "api/auth/account", method: "DELETE" }),
+      query: () => ({ url: AUTH_ACCOUNT, method: "DELETE" }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -166,12 +180,12 @@ export const shellApi = createApi({
     // ── Payments ──────────────────────────────────────────────────────────────
 
     getVendorPlans: builder.query<VendorPlan[], void>({
-      query: () => "api/payments/plans",
+      query: () => PAYMENTS_PLANS,
       transformResponse: (res: { plans: VendorPlan[] }) => res.plans,
     }),
 
     getCandidatePackages: builder.query<CandidatePackage[], void>({
-      query: () => "api/payments/candidate-packages",
+      query: () => PAYMENTS_CANDIDATE_PACKAGES,
       transformResponse: (res: { packages: CandidatePackage[] }) =>
         res.packages,
     }),
@@ -179,7 +193,7 @@ export const shellApi = createApi({
     createVendorCheckout: builder.mutation<{ url: string }, { planId: string }>(
       {
         query: (body) => ({
-          url: "api/payments/checkout",
+          url: PAYMENTS_CHECKOUT,
           method: "POST",
           body,
         }),
@@ -191,19 +205,19 @@ export const shellApi = createApi({
       CandidateCheckoutArgs
     >({
       query: (body) => ({
-        url: "api/payments/candidate-checkout",
+        url: PAYMENTS_CANDIDATE_CHECKOUT,
         method: "POST",
         body,
       }),
     }),
 
     openBillingPortal: builder.mutation<{ url: string }, void>({
-      query: () => ({ url: "api/payments/portal", method: "POST", body: {} }),
+      query: () => ({ url: PAYMENTS_PORTAL, method: "POST", body: {} }),
     }),
 
     createMarketerCheckout: builder.mutation<{ url: string }, void>({
       query: () => ({
-        url: "api/payments/marketer-checkout",
+        url: PAYMENTS_MARKETER_CHECKOUT,
         method: "POST",
         body: {},
       }),

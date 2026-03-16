@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useAppSelector } from "../store";
 import { Button } from "matchdb-component-library";
 import axios from "axios";
+import { RESUME_VIEW, RESUME_DOWNLOAD } from "../constants/endpoints";
 
 interface ProfileData {
   name: string;
@@ -35,7 +36,7 @@ const ResumeViewPage: React.FC = () => {
     if (!username) return;
     setLoading(true);
     axios
-      .get(`/api/jobs/resume/${username}`)
+      .get(RESUME_VIEW(username))
       .then((res) => {
         setProfile(res.data);
         setError(null);
@@ -135,7 +136,7 @@ const ResumeViewPage: React.FC = () => {
     if (!token || !username) return;
     setDownloading(true);
     try {
-      const res = await axios.get(`/api/jobs/resume/${username}/download`, {
+      const res = await axios.get(RESUME_DOWNLOAD(username), {
         headers: { Authorization: `Bearer ${token}` },
         responseType: "blob",
       });
@@ -202,7 +203,7 @@ const ResumeViewPage: React.FC = () => {
           {/* Skills */}
           {profile.skills?.length > 0 && (
             <Section title="Skills">
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+              <div className="u-flex-wrap u-gap-4">
                 {profile.skills.map((skill) => (
                   <span
                     key={skill}
@@ -269,7 +270,7 @@ const ResumeViewPage: React.FC = () => {
             >
               ← Back to MatchDB
             </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div className="u-flex-center u-gap-8">
               {token ? (
                 <Button
                   variant="primary"
