@@ -79,7 +79,7 @@ Browser :3000  ─── webpack-dev-server ───┐
 
 Shell (host)  ──── Module Federation ──── Jobs MFE (remote :3001)
 
-Both backend services connect to the same PostgreSQL database (matchdb).
+Both backend services connect to MongoDB Atlas (matchdb-shell and matchdb-jobs databases).
 ```
 
 - The shell webpack dev server proxies `/api/auth` and `/api/payments` to the Node proxy on port 4000, which forwards to `matchdb-shell-services` on port 8000.
@@ -220,11 +220,20 @@ NODE_SERVER_PORT=4000
 # 1. Install dependencies
 npm install
 
-# 2. Start both webpack dev server + proxy server concurrently
+# 2. Start the dev server (webpack + proxy concurrently)
 npm run dev
 ```
 
 The app is available at **http://localhost:3000**.
+
+> **First time?** Make sure you've seeded both backend databases before launching the UI:
+>
+> ```bash
+> cd ../matchdb-shell-services && npm run seed
+> cd ../matchdb-jobs-services  && npm run seed
+> ```
+>
+> See the [root README](../README.md) for full setup steps and test account credentials.
 
 ---
 
