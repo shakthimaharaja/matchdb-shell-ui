@@ -200,7 +200,9 @@ const PricingPage: React.FC<PricingPageProps> = ({
         type: "success",
         text: "Subscription activated! Your vendor plan has been updated.",
       });
-      refreshUserData();
+      refreshUserData().unwrap().catch(() => {
+        setMessage({ type: "error", text: "Failed to refresh user data. Please reload the page." });
+      });
       globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
     if (params.get("candidate_success") === "true") {
@@ -208,7 +210,9 @@ const PricingPage: React.FC<PricingPageProps> = ({
         type: "success",
         text: "Visibility package purchased! You are now visible to employers in the selected categories.",
       });
-      refreshUserData();
+      refreshUserData().unwrap().catch(() => {
+        setMessage({ type: "error", text: "Failed to refresh user data. Please reload the page." });
+      });
       globalThis.history.replaceState({}, "", globalThis.location.pathname);
       setActiveTab(1);
     }

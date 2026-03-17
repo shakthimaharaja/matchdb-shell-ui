@@ -1,7 +1,7 @@
 import React, { Component, Suspense, lazy, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store";
-import { expireSession } from "../store/authSlice";
+import { expireSession, setUser } from "../store/authSlice";
 import {
   useLazyVerifyTokenQuery,
   useRefreshTokenMutation,
@@ -9,6 +9,13 @@ import {
 
 // Dynamically load the remote Jobs MFE via Module Federation
 const JobsApp = lazy(() => import("matchdbJobs/JobsApp"));
+
+/** Default view (first sidebar sub-item) per user type */
+const DEFAULT_VIEWS: Record<string, string> = {
+  candidate: "matches",
+  vendor: "postings",
+  marketer: "company-candidates",
+};
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -54,10 +61,26 @@ const JobsAppWrapper: React.FC = () => {
   const { token, user, refresh } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const verifyRan = useRef(false);
 
   const [triggerVerify] = useLazyVerifyTokenQuery();
   const [refreshToken] = useRefreshTokenMutation();
+
+  /**
+   * When a logged-in user lands on bare /jobs (no user-type prefix),
+   * redirect to /jobs/{userType}?view={defaultView} so the sidebar
+   * highlights correctly and the URL is bookmarkable / reloadable.
+   */
+  useEffect(() => {
+    if (!token || !user?.user_type) return;
+    const path = location.pathname.replace(/\/+$/, "") || "/jobs";
+    if (path === "/jobs") {
+      const type = user.user_type;
+      const defaultView = DEFAULT_VIEWS[type] ?? "matches";
+      navigate(`/jobs/${type}?view=${defaultView}`, { replace: true });
+    }
+  }, [token, user?.user_type, location.pathname, navigate]);
 
   /**
    * On mount, verify the stored JWT is still valid.
@@ -71,8 +94,9 @@ const JobsAppWrapper: React.FC = () => {
 
     const verifySession = async () => {
       try {
-        await triggerVerify().unwrap();
-        // Token is valid — nothing to do.
+        const verifyResult = await triggerVerify().unwrap();
+        dispatch(setUser(verifyResult.user));
+        // Token is valid — user data refreshed.
       } catch (err: unknown) {
         const status = (err as { status?: number })?.status;
         // Only act on auth errors (401/403) — network errors should not log out.

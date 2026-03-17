@@ -63,6 +63,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
   const [collapsed, setCollapsed] = useState(false);
   const [subNavGroups, setSubNavGroups] = useState<SubNavGroup[]>([]);
   const mfeBreadcrumbRef = useRef<string[]>([]);
+  const stripeHandled = useRef(false);
   const [footerInfo, setFooterInfo] = useState("");
   const [activeJobType, setActiveJobType] = useState<string>("");
   /** null = no sub-item selected (user is on /jobs or elsewhere) */
@@ -166,6 +167,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
 
   /* Auto-open pricing modal on Stripe post-checkout redirects (e.g. /?success=true) */
   useEffect(() => {
+    if (stripeHandled.current) return;
     const params = new URLSearchParams(globalThis.location.search);
     const isSuccess = params.get(STRIPE_SUCCESS_PARAM) === "true";
     const isCandSucc = params.get(STRIPE_CANDIDATE_SUCCESS_PARAM) === "true";
@@ -180,6 +182,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
         refreshUserData();
         setPendingProfileOpen(true);
       }
+      stripeHandled.current = true;
       setPricingModalOpen(true);
       // Clean up the URL so the modal doesn't re-open on navigation
       globalThis.history.replaceState({}, "", globalThis.location.pathname);
@@ -343,11 +346,21 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
 
   const drawerWidth = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
-  /* Shell-level job type subs — MFE controls the real filtering via membershipConfig */
+  /* Shell-level job type subs — only for vendors; candidates use the MFE's Job Type nav */
   const allowedSubdivisions = useMemo(
-    () => (isLoggedIn && user?.user_type !== "marketer" ? JOB_TYPE_SUBS : []),
+    () => (isLoggedIn && user?.user_type === "vendor" ? JOB_TYPE_SUBS : []),
     [isLoggedIn, user?.user_type],
   );
+
+  /* For candidates, merge the MFE's "Job Type" group under the Jobs nav item */
+  const jobTypeNavGroup = useMemo(() => {
+    if (user?.user_type !== "candidate") return null;
+    return subNavGroups.find((g) => g.label === "Job Type") ?? null;
+  }, [user?.user_type, subNavGroups]);
+  const displaySubNavGroups = useMemo(() => {
+    if (!jobTypeNavGroup) return subNavGroups;
+    return subNavGroups.filter((g) => g.label !== "Job Type");
+  }, [subNavGroups, jobTypeNavGroup]);
 
   /* Broadcast active login context to MFE (null → "candidate" as safe default) */
   useEffect(() => {
@@ -843,13 +856,54 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
                         ))}
                       </ul>
                     )}
+
+                  {/* Candidate: Job Type MFE items merged under Jobs heading */}
+                  {!collapsed && jobTypeNavGroup && (
+                    <ul className="legacy-shell-nav-list">
+                      {jobTypeNavGroup.items.map((item) => {
+                        let itemTitle = item.label;
+                        if (item.tooltip) itemTitle = item.tooltip;
+                        else if (item.count !== undefined)
+                          itemTitle = `${item.label} (${item.count} records)`;
+                        return (
+                          <li key={item.id}>
+                            <button
+                              type="button"
+                              className={[
+                                "legacy-shell-nav-item",
+                                "legacy-shell-subnav-item",
+                                item.depth === 1 ? "depth-1" : "",
+                                item.active ? "active" : "",
+                              ]
+                                .filter(Boolean)
+                                .join(" ")}
+                              onClick={item.onClick}
+                              title={itemTitle}
+                            >
+                              <span className="legacy-shell-subnav-bullet">
+                                {item.depth === 1 ? "└" : "▸"}
+                              </span>
+                              <span className="legacy-shell-subnav-label">
+                                {item.label}
+                              </span>
+                              {item.count !== undefined && (
+                                <span className="legacy-shell-subnav-count">
+                                  {item.count}
+                                </span>
+                              )}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </li>
               </ul>
             );
           })()}
 
-          {/* ---- MFE sub-nav groups (Profile, Actions, Job Type from MFE) ---- */}
-          {subNavGroups.map((group) => (
+          {/* ---- MFE sub-nav groups (Profile, Actions, etc. — Job Type merged above for candidates) ---- */}
+          {displaySubNavGroups.map((group) => (
             <div
               key={group.label}
               className="legacy-shell-nav-group legacy-shell-subnav-group"

@@ -141,12 +141,12 @@ export const shellApi = createApi({
       query: () => AUTH_VERIFY,
     }),
 
-    refreshUserData: builder.mutation<User, void>({
+    refreshUserData: builder.mutation<{ user: User }, void>({
       query: () => AUTH_VERIFY,
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          dispatch(setUser(data));
+          dispatch(setUser(data.user));
         } catch {
           /* handled by RTK Query */
         }

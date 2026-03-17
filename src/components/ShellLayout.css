@@ -740,6 +740,11 @@
   background: var(--w97-nav-hover);
 }
 
+.legacy-shell-nav-item:focus-visible {
+  outline: 2px solid var(--w97-selection, #000080);
+  outline-offset: 2px;
+}
+
 .legacy-shell-nav-item.active {
   background: var(--w97-sidebar-active);
   color: var(--w97-sidebar-active-text);
@@ -993,8 +998,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--w97-content-bg);
   padding: 0;
   /* Sunken border */
@@ -1002,19 +1006,7 @@
     inset -1px -1px 0 var(--w97-btn-highlight);
 }
 
-.legacy-shell-content::-webkit-scrollbar {
-  width: 16px;
-}
-.legacy-shell-content::-webkit-scrollbar-track {
-  background: var(--w97-scrollbar-track);
-}
-.legacy-shell-content::-webkit-scrollbar-thumb {
-  background: var(--w97-btn-face);
-  border-top: 1px solid var(--w97-btn-highlight);
-  border-left: 1px solid var(--w97-btn-highlight);
-  border-bottom: 1px solid var(--w97-btn-dark);
-  border-right: 1px solid var(--w97-btn-dark);
-}
+/* Scrollbar styles removed — legacy-shell-content no longer scrolls */
 
 /* ===== FOOTER / STATUS BAR ===== */
 .legacy-shell-footer {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
@@ -13,6 +14,13 @@ import {
 } from "../constants";
 import { AUTH_GOOGLE } from "../constants/endpoints";
 import type { UserType } from "../constants";
+
+/** Default view (first sidebar sub-item) per user type */
+const DEFAULT_VIEWS: Record<string, string> = {
+  candidate: "matches",
+  vendor: "postings",
+  marketer: "company-candidates",
+};
 
 type ModalMode = "login" | "register";
 
@@ -148,6 +156,22 @@ const LoginModal: React.FC = () => {
   const rawError = loginError || registerError;
   const error = resolveErrorMessage(rawError);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  /** Navigate to the user-type-specific dashboard with default view */
+  const navigateToDefaultDashboard = useCallback(
+    (userType = "candidate") => {
+      const targetPath = `/jobs/${userType}`;
+      const defaultView = DEFAULT_VIEWS[userType] ?? "matches";
+      // Only navigate if not already on the correct user-type path
+      if (!location.pathname.startsWith(targetPath)) {
+        navigate(`${targetPath}?view=${defaultView}`, { replace: true });
+      }
+    },
+    [location.pathname, navigate],
+  );
+
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>("login");
   const [context, setContext] = useState<UserType>("candidate");
@@ -198,8 +222,10 @@ const LoginModal: React.FC = () => {
     const action = resolvePostAuthAction(user);
     if (action === "close") {
       setOpen(false);
+      navigateToDefaultDashboard(user?.user_type);
     } else if (action === "pricing") {
       setOpen(false);
+      navigateToDefaultDashboard(user?.user_type);
       globalThis.dispatchEvent(
         new CustomEvent(EVT_OPEN_PRICING, {
           detail: { tab: "candidate", triggerProfile: true },
@@ -208,11 +234,12 @@ const LoginModal: React.FC = () => {
     } else {
       setShowUpgrade(true);
     }
-  }, [token, open, user, showUpgrade]);
+  }, [token, open, user, showUpgrade, navigateToDefaultDashboard]);
 
   const handleUpgradeClose = () => {
     setShowUpgrade(false);
     setOpen(false);
+    navigateToDefaultDashboard(user?.user_type);
   };
 
   const handleGoToPricing = () => {
