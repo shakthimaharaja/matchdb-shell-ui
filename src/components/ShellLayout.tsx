@@ -464,8 +464,6 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
           onClick={() => setDarkMode((prev) => !prev)}
           aria-label="Toggle dark mode"
           title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          tooltip={darkMode ? "Light Mode" : "Dark Mode"}
-          tooltipOptions={{ position: "bottom" }}
         />
 
         {/* Theme style toggle: Legacy ↔ Modern */}
@@ -482,8 +480,6 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
               ? "Switch to Legacy (Win97)"
               : "Switch to Modern (AWS)"
           }
-          tooltip={themeStyle === "modern" ? "Legacy Mode" : "Modern Mode"}
-          tooltipOptions={{ position: "bottom" }}
         />
 
         {/* Font size dropdown */}
@@ -495,8 +491,6 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
             onClick={() => setFontSizeOpen((prev) => !prev)}
             aria-label="Change font size"
             title="Font Size"
-            tooltip="Font Size"
-            tooltipOptions={{ position: "bottom" }}
           />
           {fontSizeOpen && (
             <div className="matchdb-fontsize-dropdown">
@@ -533,8 +527,6 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
               label="Sign In"
               className="legacy-shell-signout"
               onClick={() => openLogin("candidate", "login")}
-              tooltip="Sign in to your account"
-              tooltipOptions={{ position: "bottom" }}
             />
             <Button
               type="button"
@@ -542,8 +534,6 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
               label="Sign Up"
               className="legacy-shell-signout"
               onClick={() => openLogin("candidate", "register")}
-              tooltip="Create a new account"
-              tooltipOptions={{ position: "bottom" }}
             />
           </div>
         )}
@@ -685,8 +675,6 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({
                 dispatch(logout());
                 navigate("/");
               }}
-              tooltip="Sign out"
-              tooltipOptions={{ position: "bottom" }}
             />
           </>
         )}
