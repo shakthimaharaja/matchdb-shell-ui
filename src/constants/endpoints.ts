@@ -23,6 +23,10 @@ export const PAYMENTS_CANDIDATE_CHECKOUT = "api/payments/candidate-checkout";
 export const PAYMENTS_PORTAL = "api/payments/portal";
 export const PAYMENTS_MARKETER_CHECKOUT = "api/payments/marketer-checkout";
 
+// ─── User Preferences ─────────────────────────────────────────────────────────
+
+export const USER_PREFERENCES = "api/user/preferences";
+
 // ─── Resume (proxied to jobs-services) ─────────────────────────────────────────
 
 export const RESUME_VIEW = (username: string) => `/api/jobs/resume/${username}`;

@@ -15,7 +15,6 @@ Host (shell) microfrontend for the MatchDB staffing platform. Acts as the applic
 | UI Libraries | MUI 5, PrimeReact 10, Tailwind CSS 3                 |
 | UI Shared    | matchdb-component-library (local npm link)           |
 | HTTP         | Axios                                                |
-| Proxy Server | Express + http-proxy-middleware (port 4000)          |
 | Theme        | Windows 97 retro theme, blue-grey palette (#235A81)  |
 
 ---
@@ -26,8 +25,6 @@ Host (shell) microfrontend for the MatchDB staffing platform. Acts as the applic
 matchdb-shell-ui/
 ├── public/
 │   └── index.html               # HTML template
-├── server/
-│   └── index.ts                 # Express proxy server (port 4000)
 ├── src/
 │   ├── index.ts                 # Webpack entry point
 │   ├── bootstrap.tsx            # React root render
@@ -70,21 +67,18 @@ matchdb-shell-ui/
 
 ```
 Browser :3000  ─── webpack-dev-server ───┐
-                                         │  /api/auth, /api/payments
-                                         ├──► Express proxy :4000 ──► shell-services :8000
-                                         │  /api/jobs
-                                         ├──► Express proxy :4001 ──► jobs-services :8001
-                                         │  /ws (WebSocket)
-                                         └──► jobs-services :8001
+                                         │  /api/*
+                                         └──► shell-services :8000 (API Gateway)
+                                              │  /api/auth, /api/payments ─ handled directly
+                                              │  /api/jobs/*              ─ forwarded ─► jobs-services :8001
 
 Shell (host)  ──── Module Federation ──── Jobs MFE (remote :3001)
 
 Both backend services connect to MongoDB Atlas (matchdb-shell and matchdb-jobs databases).
 ```
 
-- The shell webpack dev server proxies `/api/auth` and `/api/payments` to the Node proxy on port 4000, which forwards to `matchdb-shell-services` on port 8000.
-- `/api/jobs` calls are proxied to the Jobs Node proxy on port 4001, then to `matchdb-jobs-services` on port 8001.
-- `/ws` WebSocket connections are proxied directly to `matchdb-jobs-services` on port 8001 (for live counts and public data feeds).
+- The shell webpack dev server proxies all `/api/*` requests to `matchdb-shell-services` on port 8000.
+- Shell-services acts as the **API gateway**: it handles auth & payments directly, and forwards `/api/jobs/*` to `matchdb-jobs-services` on port 8001 via `http-proxy-middleware`.
 - The Jobs MFE (`matchdbJobs`) is loaded at runtime from `http://localhost:3001/remoteEntry.js`.
 
 ---
@@ -131,7 +125,7 @@ new ModuleFederationPlugin({
 
 The shell renders 8 MFE navigation entries (only **Jobs** is currently active). Under Jobs:
 
-- **Before login**: the Jobs MFE renders a `PublicJobsView` with live WebSocket data (jobs & profiles tables)
+- **Before login**: the Jobs MFE renders a `PublicJobsView` with live polling data (jobs & profiles tables)
 - **After login**: shows job-type filters (C2C, W2, C2H, Full Time) based on user visibility
 
 ---
@@ -211,7 +205,6 @@ Create `env/.env.development`:
 ```env
 SHELL_SERVICES_URL=http://localhost:8000
 JOBS_SERVICES_URL=http://localhost:8001
-NODE_SERVER_PORT=4000
 ```
 
 ### Install & Run
@@ -220,7 +213,7 @@ NODE_SERVER_PORT=4000
 # 1. Install dependencies
 npm install
 
-# 2. Start the dev server (webpack + proxy concurrently)
+# 2. Start the dev server (webpack dev server)
 npm run dev
 ```
 
@@ -241,9 +234,8 @@ The app is available at **http://localhost:3000**.
 
 | Script                   | Description                                   |
 | ------------------------ | --------------------------------------------- |
-| `npm run dev`            | Both webpack + proxy concurrently             |
+| `npm run dev`            | Start webpack dev server (port 3000)          |
 | `npm run dev:standalone` | Webpack dev server only (port 3000, no proxy) |
-| `npm start`              | Proxy server only (port 4000)                 |
 | `npm run build`          | Production build to `dist/`                   |
 
 ---

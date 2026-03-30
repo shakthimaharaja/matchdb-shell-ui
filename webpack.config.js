@@ -1,6 +1,5 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const ModuleFederationPlugin =
-  require("webpack/lib/container/ModuleFederationPlugin");
+const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 const Dotenv = require("dotenv-webpack");
 const path = require("node:path");
 const deps = require("./package.json").dependencies;
@@ -95,24 +94,10 @@ module.exports = function webpackConfig(env = {}) {
       },
       proxy: [
         {
-          context: ["/api/auth", "/api/payments"],
-          target: useHttps ? "https://localhost:4000" : "http://localhost:4000",
+          // All API traffic goes through shell-services gateway (:8000)
+          context: ["/api"],
+          target: "http://localhost:8000",
           changeOrigin: true,
-          secure: false,
-        },
-        {
-          // Jobs MFE runs inside the shell, so its /api/jobs calls arrive here.
-          // Forward them to the jobs Node server which proxies to jobs-services :8001.
-          context: ["/api/jobs"],
-          target: useHttps ? "https://localhost:4001" : "http://localhost:4001",
-          changeOrigin: true,
-          secure: false,
-        },
-        {
-          context: ["/ws"],
-          target: "http://localhost:8001",
-          changeOrigin: true,
-          ws: true,
         },
       ],
     },

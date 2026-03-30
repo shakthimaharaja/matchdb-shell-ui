@@ -36,10 +36,10 @@ export interface NavItem {
   subs?: SubMenu[];
 }
 
+export type ThemeStyle = "legacy" | "classic" | "modern";
+
 export interface ShellLayoutProps {
   children: React.ReactNode;
-  themeStyle: "legacy" | "modern";
-  onThemeStyleChange: (style: "legacy" | "modern") => void;
 }
 
 /* ---- layout constants ---- */

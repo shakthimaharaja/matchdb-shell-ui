@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import { useTheme } from "matchdb-component-library";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import ResumeViewPage from "./pages/ResumeViewPage";
 import WelcomePage from "./pages/WelcomePage";
 import ShellLayout from "./components/ShellLayout";
 import JobsAppWrapper from "./components/JobsAppWrapper";
 import LoginModal from "./components/LoginModal";
-import { LS_STYLE } from "./constants";
 
 const IOS_FONT =
   '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif';
@@ -74,21 +74,51 @@ const AnimatedRoutes: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
-  const [themeStyle, setThemeStyle] = useState<"legacy" | "modern">(() =>
-    localStorage.getItem(LS_STYLE) === "modern" ? "modern" : "legacy",
-  );
+const saasTheme = createTheme({
+  palette: {
+    primary: { main: "#2ca01c", dark: "#1e7a14", light: "#5ec251" },
+    secondary: { main: "#0077c5" },
+    background: { default: "#f0f4f2" },
+  },
+  typography: {
+    fontFamily:
+      '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    fontSize: 14,
+  },
+  shape: { borderRadius: 8 },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          fontWeight: 600,
+          boxShadow: "none",
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: { boxShadow: "0 1px 4px rgba(0,0,0,0.08)", borderRadius: 12 },
+      },
+    },
+  },
+});
 
-  useEffect(() => {
-    localStorage.setItem(LS_STYLE, themeStyle);
-    document.body.dataset.style = themeStyle;
-  }, [themeStyle]);
+function muiThemeFor(style: string) {
+  if (style === "classic") return modernTheme;
+  if (style === "modern") return saasTheme;
+  return legacyTheme;
+}
+
+const App: React.FC = () => {
+  const { themeMode } = useTheme();
 
   return (
-    <ThemeProvider theme={themeStyle === "modern" ? modernTheme : legacyTheme}>
+    <ThemeProvider theme={muiThemeFor(themeMode)}>
       <CssBaseline />
       <LoginModal />
-      <ShellLayout themeStyle={themeStyle} onThemeStyleChange={setThemeStyle}>
+      <ShellLayout>
         <AnimatedRoutes />
       </ShellLayout>
     </ThemeProvider>

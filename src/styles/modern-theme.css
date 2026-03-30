@@ -1,0 +1,372 @@
+/* =============================================================================
+   MatchDB Shell-UI — Modern SaaS Theme (QuickBooks-inspired)
+   Activation: data-theme="modern2" on .legacy-shell-root
+   Clean dashboard style with dark sidebar, white cards, rounded corners.
+   ============================================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* ── Design Tokens ────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] {
+  --modern-primary: #2ca01c;
+  --modern-primary-dark: #1e7a14;
+  --modern-primary-light: #e8f5e3;
+  --modern-accent: #0077c5;
+  --modern-accent-dark: #005d96;
+  --modern-bg: #f0f4f2;
+  --modern-card: #ffffff;
+  --modern-sidebar-bg: #1c2b33;
+  --modern-sidebar-text: #a2b5bf;
+  --modern-sidebar-hover: #2a3e49;
+  --modern-sidebar-active: #2ca01c;
+  --modern-text: #212529;
+  --modern-text-secondary: #6b7280;
+  --modern-text-muted: #9ca3af;
+  --modern-border: #e5e7eb;
+  --modern-input-bg: #ffffff;
+  --modern-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --modern-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --modern-radius: 12px;
+  --modern-radius-sm: 8px;
+
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif !important;
+  font-size: 14px !important;
+  color: var(--modern-text) !important;
+  background: var(--modern-bg) !important;
+}
+
+/* Pi icons must keep their font */
+.legacy-shell-root[data-theme="modern2"] .pi {
+  font-family: "primeicons" !important;
+}
+
+/* ── Global typography ────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] * {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.legacy-shell-root[data-theme="modern2"] h1,
+.legacy-shell-root[data-theme="modern2"] h2,
+.legacy-shell-root[data-theme="modern2"] h3,
+.legacy-shell-root[data-theme="modern2"] h4 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-header {
+  background: var(--modern-sidebar-bg) !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  height: 48px !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-brand-title {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  letter-spacing: -0.02em !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-brand-subtitle {
+  background: var(--modern-primary) !important;
+  color: #fff !important;
+  border-radius: 4px !important;
+  padding: 1px 6px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-brand-pixel {
+  display: none !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-date-inline {
+  color: var(--modern-sidebar-text) !important;
+  font-size: 12px !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-logged-as {
+  color: var(--modern-primary) !important;
+}
+
+/* Header buttons */
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-toggle.p-button,
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-signout.p-button,
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-darkmode.p-button {
+  background: transparent !important;
+  color: var(--modern-sidebar-text) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-toggle.p-button:hover,
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-signout.p-button:hover,
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-darkmode.p-button:hover {
+  background: var(--modern-sidebar-hover) !important;
+  color: #fff !important;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-sidebar {
+  background: var(--modern-sidebar-bg) !important;
+  border-right: none !important;
+  box-shadow: none !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-sidebar-user {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-nav-btn {
+  color: var(--modern-sidebar-text) !important;
+  border: none !important;
+  border-radius: var(--modern-radius-sm) !important;
+  transition: all 0.15s ease !important;
+  margin: 2px 8px !important;
+  padding: 8px 12px !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-nav-btn:hover {
+  background: var(--modern-sidebar-hover) !important;
+  color: #ffffff !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-nav-btn.active,
+.legacy-shell-root[data-theme="modern2"]
+  .legacy-shell-nav-btn[aria-current="page"] {
+  background: var(--modern-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-nav-group-title {
+  color: var(--modern-sidebar-text) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  opacity: 0.7 !important;
+  padding: 16px 16px 4px !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-nav-badge {
+  background: var(--modern-primary) !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 1px 6px !important;
+  min-width: 18px !important;
+  text-align: center !important;
+}
+
+/* ── Content Area ─────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-content {
+  background: var(--modern-bg) !important;
+  overflow: auto !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-pagehead {
+  background: var(--modern-card) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--modern-border) !important;
+  box-shadow: none !important;
+  padding: 12px 24px !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-pagehead h2 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--modern-text) !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-breadcrumb {
+  background: transparent !important;
+  border: none !important;
+  font-size: 13px !important;
+  color: var(--modern-text-secondary) !important;
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .dashboard-card,
+.legacy-shell-root[data-theme="modern2"] .content-card,
+.legacy-shell-root[data-theme="modern2"] .stat-card {
+  background: var(--modern-card) !important;
+  border: 1px solid var(--modern-border) !important;
+  border-radius: var(--modern-radius) !important;
+  box-shadow: var(--modern-shadow) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .dashboard-card:hover,
+.legacy-shell-root[data-theme="modern2"] .content-card:hover {
+  box-shadow: var(--modern-shadow-md) !important;
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] thead th {
+  background: #f8fafb !important;
+  color: var(--modern-text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  border-bottom: 2px solid var(--modern-border) !important;
+  padding: 10px 12px !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] tbody td {
+  padding: 10px 12px !important;
+  border-bottom: 1px solid var(--modern-border) !important;
+  font-size: 13px !important;
+  color: var(--modern-text) !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] tbody tr:hover {
+  background: var(--modern-primary-light) !important;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .p-button {
+  border-radius: var(--modern-radius-sm) !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  transition: all 0.15s ease !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .p-button.p-button-success {
+  background: var(--modern-primary) !important;
+  border-color: var(--modern-primary) !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .p-button.p-button-success:hover {
+  background: var(--modern-primary-dark) !important;
+  border-color: var(--modern-primary-dark) !important;
+}
+
+/* ── Inputs & Forms ───────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] input[type="text"],
+.legacy-shell-root[data-theme="modern2"] input[type="email"],
+.legacy-shell-root[data-theme="modern2"] input[type="number"],
+.legacy-shell-root[data-theme="modern2"] input[type="password"],
+.legacy-shell-root[data-theme="modern2"] input[type="search"],
+.legacy-shell-root[data-theme="modern2"] select,
+.legacy-shell-root[data-theme="modern2"] textarea,
+.legacy-shell-root[data-theme="modern2"] .p-inputtext {
+  background: var(--modern-input-bg) !important;
+  border: 1px solid var(--modern-border) !important;
+  border-radius: var(--modern-radius-sm) !important;
+  color: var(--modern-text) !important;
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] input:focus,
+.legacy-shell-root[data-theme="modern2"] select:focus,
+.legacy-shell-root[data-theme="modern2"] textarea:focus,
+.legacy-shell-root[data-theme="modern2"] .p-inputtext:focus {
+  border-color: var(--modern-primary) !important;
+  box-shadow: 0 0 0 3px rgba(44, 160, 28, 0.15) !important;
+  outline: none !important;
+}
+
+/* ── Tags / Badges ────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .p-tag {
+  border-radius: 16px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 10px !important;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-footer {
+  background: var(--modern-card) !important;
+  border-top: 1px solid var(--modern-border) !important;
+  color: var(--modern-text-muted) !important;
+  font-size: 11px !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-footer span {
+  border: none !important;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.legacy-shell-root[data-theme="modern2"] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.legacy-shell-root[data-theme="modern2"] ::-webkit-scrollbar-thumb {
+  background: #c1c8cf;
+  border-radius: 3px;
+}
+
+.legacy-shell-root[data-theme="modern2"] ::-webkit-scrollbar-thumb:hover {
+  background: #a0a8b0;
+}
+
+/* ── Plan badge ───────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-plan.p-tag {
+  background: var(--modern-primary) !important;
+  color: #fff !important;
+  border-radius: 4px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+
+/* ── User avatar area ─────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-user {
+  border: none !important;
+  border-radius: var(--modern-radius-sm) !important;
+  transition: background 0.15s ease !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-user:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-avatar.p-avatar {
+  background: var(--modern-primary) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-user-name {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-user-type {
+  color: var(--modern-sidebar-text) !important;
+  font-size: 11px !important;
+}
+
+/* ── Dialog / Modal overrides ─────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] dialog,
+.legacy-shell-root[data-theme="modern2"] .matchdb-modal {
+  border-radius: var(--modern-radius) !important;
+  border: none !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ── Pagination ───────────────────────────────────────────────────────────── */
+.legacy-shell-root[data-theme="modern2"] .matchdb-pagination button {
+  border-radius: 6px !important;
+  font-size: 12px !important;
+}

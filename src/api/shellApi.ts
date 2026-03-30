@@ -26,6 +26,7 @@ import {
   PAYMENTS_CANDIDATE_CHECKOUT,
   PAYMENTS_PORTAL,
   PAYMENTS_MARKETER_CHECKOUT,
+  USER_PREFERENCES,
 } from "../constants/endpoints";
 import {
   setAuth,
@@ -80,6 +81,12 @@ export interface CandidateCheckoutArgs {
   packageId: string;
   domain?: string;
   subdomains?: string[];
+}
+
+export interface UserPreferences {
+  themeMode: "legacy" | "classic" | "modern";
+  colorScheme: "light" | "dark" | "auto";
+  textSize: "small" | "medium" | "large";
 }
 
 // ─── RTK Query API ────────────────────────────────────────────────────────────
@@ -222,6 +229,23 @@ export const shellApi = createApi({
         body: {},
       }),
     }),
+
+    // ── User Preferences ──────────────────────────────────────────────────────
+
+    getPreferences: builder.query<UserPreferences, void>({
+      query: () => USER_PREFERENCES,
+    }),
+
+    updatePreferences: builder.mutation<
+      UserPreferences,
+      Partial<UserPreferences>
+    >({
+      query: (body) => ({
+        url: USER_PREFERENCES,
+        method: "PUT",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -244,4 +268,8 @@ export const {
   useCreateCandidateCheckoutMutation,
   useOpenBillingPortalMutation,
   useCreateMarketerCheckoutMutation,
+  // User Preferences
+  useGetPreferencesQuery,
+  useLazyGetPreferencesQuery,
+  useUpdatePreferencesMutation,
 } = shellApi;

@@ -820,6 +820,17 @@
   border-bottom-color: var(--w97-btn-shadow);
 }
 
+/* Highlight section group title when it contains an active item */
+.legacy-shell-subnav-group.has-active > .legacy-shell-subnav-title {
+  background: linear-gradient(
+    to right,
+    var(--w97-titlebar-from),
+    var(--w97-titlebar-to)
+  );
+  color: var(--w97-titlebar-text);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+
 .legacy-shell-subnav-title {
   display: flex;
   align-items: center;
@@ -1104,3 +1115,143 @@
  * That file is imported via src/styles/index.css and covers all
  * [data-style="modern"] layout rules including header, sidebar, and content.
  */
+/* ===== UNIFIED APPEARANCE BUTTON ===== */
+.legacy-shell-appearance-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid #4a7ea8;
+  border-radius: 6px;
+  background: #1d4e73;
+  color: #e8f0f7;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+.legacy-shell-appearance-btn:hover {
+  background: #215a84;
+  border-color: #6aa3cc;
+}
+.legacy-shell-appearance-label {
+  font-size: 11px;
+  color: #c8ddf0;
+}
+
+/* Modern2 variant — sits on dark navy header */
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-appearance-btn {
+  background: #253e4a !important;
+  border-color: #3d6070 !important;
+  color: #e2edf2 !important;
+}
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-appearance-btn:hover {
+  background: #2e4f5f !important;
+  border-color: #5a8fa8 !important;
+}
+.legacy-shell-root[data-theme="modern2"] .legacy-shell-appearance-label {
+  color: #b8d0db !important;
+}
+
+/* ===== THEME DROPDOWN (3-option selector) ===== */
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Theme Board — always-visible 3-option segmented control
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.theme-board {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--w97-btn-shadow, #808080);
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--w97-btn-face, #c0c0c0);
+  flex-shrink: 0;
+}
+
+.theme-board-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px;
+  border: none;
+  background: transparent;
+  color: var(--w97-text, #222);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+
+.theme-board-btn + .theme-board-btn {
+  border-left: 1px solid var(--w97-btn-shadow, #999);
+}
+
+.theme-board-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.theme-board-btn.active {
+  background: var(--w97-sidebar-active-text, #1a4480);
+  color: #fff;
+}
+
+.theme-board-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.theme-board-label {
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+}
+
+/* ── Classic (AWS) theme override ──────────────────────────────────────── */
+[data-style="modern"] .theme-board {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-style="modern"] .theme-board-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+[data-style="modern"] .theme-board-btn + .theme-board-btn {
+  border-left-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-style="modern"] .theme-board-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-style="modern"] .theme-board-btn.active {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+/* ── Modern (SaaS/QuickBooks) theme override ───────────────────────────── */
+[data-theme="modern2"] .theme-board {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+[data-theme="modern2"] .theme-board-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="modern2"] .theme-board-btn + .theme-board-btn {
+  border-left-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="modern2"] .theme-board-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme="modern2"] .theme-board-btn.active {
+  background: #2ca01c;
+  color: #fff;
+}
