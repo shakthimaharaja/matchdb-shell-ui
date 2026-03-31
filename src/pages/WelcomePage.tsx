@@ -129,7 +129,7 @@ const WelcomePage: React.FC = () => {
     if (el) el.scrollTop = el.scrollHeight;
   }, [shown]);
 
-  const openLogin = (type: "candidate" | "vendor") => {
+  const openLogin = (type: "candidate" | "employer") => {
     navigate(`/jobs/${type}`);
     globalThis.dispatchEvent(
       new CustomEvent(EVT_OPEN_LOGIN, {

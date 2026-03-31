@@ -13,8 +13,7 @@ const JobsApp = lazy(() => import("matchdbJobs/JobsApp"));
 /** Default view (first sidebar sub-item) per user type */
 const DEFAULT_VIEWS: Record<string, string> = {
   candidate: "matches",
-  vendor: "postings",
-  marketer: "company-candidates",
+  employer: "postings",
 };
 
 interface ErrorBoundaryState {
@@ -112,11 +111,8 @@ const JobsAppWrapper: React.FC = () => {
           }
           const expiredType = user?.user_type ?? "candidate";
           dispatch(expireSession(expiredType));
-          const redirectPath = (() => {
-            if (expiredType === "vendor") return "/jobs/vendor";
-            if (expiredType === "marketer") return "/jobs/marketer";
-            return "/jobs/candidate";
-          })();
+          const redirectPath =
+            expiredType === "employer" ? "/jobs/employer" : "/jobs/candidate";
           navigate(redirectPath, { replace: true });
         }
         // For 5xx or network errors, leave the user logged in so they can retry.

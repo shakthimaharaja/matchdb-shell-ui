@@ -25,7 +25,6 @@ import {
   PAYMENTS_CHECKOUT,
   PAYMENTS_CANDIDATE_CHECKOUT,
   PAYMENTS_PORTAL,
-  PAYMENTS_MARKETER_CHECKOUT,
   USER_PREFERENCES,
 } from "../constants/endpoints";
 import {
@@ -54,7 +53,7 @@ export interface RegisterArgs {
   password: string;
   firstName?: string;
   lastName?: string;
-  userType: "candidate" | "vendor" | "marketer";
+  userType: "candidate" | "employer";
 }
 
 export interface RefreshTokenArgs {
@@ -222,14 +221,6 @@ export const shellApi = createApi({
       query: () => ({ url: PAYMENTS_PORTAL, method: "POST", body: {} }),
     }),
 
-    createMarketerCheckout: builder.mutation<{ url: string }, void>({
-      query: () => ({
-        url: PAYMENTS_MARKETER_CHECKOUT,
-        method: "POST",
-        body: {},
-      }),
-    }),
-
     // ── User Preferences ──────────────────────────────────────────────────────
 
     getPreferences: builder.query<UserPreferences, void>({
@@ -267,7 +258,6 @@ export const {
   useCreateVendorCheckoutMutation,
   useCreateCandidateCheckoutMutation,
   useOpenBillingPortalMutation,
-  useCreateMarketerCheckoutMutation,
   // User Preferences
   useGetPreferencesQuery,
   useLazyGetPreferencesQuery,

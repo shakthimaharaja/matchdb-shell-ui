@@ -286,6 +286,99 @@
   letter-spacing: 0.04em;
 }
 
+/* ── Marketer annual pricing + candidate label ──── */
+.pp-plan-candidates-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--w97-text, #222);
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+/* ── Employer view toggle ───────────────────────── */
+.pp-employer-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 8px;
+  border: 1px solid var(--w97-btn-dark, #404040);
+  width: fit-content;
+}
+.pp-toggle-btn {
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--w97-btn-face, #e5e5e5);
+  color: var(--w97-text, #000);
+  border: none;
+  border-right: 1px solid var(--w97-btn-dark, #404040);
+  white-space: nowrap;
+  user-select: none;
+}
+.pp-toggle-btn:last-child {
+  border-right: none;
+}
+.pp-toggle-btn:hover {
+  background: #d8d8d8;
+}
+.pp-toggle-btn-active {
+  background: var(--w97-navy, #235a81);
+  color: #fff;
+}
+.pp-toggle-btn-active:hover {
+  background: var(--w97-navy, #235a81);
+}
+
+/* ── Combined plan limit chips ──────────────────── */
+.pp-combined-limits {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+.pp-combined-limit-chip {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  text-align: center;
+  border-radius: 2px;
+}
+.pp-combined-limit-chip-job {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #bbdefb;
+}
+.pp-combined-limit-chip-staff {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.pp-marketer-annual {
+  font-size: 11px;
+  color: var(--w97-text-secondary, #666);
+  text-align: center;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+.pp-marketer-annual-save {
+  display: inline-block;
+  margin-left: 6px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.pp-plan-divider {
+  border: none;
+  border-top: 1px solid var(--w97-border-light, #ddd);
+  margin: 6px 0;
+}
+
 /* ── Candidate packages ─────────────────────────── */
 .pp-pkg-grid {
   display: grid;

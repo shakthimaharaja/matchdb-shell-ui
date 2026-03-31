@@ -26,6 +26,7 @@ export const EVT_VISIBLE_IN = "matchdb:visibleIn";
 export const EVT_LOGIN_CONTEXT = "matchdb:loginContext";
 export const EVT_JOB_TYPE_FILTER = "matchdb:jobTypeFilter";
 export const EVT_OPEN_LOGIN = "matchdb:openLogin";
+export const EVT_LIVE_STATS = "matchdb:liveStats";
 
 // ─── UI Config ─────────────────────────────────────────────────────────────────
 
@@ -40,17 +41,15 @@ export const GEOCODE_TIMEOUT = 5000;
 
 // ─── User Type ─────────────────────────────────────────────────────────────────
 
-export type UserType = "candidate" | "vendor" | "marketer";
+export type UserType = "candidate" | "employer";
 
 export const USER_TYPE_ICONS: Record<UserType, string> = {
-  vendor: ICONS.OFFICE,
-  marketer: ICONS.CHART,
+  employer: ICONS.OFFICE,
   candidate: ICONS.PERSON,
 };
 
 export const USER_TYPE_LABELS: Record<UserType, string> = {
-  vendor: `${ICONS.OFFICE} Vendor`,
-  marketer: `${ICONS.CHART} Marketer`,
+  employer: `${ICONS.OFFICE} Employer`,
   candidate: `${ICONS.PERSON} Candidate`,
 };
 

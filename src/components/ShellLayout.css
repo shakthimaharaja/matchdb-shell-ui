@@ -245,6 +245,7 @@
   gap: 4px;
   color: var(--w97-titlebar-text);
   padding: 2px 4px;
+  background: none;
   border-top: 1px solid transparent;
   border-left: 1px solid transparent;
   border-right: 1px solid transparent;
@@ -437,13 +438,13 @@
 }
 
 .legacy-shell-avatar.p-avatar {
-  background: var(--w97-orange) !important;
-  color: #000 !important;
+  background: var(--w97-titlebar-from) !important;
+  color: #fff !important;
   font-weight: bold;
   width: 22px;
   height: 22px;
   font-size: 12px;
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   border: 1px solid var(--w97-btn-dark);
 }
 
@@ -958,6 +959,34 @@
   color: var(--w97-blue);
 }
 
+/* Animated count highlight — re-triggers on every value change via key swap */
+.legacy-shell-count-anim {
+  display: inline-block;
+  animation: countPop 0.6s ease-out;
+  color: #1565c0;
+  font-weight: 800;
+}
+.legacy-shell-root.dark .legacy-shell-count-anim {
+  color: #64b5f6;
+}
+
+@keyframes countPop {
+  0% {
+    transform: scale(1.35);
+    color: #e65100;
+    opacity: 0.7;
+  }
+  40% {
+    transform: scale(1.1);
+    color: #1565c0;
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    color: #1565c0;
+  }
+}
+
 .legacy-shell-pagehead p {
   margin: 0;
   color: var(--w97-text-secondary);
@@ -1001,6 +1030,28 @@
 .legacy-shell-pagehead-auth {
   display: flex;
   gap: 4px;
+}
+
+/* Location filter dropdowns in pagehead */
+.legacy-shell-location-filter {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.legacy-shell-location-select {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 2px 4px;
+  border: 2px solid;
+  border-top-color: var(--w97-btn-dark, #404040);
+  border-left-color: var(--w97-btn-dark, #404040);
+  border-right-color: var(--w97-btn-highlight, #fff);
+  border-bottom-color: var(--w97-btn-highlight, #fff);
+  background: var(--w97-window, #fff);
+  color: #000;
+  cursor: pointer;
+  max-width: 170px;
 }
 
 /* ===== CONTENT ===== */

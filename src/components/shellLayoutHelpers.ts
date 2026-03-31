@@ -57,8 +57,7 @@ export const JOB_TYPE_SUBS = [
 /* ---- Login-mode sub-items shown under Jobs when NOT logged in ---- */
 export const LOGIN_MODES = [
   { id: "candidate", label: "Candidate Login", icon: ICONS.PERSON },
-  { id: "vendor", label: "Vendor Login", icon: ICONS.OFFICE },
-  { id: "marketer", label: "Marketer Login", icon: ICONS.CHART },
+  { id: "employer", label: "Employer Login", icon: ICONS.OFFICE },
 ];
 
 /*
@@ -203,14 +202,70 @@ export const isPathActive = (
 };
 
 export const USER_TYPE_LABELS: Record<string, string> = {
-  vendor: "Vendor",
-  marketer: "Marketer",
+  vendor: "Employer",
+  marketer: "Employer",
+  employer: "Employer",
   candidate: "Candidate",
 };
 
 export function userTypeLabel(ut?: string) {
   return (ut && USER_TYPE_LABELS[ut]) || "Candidate";
 }
+
+/* ---- US state names for location filter dropdown ---- */
+export const US_STATE_NAMES = [
+  "Alabama",
+  "Alaska",
+  "Arizona",
+  "Arkansas",
+  "California",
+  "Colorado",
+  "Connecticut",
+  "Delaware",
+  "Florida",
+  "Georgia",
+  "Hawaii",
+  "Idaho",
+  "Illinois",
+  "Indiana",
+  "Iowa",
+  "Kansas",
+  "Kentucky",
+  "Louisiana",
+  "Maine",
+  "Maryland",
+  "Massachusetts",
+  "Michigan",
+  "Minnesota",
+  "Mississippi",
+  "Missouri",
+  "Montana",
+  "Nebraska",
+  "Nevada",
+  "New Hampshire",
+  "New Jersey",
+  "New Mexico",
+  "New York",
+  "North Carolina",
+  "North Dakota",
+  "Ohio",
+  "Oklahoma",
+  "Oregon",
+  "Pennsylvania",
+  "Rhode Island",
+  "South Carolina",
+  "South Dakota",
+  "Tennessee",
+  "Texas",
+  "Utah",
+  "Vermont",
+  "Virginia",
+  "Washington",
+  "West Virginia",
+  "Wisconsin",
+  "Wyoming",
+  "District of Columbia",
+];
 
 /* ---- US states for country derivation ---- */
 export const US_STATES = new Set([

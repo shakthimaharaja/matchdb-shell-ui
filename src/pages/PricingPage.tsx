@@ -5,7 +5,6 @@ import {
   useGetCandidatePackagesQuery,
   useCreateVendorCheckoutMutation,
   useCreateCandidateCheckoutMutation,
-  useCreateMarketerCheckoutMutation,
   useOpenBillingPortalMutation,
   useRefreshUserDataMutation,
   type VendorPlan,
@@ -18,7 +17,7 @@ import {
   TAB_INDEX,
   planBadge,
   MARKETER_TIERS,
-  MARKETER_COMMON_FEATURES,
+  COMBINED_TIERS,
   type PricingPageProps,
   type ConfirmDialogProps,
 } from "./pricingPageHelpers";
@@ -154,26 +153,28 @@ const PricingPage: React.FC<PricingPageProps> = ({
     useCreateVendorCheckoutMutation();
   const [createCandidateCheckout, { isLoading: candidateCheckoutLoading }] =
     useCreateCandidateCheckoutMutation();
-  const [createMarketerCheckout, { isLoading: marketerCheckoutLoading }] =
-    useCreateMarketerCheckoutMutation();
   const [openBillingPortal, { isLoading: portalLoading }] =
     useOpenBillingPortalMutation();
   const [refreshUserData] = useRefreshUserDataMutation();
 
   const checkoutLoading =
-    vendorCheckoutLoading ||
-    candidateCheckoutLoading ||
-    marketerCheckoutLoading ||
-    portalLoading;
+    vendorCheckoutLoading || candidateCheckoutLoading || portalLoading;
 
-  const isVendor = user?.user_type === "vendor";
   const isCandidate = user?.user_type === "candidate";
-  const isMarketer = user?.user_type === "marketer";
+  const isEmployer = user?.user_type === "employer";
 
   const defaultTab =
     TAB_INDEX[user?.user_type ?? ""] ?? TAB_INDEX[initialTab ?? ""] ?? 0;
 
   const [activeTab, setActiveTab] = useState(defaultTab);
+
+  // Sync active tab when initialTab prop changes (e.g. modal re-opened for different view)
+  useEffect(() => {
+    if (!user && initialTab) {
+      const idx = TAB_INDEX[initialTab];
+      if (idx != null) setActiveTab(idx);
+    }
+  }, [initialTab, user]);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
   const [loadingPkgId, setLoadingPkgId] = useState<string | null>(null);
   const [vendorConfirm, setVendorConfirm] = useState<VendorPlan | null>(null);
@@ -185,6 +186,9 @@ const PricingPage: React.FC<PricingPageProps> = ({
   const [selectedDomain, setSelectedDomain] = useState<
     "contract" | "full_time"
   >("contract");
+  const [employerView, setEmployerView] = useState<
+    "combined" | "job-posting" | "staffing"
+  >("combined");
   const [selectedSubs, setSelectedSubs] = useState<string[]>([]);
   const [selectedPkg, setSelectedPkg] = useState<string | null>(null);
   const [message, setMessage] = useState<{
@@ -200,9 +204,14 @@ const PricingPage: React.FC<PricingPageProps> = ({
         type: "success",
         text: "Subscription activated! Your vendor plan has been updated.",
       });
-      refreshUserData().unwrap().catch(() => {
-        setMessage({ type: "error", text: "Failed to refresh user data. Please reload the page." });
-      });
+      refreshUserData()
+        .unwrap()
+        .catch(() => {
+          setMessage({
+            type: "error",
+            text: "Failed to refresh user data. Please reload the page.",
+          });
+        });
       globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
     if (params.get("candidate_success") === "true") {
@@ -210,9 +219,14 @@ const PricingPage: React.FC<PricingPageProps> = ({
         type: "success",
         text: "Visibility package purchased! You are now visible to employers in the selected categories.",
       });
-      refreshUserData().unwrap().catch(() => {
-        setMessage({ type: "error", text: "Failed to refresh user data. Please reload the page." });
-      });
+      refreshUserData()
+        .unwrap()
+        .catch(() => {
+          setMessage({
+            type: "error",
+            text: "Failed to refresh user data. Please reload the page.",
+          });
+        });
       globalThis.history.replaceState({}, "", globalThis.location.pathname);
       setActiveTab(1);
     }
@@ -265,17 +279,12 @@ const PricingPage: React.FC<PricingPageProps> = ({
       setMessage({ type: "error", text: "Please sign in to subscribe." });
       return;
     }
-    try {
-      const { url } = await createMarketerCheckout().unwrap();
-      globalThis.location.href = url;
-    } catch (err: unknown) {
-      setMessage({
-        type: "error",
-        text:
-          (err as { data?: { error?: string } }).data?.error ||
-          "Checkout failed. Please try again.",
-      });
-    }
+    // Use the vendor checkout for marketer/staffing plans
+    // The employer sees both plan types on the same page
+    setMessage({
+      type: "info",
+      text: "Please select a Job Posting plan above to subscribe.",
+    });
   };
 
   //  Candidate helpers
@@ -873,96 +882,319 @@ const PricingPage: React.FC<PricingPageProps> = ({
   }
 
   function renderMarketerTab() {
+    const titlebarColor: Record<string, string> = {
+      "1": "free",
+      "2": "pro",
+      "3": "basic",
+      "4": "pro_plus",
+    };
+
+    function marketerBtnLabel(): string {
+      if (checkoutLoading) return "Please wait...";
+      if (!user || user.plan === "free") return "Get Started";
+      return "Switch Plan";
+    }
+
     return (
       <div data-testid="marketer-section">
-        <p
-          style={{
-            textAlign: "center",
-            marginBottom: 8,
-            fontSize: 13,
-            color: "#888",
-          }}
-        >
-          One account per company · Choose how many job types you need access to
-        </p>
-        <div
-          className="pp-vendor-grid"
-          style={{ maxWidth: 900 }}
-          data-testid="marketer-plan-grid"
-        >
+        <div className="pp-section-label">
+          Staffing Plans - monthly recurring, cancel anytime{" "}
+          <span style={{ fontSize: 10, marginLeft: 8, color: "#666" }}>
+            Pay annually &amp; get 1 month free (save 8.3%)
+          </span>
+        </div>
+        <div className="pp-plan-grid" data-testid="marketer-plan-grid">
           {MARKETER_TIERS.map((tier) => {
-            const isCurrent =
-              isMarketer &&
-              user?.plan === "marketer" &&
-              tier.testIdSuffix === "1";
+            const isCurrent = isEmployer && user?.plan === tier.id;
+            const color = tier.highlighted
+              ? "pro"
+              : titlebarColor[tier.testIdSuffix] || "basic";
+            const cardCls = [
+              "pp-plan-card",
+              tier.highlighted ? "pp-plan-card-highlighted" : "",
+              isCurrent ? "pp-plan-card-current" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+
             return (
               <div
                 key={tier.testIdSuffix}
-                className={`pp-plan-card${
-                  isCurrent ? " pp-plan-highlighted" : ""
-                }`}
+                className={cardCls}
                 data-testid={`marketer-tier-${tier.testIdSuffix}-card`}
               >
-                <div className="pp-plan-badge" style={tier.badgeStyle}>
-                  {tier.types}
-                </div>
-                <div className="pp-plan-name">{tier.name}</div>
-                <div className="pp-plan-price">
-                  <span className="pp-plan-amount">${tier.price}</span>
-                  <span className="pp-plan-interval">/month</span>
-                </div>
-                <ul className="pp-plan-features">
-                  <li>{tier.featurePrefix}</li>
-                  {MARKETER_COMMON_FEATURES.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
-                {isCurrent ? (
-                  <div style={{ textAlign: "center", marginTop: 8 }}>
-                    <span
-                      className="pp-plan-badge"
-                      style={{ background: "#2e7d32", color: "#fff" }}
-                    >
-                      Active
-                    </span>
-                    <button
-                      className="pp-btn pp-btn-primary pp-btn-wide"
-                      style={{ marginTop: 8 }}
-                      onClick={handlePortal}
-                      disabled={checkoutLoading}
-                      data-testid="marketer-manage-billing-btn"
-                    >
-                      Manage Billing
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="pp-btn pp-btn-primary pp-btn-wide"
-                    disabled={checkoutLoading}
-                    onClick={handleMarketerSubscribe}
-                    data-testid={`marketer-tier-${tier.testIdSuffix}-subscribe-btn`}
+                <div className={`pp-plan-titlebar pp-plan-titlebar-${color}`}>
+                  <span style={{ flex: 1 }}>{tier.name}</span>
+                  <span
+                    className={`pp-plan-badge${
+                      tier.highlighted ? " pp-plan-badge-popular" : ""
+                    }`}
                   >
-                    {checkoutLoading
-                      ? "Please wait..."
-                      : `Subscribe — $${tier.price}/mo`}
-                  </button>
-                )}
+                    {tier.badge}
+                  </span>
+                </div>
+
+                <div className="pp-plan-body">
+                  <div className="pp-plan-candidates-label">
+                    {tier.candidates}
+                  </div>
+
+                  <span className="pp-plan-price">
+                    ${tier.price}
+                    <span className="pp-plan-price-interval"> /month</span>
+                  </span>
+
+                  <div className="pp-marketer-annual">
+                    or ${tier.annualPrice}/yr
+                    <span className="pp-marketer-annual-save">
+                      Save ${tier.annualSavings} ({tier.savingsPct})
+                    </span>
+                  </div>
+
+                  <hr className="pp-plan-divider" />
+
+                  <ul
+                    className={`pp-plan-features${
+                      tier.highlighted ? " pp-plan-features-highlighted" : ""
+                    }`}
+                  >
+                    {tier.features.map((f) => (
+                      <li key={f}>{f}</li>
+                    ))}
+                  </ul>
+
+                  <div className="pp-plan-action">
+                    {isCurrent ? (
+                      <>
+                        <span
+                          className="pp-plan-badge"
+                          style={{
+                            background: "#2e7d32",
+                            color: "#fff",
+                            display: "inline-block",
+                            marginBottom: 6,
+                          }}
+                        >
+                          Active
+                        </span>
+                        <button
+                          className="pp-btn pp-btn-primary pp-btn-wide"
+                          onClick={handlePortal}
+                          disabled={checkoutLoading}
+                          data-testid="marketer-manage-billing-btn"
+                        >
+                          Manage Billing
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="pp-btn pp-btn-primary pp-btn-wide"
+                        disabled={checkoutLoading}
+                        onClick={handleMarketerSubscribe}
+                        data-testid={`marketer-tier-${tier.testIdSuffix}-subscribe-btn`}
+                      >
+                        {marketerBtnLabel()}
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             );
           })}
         </div>
+      </div>
+    );
+  }
 
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: 12,
-            fontSize: 12,
-            color: "#999",
-          }}
-        >
-          <strong>Session add-on:</strong> 0–2 free with every plan · Need up to
-          5 concurrent sessions? +$100/mo
+  function renderCombinedCards() {
+    const titlebarColor: Record<string, string> = {
+      "1": "free",
+      "2": "pro",
+      "3": "basic",
+      "4": "pro_plus",
+    };
+
+    return (
+      <div className="pp-plan-grid" data-testid="combined-plan-grid">
+        {COMBINED_TIERS.map((tier) => {
+          const color = tier.highlighted
+            ? "pro"
+            : titlebarColor[tier.testIdSuffix] || "basic";
+          const cardCls = [
+            "pp-plan-card",
+            tier.highlighted ? "pp-plan-card-highlighted" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+          return (
+            <div
+              key={tier.id}
+              className={cardCls}
+              data-testid={`combined-tier-${tier.testIdSuffix}-card`}
+            >
+              <div className={`pp-plan-titlebar pp-plan-titlebar-${color}`}>
+                <span style={{ flex: 1 }}>{tier.name}</span>
+                <span
+                  className={`pp-plan-badge${
+                    tier.highlighted ? " pp-plan-badge-popular" : ""
+                  }`}
+                >
+                  {tier.badge}
+                </span>
+              </div>
+
+              <div className="pp-plan-body">
+                <div className="pp-combined-limits">
+                  <span className="pp-combined-limit-chip pp-combined-limit-chip-job">
+                    {tier.jobPostings}
+                  </span>
+                  <span className="pp-combined-limit-chip pp-combined-limit-chip-staff">
+                    {tier.candidates}
+                  </span>
+                </div>
+
+                <span className="pp-plan-price">
+                  ${tier.monthlyPrice}
+                  <span className="pp-plan-price-interval"> /month</span>
+                </span>
+
+                <div className="pp-marketer-annual">
+                  or ${tier.annualPrice}/yr
+                  <span className="pp-marketer-annual-save">
+                    Save ${tier.annualSavings} ({tier.savingsPct})
+                  </span>
+                </div>
+
+                <hr className="pp-plan-divider" />
+
+                <ul
+                  className={`pp-plan-features${
+                    tier.highlighted ? " pp-plan-features-highlighted" : ""
+                  }`}
+                >
+                  {tier.features.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+
+                <div className="pp-plan-action">
+                  <button
+                    className="pp-btn pp-btn-primary pp-btn-wide"
+                    disabled={checkoutLoading}
+                    onClick={handleMarketerSubscribe}
+                    data-testid={`combined-tier-${tier.testIdSuffix}-subscribe-btn`}
+                  >
+                    {checkoutLoading ? "Please wait..." : "Get Started"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function renderEmployerTab() {
+    return (
+      <div data-testid="employer-section">
+        <div className="pp-section-label" style={{ marginBottom: 4 }}>
+          Employer Plans &mdash; combined Vendor + Staffing access
         </div>
+
+        {/* ── View toggle ── */}
+        <div className="pp-employer-toggle" data-testid="employer-view-toggle">
+          <button
+            className={`pp-toggle-btn${
+              employerView === "combined" ? " pp-toggle-btn-active" : ""
+            }`}
+            onClick={() => setEmployerView("combined")}
+            data-testid="employer-toggle-combined"
+          >
+            Combined Plans
+          </button>
+          <button
+            className={`pp-toggle-btn${
+              employerView === "job-posting" ? " pp-toggle-btn-active" : ""
+            }`}
+            onClick={() => setEmployerView("job-posting")}
+            data-testid="employer-toggle-job-posting"
+          >
+            Job Posting Only
+          </button>
+          <button
+            className={`pp-toggle-btn${
+              employerView === "staffing" ? " pp-toggle-btn-active" : ""
+            }`}
+            onClick={() => setEmployerView("staffing")}
+            data-testid="employer-toggle-staffing"
+          >
+            Staffing Only
+          </button>
+        </div>
+
+        {/* ── Combined plans ── */}
+        {employerView === "combined" && (
+          <>
+            <div
+              className="pp-section-label"
+              style={{ fontSize: 11, marginTop: 8, marginBottom: 4 }}
+            >
+              Employer Subscription Plans &mdash; Job Posting + Staffing{" "}
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 400,
+                  color: "#666",
+                  textTransform: "none",
+                  letterSpacing: 0,
+                }}
+              >
+                Monthly recurring, cancel anytime &middot; Pay annually &amp;
+                save 8.3%
+              </span>
+            </div>
+            {renderCombinedCards()}
+          </>
+        )}
+
+        {/* ── Job Posting Only plans ── */}
+        {employerView === "job-posting" && (
+          <>
+            <div
+              className="pp-section-label"
+              style={{ fontSize: 11, marginTop: 8, marginBottom: 4 }}
+            >
+              Job Posting Plans &mdash; Subscription only
+            </div>
+            {renderVendorTab()}
+          </>
+        )}
+
+        {/* ── Staffing Only plans ── */}
+        {employerView === "staffing" && (
+          <>
+            <div
+              className="pp-section-label"
+              style={{ fontSize: 11, marginTop: 8, marginBottom: 4 }}
+            >
+              Staffing / Candidate Management Plans &mdash; Subscription only{" "}
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 400,
+                  color: "#666",
+                  textTransform: "none",
+                  letterSpacing: 0,
+                }}
+              >
+                Pay annually &amp; save 8.3%
+              </span>
+            </div>
+            {renderMarketerTab()}
+          </>
+        )}
       </div>
     );
   }
@@ -1005,13 +1237,8 @@ const PricingPage: React.FC<PricingPageProps> = ({
               className="pp-statusbar-plan"
               data-testid="statusbar-plan-label"
             >
-              {(
-                { vendor: "Employer", marketer: "Marketer" } as Record<
-                  string,
-                  string
-                >
-              )[user.user_type] || "Candidate"}{" "}
-              - {planBadge(user.plan ?? "free")}
+              {user.user_type === "employer" ? "Employer" : "Candidate"} -{" "}
+              {planBadge(user.plan ?? "free")}
             </span>
             {user.plan && user.plan !== "free" && (
               <>
@@ -1034,14 +1261,14 @@ const PricingPage: React.FC<PricingPageProps> = ({
       </div>
 
       {/* Only show tabs when both sections are accessible (unauthenticated) */}
-      {!user || (!isVendor && !isCandidate && !isMarketer) ? (
+      {!user || (!isCandidate && !isEmployer) ? (
         <div className="pp-tabs" data-testid="pricing-tabs">
           <button
             className={`pp-tab${activeTab === 0 ? " pp-tab-active" : ""}`}
             onClick={() => setActiveTab(0)}
-            data-testid="tab-vendor"
+            data-testid="tab-employer"
           >
-            For Employers (Vendors)
+            For Employers
           </button>
           <button
             className={`pp-tab${activeTab === 1 ? " pp-tab-active" : ""}`}
@@ -1050,21 +1277,9 @@ const PricingPage: React.FC<PricingPageProps> = ({
           >
             For Candidates
           </button>
-          <button
-            className={`pp-tab${activeTab === 2 ? " pp-tab-active" : ""}`}
-            onClick={() => setActiveTab(2)}
-            data-testid="tab-marketer"
-          >
-            For Marketers
-          </button>
         </div>
       ) : (
         <div className="pp-tabs" data-testid="pricing-tabs">
-          {isVendor && (
-            <button className="pp-tab pp-tab-active" data-testid="tab-vendor">
-              For Employers (Vendors)
-            </button>
-          )}
           {isCandidate && (
             <button
               className="pp-tab pp-tab-active"
@@ -1073,9 +1288,9 @@ const PricingPage: React.FC<PricingPageProps> = ({
               For Candidates
             </button>
           )}
-          {isMarketer && (
-            <button className="pp-tab pp-tab-active" data-testid="tab-marketer">
-              For Marketers
+          {isEmployer && (
+            <button className="pp-tab pp-tab-active" data-testid="tab-employer">
+              For Employers
             </button>
           )}
         </div>
@@ -1099,16 +1314,12 @@ const PricingPage: React.FC<PricingPageProps> = ({
           </div>
         )}
 
-        {(activeTab === 0 || isVendor) && !isCandidate && renderVendorTab()}
+        {(activeTab === 0 || isEmployer) && !isCandidate && renderEmployerTab()}
 
-        {(activeTab === 1 || isCandidate) && !isVendor && renderCandidateTab()}
+        {(activeTab === 1 || isCandidate) &&
+          !isEmployer &&
+          renderCandidateTab()}
       </div>
-
-      {/* ── Marketer plans (tiered) ─────────────────────────────────── */}
-      {(activeTab === 2 || isMarketer) &&
-        !isVendor &&
-        !isCandidate &&
-        renderMarketerTab()}
 
       <div className="pp-footer" data-testid="pricing-footer">
         All payments processed securely via Stripe &nbsp;&nbsp; Vendor plans

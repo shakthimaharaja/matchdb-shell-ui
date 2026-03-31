@@ -18,8 +18,7 @@ import type { UserType } from "../constants";
 /** Default view (first sidebar sub-item) per user type */
 const DEFAULT_VIEWS: Record<string, string> = {
   candidate: "matches",
-  vendor: "postings",
-  marketer: "company-candidates",
+  employer: "postings",
 };
 
 type ModalMode = "login" | "register";
@@ -41,17 +40,14 @@ const EMPTY_REG: RegForm = {
 };
 
 const UPGRADE_DESCS: Record<UserType, string> = {
-  vendor:
-    "Free accounts can browse MatchDB but cannot post jobs or view matched candidates. Subscribe to the Basic plan ($22/mo) or higher to unlock full access.",
-  marketer:
-    "Subscribe to the Marketer plan ($100/month) to access the full live database of job openings and candidate profiles.",
+  employer:
+    "Subscribe to unlock the full Employer dashboard — post jobs, manage candidates, handle financials, immigration, and staffing operations all in one place.",
   candidate:
     "Free accounts can browse matched jobs. Purchase a Visibility Package to upload your profile and appear in employer searches — starting at $13.",
 };
 
 const UPGRADE_CTAS: Record<UserType, string> = {
-  vendor: "View Subscription Plans →",
-  marketer: "Subscribe to Marketer Plan →",
+  employer: "View Employer Plans →",
   candidate: "Purchase Visibility →",
 };
 
@@ -73,8 +69,7 @@ function resolveOauthError(msg: string): string {
 }
 
 function resolvePricingTab(userType?: string): string {
-  if (userType === "vendor") return "vendor";
-  if (userType === "marketer") return "marketer";
+  if (userType === "employer") return "employer";
   return "candidate";
 }
 
@@ -89,8 +84,7 @@ function resolvePostAuthAction(
   if (user?.user_type === "candidate") {
     return user.has_purchased_visibility ? "close" : "pricing";
   }
-  if (user?.user_type === "marketer" && user.plan !== "marketer")
-    return "upgrade";
+  if (user?.user_type === "employer" && user.plan === "free") return "upgrade";
   if (user?.plan === "free") return "upgrade";
   return "close";
 }
@@ -343,8 +337,7 @@ const LoginModal: React.FC = () => {
               className="login-modal-select"
             >
               <option value="candidate">👤 Candidate (Job Seeker)</option>
-              <option value="vendor">🏢 Vendor / Employer</option>
-              <option value="marketer">📊 Marketer</option>
+              <option value="employer">🏢 Employer</option>
             </select>
           </div>
         )}
@@ -462,8 +455,7 @@ const LoginModal: React.FC = () => {
                 }
               >
                 <option value="candidate">👤 Candidate (Job Seeker)</option>
-                <option value="vendor">🏢 Vendor / Employer</option>
-                <option value="marketer">📊 Marketer</option>
+                <option value="employer">🏢 Employer</option>
               </select>
               {locked && (
                 <span style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>
@@ -483,13 +475,13 @@ const LoginModal: React.FC = () => {
               <span>or register with email</span>
             </div>
 
-            {regForm.user_type === "vendor" && (
+            {regForm.user_type === "employer" && (
               <div className="lm-vendor-info">
                 <div className="lm-vendor-info-title">🏢 Employer Account</div>
                 <div className="lm-vendor-info-desc">
-                  Post job openings, review matched candidates, and send pokes.
-                  Free accounts can browse — subscribe from the Pricing page to
-                  start posting jobs.
+                  Post jobs, manage candidates, handle financials, immigration,
+                  timesheets, and staffing operations — all in one dashboard.
+                  Subscribe from the Pricing page to unlock full access.
                 </div>
               </div>
             )}
@@ -501,17 +493,6 @@ const LoginModal: React.FC = () => {
                   Create your free account and browse matched jobs. Purchase a
                   Visibility Package from the Pricing page to appear in employer
                   searches and get discovered.
-                </div>
-              </div>
-            )}
-
-            {regForm.user_type === "marketer" && (
-              <div className="lm-vendor-info">
-                <div className="lm-vendor-info-title">📊 Marketer Account</div>
-                <div className="lm-vendor-info-desc">
-                  Access a live database of all job openings and candidate
-                  profiles. Subscribe to the Marketer plan ($100/month) from the
-                  Pricing page to unlock the full intelligence dashboard.
                 </div>
               </div>
             )}
@@ -548,11 +529,7 @@ const LoginModal: React.FC = () => {
                 onChange={(e) => handleField("email", e.target.value)}
                 required
                 className="login-modal-input"
-                placeholder={
-                  regForm.user_type === "vendor"
-                    ? "work@company.com"
-                    : "your@email.com"
-                }
+                placeholder="your@email.com"
               />
             </div>
 

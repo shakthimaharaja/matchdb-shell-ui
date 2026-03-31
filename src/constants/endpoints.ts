@@ -21,7 +21,6 @@ export const PAYMENTS_CANDIDATE_PACKAGES = "api/payments/candidate-packages";
 export const PAYMENTS_CHECKOUT = "api/payments/checkout";
 export const PAYMENTS_CANDIDATE_CHECKOUT = "api/payments/candidate-checkout";
 export const PAYMENTS_PORTAL = "api/payments/portal";
-export const PAYMENTS_MARKETER_CHECKOUT = "api/payments/marketer-checkout";
 
 // ─── User Preferences ─────────────────────────────────────────────────────────
 

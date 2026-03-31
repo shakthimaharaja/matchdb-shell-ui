@@ -44,6 +44,7 @@ import {
   EVT_LOGIN_CONTEXT,
   EVT_JOB_TYPE_FILTER,
   EVT_OPEN_LOGIN,
+  EVT_LIVE_STATS,
   STRIPE_SUCCESS_PARAM,
   STRIPE_CANDIDATE_SUCCESS_PARAM,
   STRIPE_CANCELED_PARAM,
@@ -64,13 +65,12 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
   const [activeJobType, setActiveJobType] = useState<string>("");
   /** null = no sub-item selected (user is on /jobs or elsewhere) */
   const loginTypeFromPath = (() => {
-    if (location.pathname.startsWith("/jobs/vendor")) return "vendor";
     if (location.pathname.startsWith("/jobs/candidate")) return "candidate";
-    if (location.pathname.startsWith("/jobs/marketer")) return "marketer";
+    if (location.pathname.startsWith("/jobs/employer")) return "employer";
     return null;
   })();
   const [activeLoginType, setActiveLoginType] = useState<
-    "candidate" | "vendor" | "marketer" | null
+    "candidate" | "employer" | null
   >(loginTypeFromPath);
 
   /* Keep activeLoginType in sync when URL changes (e.g. back/forward) */
@@ -80,7 +80,6 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
   }, [location.pathname]);
   const [expandedMFEs, setExpandedMFEs] = useState<Record<string, boolean>>({});
   const [customizerOpen, setCustomizerOpen] = useState(false);
-
   const { themeMode, resolvedScheme } = useTheme();
 
   const isLoggedIn = !!token;
@@ -88,8 +87,8 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
   /* ── Pricing modal (triggered by Jobs MFE via custom event OR URL params) ── */
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
   const [pricingModalTab, setPricingModalTab] = useState<
-    "vendor" | "candidate"
-  >("vendor");
+    "candidate" | "employer"
+  >("employer");
   /**
    * Set to true when pricing modal is opened after a successful candidate payment.
    * When the modal closes, we fire matchdb:openProfile so the profile form opens next.
@@ -98,7 +97,8 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
 
   const handleOpenPricing = useCallback((e: Event) => {
     const detail = (e as CustomEvent).detail;
-    setPricingModalTab(detail?.tab === "candidate" ? "candidate" : "vendor");
+    const tab = detail?.tab;
+    setPricingModalTab(tab === "candidate" ? "candidate" : "employer");
     // If the event includes triggerProfile flag, sequence profile modal after pricing
     if (detail?.triggerProfile) setPendingProfileOpen(true);
     setPricingModalOpen(true);
@@ -131,7 +131,9 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
     const isCanceled = params.get(STRIPE_CANCELED_PARAM) === "true";
     if (isSuccess || isCandSucc || isCanceled) {
       const tab =
-        isCandSucc || user?.user_type === "candidate" ? "candidate" : "vendor";
+        isCandSucc || user?.user_type === "candidate"
+          ? "candidate"
+          : "employer";
       setPricingModalTab(tab);
       if (isCandSucc) {
         // Refresh user data from server so hasPurchasedVisibility reflects the completed payment,
@@ -172,11 +174,8 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
     };
   }, [handleSubNav, handleBreadcrumb]);
 
-  /* Nav = all 10 MFEs always visible; override 'Jobs Database' label per user type */
-  let jobsLabel = "Jobs Database";
-  if (user?.user_type === "vendor") jobsLabel = "Candidate Database";
-  else if (user?.user_type === "candidate") jobsLabel = "Jobs";
-  else if (user?.user_type === "marketer") jobsLabel = "Marketing Database";
+  /* Nav = all 10 MFEs always visible */
+  const jobsLabel = "Jobs";
   const navItems = useMemo(
     () =>
       MFE_NAV.map((n) => (n.id === "jobs" ? { ...n, label: jobsLabel } : n)),
@@ -258,6 +257,30 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
     };
   }, []);
 
+  /* ── Live stats from Jobs MFE (emitted via matchdb:liveStats) ── */
+  const [liveStats, setLiveStats] = useState<{
+    jobs: number | null;
+    profiles: number | null;
+    dailyNewJobs: number | null;
+    vendors: number | null;
+    marketers: number | null;
+  }>({
+    jobs: null,
+    profiles: null,
+    dailyNewJobs: null,
+    vendors: null,
+    marketers: null,
+  });
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (d) setLiveStats(d);
+    };
+    globalThis.addEventListener(EVT_LIVE_STATS, handler);
+    return () => globalThis.removeEventListener(EVT_LIVE_STATS, handler);
+  }, []);
+
   const initials = user
     ? `${user.first_name?.charAt(0) ?? ""}${
         user.last_name?.charAt(0) ?? ""
@@ -303,11 +326,8 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
 
   const drawerWidth = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
-  /* Shell-level job type subs — only for vendors; candidates use the MFE's Job Type nav */
-  const allowedSubdivisions = useMemo(
-    () => (isLoggedIn && user?.user_type === "vendor" ? JOB_TYPE_SUBS : []),
-    [isLoggedIn, user?.user_type],
-  );
+  /* Shell-level job type subs — employer uses the MFE's own nav */
+  const allowedSubdivisions: typeof JOB_TYPE_SUBS = [];
 
   /* All sub-nav groups are shown in the order they arrive from the MFE */
   const displaySubNavGroups = useMemo(() => {
@@ -341,7 +361,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
    * locked = false → user can choose candidate or vendor (header buttons, Jobs Database)
    */
   const openLogin = (
-    context: "candidate" | "vendor" | "marketer" = "candidate",
+    context: "candidate" | "employer" = "candidate",
     mode: "login" | "register" = "login",
     locked: boolean = false,
   ) => {
@@ -656,10 +676,28 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
             </div>
           )}
 
-          {/* ---- Login links for unauthenticated users ---- */}
+          {/* ---- Jobs section + Login links for unauthenticated users ---- */}
           {!collapsed && !isLoggedIn && (
             <ul className="legacy-shell-nav-list legacy-shell-apps-list">
               <li className="legacy-shell-app-entry">
+                <button
+                  type="button"
+                  className={`legacy-shell-nav-item${
+                    active?.id === "jobs" ? " active" : ""
+                  }`}
+                  onClick={() => {
+                    setActiveLoginType("candidate");
+                    navigate("/jobs/candidate");
+                  }}
+                  title="Jobs"
+                >
+                  <span
+                    className="legacy-shell-mfe-chip"
+                    style={{ background: "var(--mfe-chip-1)" }}
+                  />
+                  <i className="pi pi-briefcase legacy-shell-nav-icon" />
+                  <span>{jobsLabel}</span>
+                </button>
                 <ul className="legacy-shell-nav-list legacy-shell-jobtype-list">
                   {LOGIN_MODES.map((mode) => (
                     <li key={mode.id}>
@@ -670,7 +708,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
                         }`}
                         onClick={() => {
                           setActiveLoginType(
-                            mode.id as "candidate" | "vendor" | "marketer",
+                            mode.id as "candidate" | "employer",
                           );
                           navigate(`/jobs/${mode.id}`);
                         }}
@@ -898,7 +936,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
                 <p>
                   {isWelcome
                     ? "The data-driven marketplace"
-                    : "Browse job openings and candidate profiles"}
+                    : "An Intelligent Database Connecting Candidates, Openings, and Staffing Networks"}
                 </p>
               )}
             </div>
