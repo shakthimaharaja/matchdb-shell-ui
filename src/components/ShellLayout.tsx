@@ -258,7 +258,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
   }, []);
 
   /* ── Live stats from Jobs MFE (emitted via matchdb:liveStats) ── */
-  const [liveStats, setLiveStats] = useState<{
+  const [_liveStats, setLiveStats] = useState<{
     jobs: number | null;
     profiles: number | null;
     dailyNewJobs: number | null;
