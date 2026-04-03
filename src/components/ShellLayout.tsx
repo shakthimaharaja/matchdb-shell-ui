@@ -44,12 +44,20 @@ import {
   EVT_LOGIN_CONTEXT,
   EVT_JOB_TYPE_FILTER,
   EVT_OPEN_LOGIN,
-  EVT_LIVE_STATS,
   STRIPE_SUCCESS_PARAM,
   STRIPE_CANDIDATE_SUCCESS_PARAM,
   STRIPE_CANCELED_PARAM,
 } from "../constants";
 import { useTheme } from "matchdb-component-library";
+
+function getThemeDisplayLabel(
+  themeMode: string,
+  legacyLabel: "97" | "W97",
+): string {
+  if (themeMode === "classic") return "AWS";
+  if (themeMode === "modern") return "SaaS";
+  return legacyLabel;
+}
 
 const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
   const { user, token } = useAppSelector((state) => state.auth);
@@ -75,8 +83,11 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
 
   /* Keep activeLoginType in sync when URL changes (e.g. back/forward) */
   useEffect(() => {
-    setActiveLoginType(loginTypeFromPath);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (location.pathname.startsWith("/jobs/candidate"))
+      setActiveLoginType("candidate");
+    else if (location.pathname.startsWith("/jobs/employer"))
+      setActiveLoginType("employer");
+    else setActiveLoginType(null);
   }, [location.pathname]);
   const [expandedMFEs, setExpandedMFEs] = useState<Record<string, boolean>>({});
   const [customizerOpen, setCustomizerOpen] = useState(false);
@@ -146,7 +157,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
       // Clean up the URL so the modal doesn't re-open on navigation
       globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
-  }, [user?.user_type]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.user_type, refreshUserData]);
 
   /* Listen for sub-nav events emitted by the Jobs MFE */
   const handleSubNav = useCallback((e: Event) => {
@@ -257,30 +268,6 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
     };
   }, []);
 
-  /* ── Live stats from Jobs MFE (emitted via matchdb:liveStats) ── */
-  const [_liveStats, setLiveStats] = useState<{
-    jobs: number | null;
-    profiles: number | null;
-    dailyNewJobs: number | null;
-    vendors: number | null;
-    marketers: number | null;
-  }>({
-    jobs: null,
-    profiles: null,
-    dailyNewJobs: null,
-    vendors: null,
-    marketers: null,
-  });
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const d = (e as CustomEvent).detail;
-      if (d) setLiveStats(d);
-    };
-    globalThis.addEventListener(EVT_LIVE_STATS, handler);
-    return () => globalThis.removeEventListener(EVT_LIVE_STATS, handler);
-  }, []);
-
   const initials = user
     ? `${user.first_name?.charAt(0) ?? ""}${
         user.last_name?.charAt(0) ?? ""
@@ -325,6 +312,8 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
     navItems.find((item) => isPathActive(item.path, location.pathname)) ?? null;
 
   const drawerWidth = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
+  const headerThemeLabel = getThemeDisplayLabel(themeMode, "97");
+  const appearanceThemeLabel = getThemeDisplayLabel(themeMode, "W97");
 
   /* Shell-level job type subs — employer uses the MFE's own nav */
   const allowedSubdivisions: typeof JOB_TYPE_SUBS = [];
@@ -405,11 +394,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
           </div>
           <span className="legacy-shell-brand-title">MatchDB</span>
           <span className="legacy-shell-brand-subtitle">
-            {themeMode === "classic"
-              ? "AWS"
-              : themeMode === "modern"
-              ? "SaaS"
-              : "97"}
+            {headerThemeLabel}
           </span>
         </a>
 
@@ -441,11 +426,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
         >
           <span>🎨</span>
           <span className="legacy-shell-appearance-label">
-            {themeMode === "modern"
-              ? "SaaS"
-              : themeMode === "classic"
-              ? "AWS"
-              : "W97"}
+            {appearanceThemeLabel}
           </span>
         </button>
 

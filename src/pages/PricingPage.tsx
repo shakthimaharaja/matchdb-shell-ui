@@ -23,6 +23,15 @@ import {
 } from "./pricingPageHelpers";
 import "./PricingPage.css";
 
+function getMarketerButtonLabel(
+  checkoutLoading: boolean,
+  userPlan?: string | null,
+): string {
+  if (checkoutLoading) return "Please wait...";
+  if (!userPlan || userPlan === "free") return "Get Started";
+  return "Switch Plan";
+}
+
 //  Confirm Dialog (W97-native)
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -237,7 +246,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
       });
       globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [refreshUserData]);
 
   //  Vendor
   const handleVendorConfirm = async () => {
@@ -888,12 +897,10 @@ const PricingPage: React.FC<PricingPageProps> = ({
       "3": "basic",
       "4": "pro_plus",
     };
-
-    function marketerBtnLabel(): string {
-      if (checkoutLoading) return "Please wait...";
-      if (!user || user.plan === "free") return "Get Started";
-      return "Switch Plan";
-    }
+    const marketerBtnLabel = getMarketerButtonLabel(
+      checkoutLoading,
+      user?.plan,
+    );
 
     return (
       <div data-testid="marketer-section">
@@ -993,7 +1000,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
                         onClick={handleMarketerSubscribe}
                         data-testid={`marketer-tier-${tier.testIdSuffix}-subscribe-btn`}
                       >
-                        {marketerBtnLabel()}
+                        {marketerBtnLabel}
                       </button>
                     )}
                   </div>

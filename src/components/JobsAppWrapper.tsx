@@ -120,7 +120,15 @@ const JobsAppWrapper: React.FC = () => {
     };
 
     verifySession();
-  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    token,
+    refresh,
+    user?.user_type,
+    dispatch,
+    navigate,
+    triggerVerify,
+    refreshToken,
+  ]);
 
   return (
     <ErrorBoundary>

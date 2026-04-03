@@ -1280,7 +1280,7 @@
 
 [data-style="modern"] .theme-board-btn.active {
   background: rgba(255, 255, 255, 0.22);
-  color: #fff;
+  color: #10210e;
 }
 
 /* ── Modern (SaaS/QuickBooks) theme override ───────────────────────────── */
@@ -1304,5 +1304,5 @@
 
 [data-theme="modern2"] .theme-board-btn.active {
   background: #2ca01c;
-  color: #fff;
+  color: #10210e;
 }

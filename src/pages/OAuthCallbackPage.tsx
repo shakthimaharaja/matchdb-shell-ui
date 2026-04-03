@@ -25,7 +25,9 @@ const OAuthCallbackPage: React.FC = () => {
     if (oauthError) {
       // Backend signaled an error — redirect to login with error message
       const msg = decodeURIComponent(oauthError);
-      navigate(`/login?oauth_error=${encodeURIComponent(msg)}`, { replace: true });
+      navigate(`/login?oauth_error=${encodeURIComponent(msg)}`, {
+        replace: true,
+      });
       return;
     }
 
@@ -41,7 +43,7 @@ const OAuthCallbackPage: React.FC = () => {
     } catch {
       navigate("/login?oauth_error=parse_error", { replace: true });
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch, navigate]);
 
   return (
     <Box

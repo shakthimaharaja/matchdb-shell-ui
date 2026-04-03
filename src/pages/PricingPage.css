@@ -238,7 +238,7 @@
 .pp-plan-divider {
   border: none;
   border-top: 1px solid var(--w97-border-light, #ddd);
-  margin: 0;
+  margin: 6px 0;
 }
 
 .pp-plan-features {
@@ -373,12 +373,6 @@
   padding: 1px 5px;
   border-radius: 3px;
 }
-.pp-plan-divider {
-  border: none;
-  border-top: 1px solid var(--w97-border-light, #ddd);
-  margin: 6px 0;
-}
-
 /* ── Candidate packages ─────────────────────────── */
 .pp-pkg-grid {
   display: grid;

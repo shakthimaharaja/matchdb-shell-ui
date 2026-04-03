@@ -192,7 +192,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
   // Apply saved custom colors on mount
   useEffect(() => {
     if (localTheme === "modern") applyCustomColors(loadCustomColors());
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [localTheme]);
 
   const updateColor = useCallback(
     (key: keyof CustomColors, val: string) => {
@@ -238,10 +238,14 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
       <div className="tc-overlay" onClick={onClose} aria-hidden="true" />
 
       {/* Panel */}
-      <aside
+      <dialog
+        open
         className="tc-panel"
-        role="dialog"
         aria-label="Appearance settings"
+        onCancel={(event) => {
+          event.preventDefault();
+          onClose();
+        }}
       >
         {/* Header */}
         <div className="tc-header">
@@ -278,14 +282,15 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
                   Reduce eye strain in low light
                 </div>
               </div>
-              <label className="tc-switch">
+              <div className="tc-switch">
                 <input
                   type="checkbox"
                   checked={localDark}
+                  aria-label="Toggle dark mode"
                   onChange={(e) => setLocalDark(e.target.checked)}
                 />
                 <span className="tc-switch-track" />
-              </label>
+              </div>
             </div>
           </div>
 
@@ -338,7 +343,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
           </button>
           {saved && <div className="tc-saved-badge">✓ Preferences saved</div>}
         </div>
-      </aside>
+      </dialog>
     </>
   );
 };
