@@ -6,7 +6,7 @@
   flex-direction: column;
   height: 100%;
   font-family: inherit;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: 500;
   color: var(--w97-text);
 }
@@ -39,12 +39,12 @@
 }
 
 .wlc-titlebar-icon {
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale, 1));
 }
 
 .wlc-titlebar-title {
   flex: 1;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: bold;
   color: var(--w97-titlebar-text, #fff);
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
@@ -52,7 +52,7 @@
 }
 
 .wlc-titlebar-meta {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-titlebar-text, #fff);
   opacity: 0.75;
   margin-right: 4px;
@@ -72,7 +72,7 @@
 
 .wlc-menu-item {
   padding: 1px 8px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   cursor: default;
   color: var(--w97-text);
   user-select: none;
@@ -132,7 +132,7 @@
 /* ── Individual terminal lines ── */
 .wlc-line {
   font-family: "Lucida Console", "Courier New", Courier, monospace;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   line-height: 1.65;
   white-space: pre;
   color: var(--w97-text);
@@ -192,14 +192,14 @@
 }
 
 .wlc-cta-headline {
-  font-size: 16px;
+  font-size: calc(16px * var(--fs-scale, 1));
   font-weight: bold;
   color: var(--w97-navy, #235a81);
   margin-bottom: 1px;
 }
 
 .wlc-cta-sub {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-text-secondary, #555);
 }
 
@@ -212,7 +212,7 @@
 /* W97-style raised button */
 .wlc-btn {
   padding: 3px 12px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-family: inherit;
   cursor: pointer;
   background: var(--w97-btn-face, #e5e5e5);
@@ -257,7 +257,7 @@
 
 .wlc-statusbar span {
   padding: 1px 8px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-text);
   border-top: 1px solid var(--w97-btn-shadow, #aaa);
   border-left: 1px solid var(--w97-btn-shadow, #aaa);

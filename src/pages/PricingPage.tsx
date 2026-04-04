@@ -73,15 +73,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </div>
 
         <div className="pp-confirm-body" data-testid="confirm-dialog-body">
-          <div
-            style={{
-              fontSize: 10,
-              color: "var(--w97-text-secondary)",
-              marginBottom: -2,
-            }}
-          >
-            {subtitle}
-          </div>
+          <div className="matchdb-subtitle">{subtitle}</div>
 
           <div className="pp-confirm-card" data-testid="confirm-dialog-card">
             <div className="pp-confirm-card-title">{cardTitle}</div>
@@ -401,29 +393,11 @@ const PricingPage: React.FC<PricingPageProps> = ({
     const isFullBundle = packageId === "full_bundle";
     return (
       <div>
-        <div
-          style={{
-            fontSize: 10,
-            color: "var(--w97-text-secondary)",
-            marginBottom: 3,
-          }}
-        >
-          Visible in:
-        </div>
+        <div className="matchdb-subtitle u-mb-3">Visible in:</div>
         {isFullBundle ? (
           (["contract", "full_time"] as const).map((d) => (
-            <div key={d} style={{ marginBottom: 4 }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: 2,
-                }}
-              >
-                {DOMAIN_LABELS[d]}
-              </div>
+            <div key={d} className="u-mb-4">
+              <div className="matchdb-domain-label">{DOMAIN_LABELS[d]}</div>
               <div className="pp-confirm-subs">
                 {(d === "contract"
                   ? CONTRACT_SUBDOMAINS
@@ -438,15 +412,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
           ))
         ) : (
           <div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: 2,
-              }}
-            >
+            <div className="matchdb-domain-label">
               {DOMAIN_LABELS[selectedDomain] || selectedDomain}
             </div>
             <div className="pp-confirm-subs">
@@ -486,8 +452,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
     if (plan.price === 0) {
       return (
         <button
-          className="pp-btn"
-          style={{ width: "100%" }}
+          className="pp-btn u-w-full"
           disabled
           data-testid={`vendor-plan-free-btn-${plan.id}`}
         >
@@ -497,8 +462,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
     }
     return (
       <button
-        className="pp-btn pp-btn-primary"
-        style={{ width: "100%" }}
+        className="pp-btn pp-btn-primary u-w-full"
         disabled={loadingPlanId === plan.id || checkoutLoading}
         onClick={() => {
           if (!token) {
@@ -537,13 +501,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
             </span>
           </div>
 
-          <div
-            style={{
-              fontSize: 10,
-              color: "var(--w97-text-secondary)",
-              marginBottom: 8,
-            }}
-          >
+          <div className="matchdb-subtitle u-mb-8">
             Review your selection before proceeding to Stripe
           </div>
 
@@ -616,7 +574,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
                 data-testid={`vendor-plan-card-${plan.id}`}
               >
                 <div className={`pp-plan-titlebar pp-plan-titlebar-${plan.id}`}>
-                  <span style={{ flex: 1 }}>{plan.name}</span>
+                  <span className="u-flex-1">{plan.name}</span>
                   <span
                     className={`pp-plan-badge${
                       plan.highlighted ? " pp-plan-badge-popular" : ""
@@ -685,18 +643,16 @@ const PricingPage: React.FC<PricingPageProps> = ({
       <button
         type="button"
         key={sub.value}
+        onClick={() => clickable && handleSubClick(domain, sub.value)}
         className={[
           "pp-sub-tile",
           active ? "pp-sub-tile-active" : "",
           isOwned ? "pp-sub-tile-owned" : "",
           !clickable && !isOwned && !active ? "pp-sub-tile-disabled" : "",
+          clickable ? "u-cursor-pointer" : "u-cursor-default",
         ]
           .filter(Boolean)
           .join(" ")}
-        onClick={() => clickable && handleSubClick(domain, sub.value)}
-        style={{
-          cursor: clickable ? "pointer" : "default",
-        }}
         data-testid={`sub-tile-${domain}-${sub.value}`}
       >
         <span className="pp-sub-tile-label">{sub.label}</span>
@@ -806,11 +762,12 @@ const PricingPage: React.FC<PricingPageProps> = ({
               >
                 <button
                   type="button"
-                  className="pp-domain-panel-header"
                   onClick={() => isDomainClickable && handleDomainClick(domain)}
-                  style={{
-                    cursor: isDomainClickable ? "pointer" : "default",
-                  }}
+                  className={
+                    isDomainClickable
+                      ? "pp-domain-panel-header u-cursor-pointer"
+                      : "pp-domain-panel-header u-cursor-default"
+                  }
                   data-testid={`domain-panel-header-${domain}`}
                 >
                   <span>{DOMAIN_LABELS[domain]}</span>
@@ -845,8 +802,8 @@ const PricingPage: React.FC<PricingPageProps> = ({
               <span className="pp-purchase-note">one-time</span>
             </div>
             <button
-              className="pp-btn pp-btn-primary pp-btn-wide"
-              style={{ height: 28, fontSize: 12 }}
+              className="pp-btn pp-btn-primary pp-btn-wide u-fs-12"
+              style={{ height: 28 }}
               disabled={loadingPkgId !== null || checkoutLoading}
               onClick={() => {
                 if (!token) {
@@ -877,8 +834,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
           selectedPkg !== "full_bundle" &&
           selectedPkg !== "single_domain_bundle" && (
             <div
-              className="pp-alert pp-alert-info"
-              style={{ marginTop: 0 }}
+              className="pp-alert pp-alert-info u-mt-0"
               data-testid="candidate-selection-hint"
             >
               {selectedPkg === "base"
@@ -906,7 +862,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
       <div data-testid="marketer-section">
         <div className="pp-section-label">
           Staffing Plans - monthly recurring, cancel anytime{" "}
-          <span style={{ fontSize: 10, marginLeft: 8, color: "#666" }}>
+          <span className="matchdb-note u-ml-8">
             Pay annually &amp; get 1 month free (save 8.3%)
           </span>
         </div>
@@ -931,7 +887,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
                 data-testid={`marketer-tier-${tier.testIdSuffix}-card`}
               >
                 <div className={`pp-plan-titlebar pp-plan-titlebar-${color}`}>
-                  <span style={{ flex: 1 }}>{tier.name}</span>
+                  <span className="u-flex-1">{tier.name}</span>
                   <span
                     className={`pp-plan-badge${
                       tier.highlighted ? " pp-plan-badge-popular" : ""
@@ -973,15 +929,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
                   <div className="pp-plan-action">
                     {isCurrent ? (
                       <>
-                        <span
-                          className="pp-plan-badge"
-                          style={{
-                            background: "#2e7d32",
-                            color: "#fff",
-                            display: "inline-block",
-                            marginBottom: 6,
-                          }}
-                        >
+                        <span className="matchdb-badge-success u-mb-6">
                           Active
                         </span>
                         <button
@@ -1041,7 +989,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
               data-testid={`combined-tier-${tier.testIdSuffix}-card`}
             >
               <div className={`pp-plan-titlebar pp-plan-titlebar-${color}`}>
-                <span style={{ flex: 1 }}>{tier.name}</span>
+                <span className="u-flex-1">{tier.name}</span>
                 <span
                   className={`pp-plan-badge${
                     tier.highlighted ? " pp-plan-badge-popular" : ""
@@ -1106,7 +1054,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
   function renderEmployerTab() {
     return (
       <div data-testid="employer-section">
-        <div className="pp-section-label" style={{ marginBottom: 4 }}>
+        <div className="pp-section-label u-mb-4">
           Employer Plans &mdash; combined Vendor + Staffing access
         </div>
 
@@ -1144,20 +1092,9 @@ const PricingPage: React.FC<PricingPageProps> = ({
         {/* ── Combined plans ── */}
         {employerView === "combined" && (
           <>
-            <div
-              className="pp-section-label"
-              style={{ fontSize: 11, marginTop: 8, marginBottom: 4 }}
-            >
+            <div className="pp-section-label u-fs-11 u-mt-8 u-mb-4">
               Employer Subscription Plans &mdash; Job Posting + Staffing{" "}
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 400,
-                  color: "#666",
-                  textTransform: "none",
-                  letterSpacing: 0,
-                }}
-              >
+              <span className="matchdb-note">
                 Monthly recurring, cancel anytime &middot; Pay annually &amp;
                 save 8.3%
               </span>
@@ -1169,10 +1106,7 @@ const PricingPage: React.FC<PricingPageProps> = ({
         {/* ── Job Posting Only plans ── */}
         {employerView === "job-posting" && (
           <>
-            <div
-              className="pp-section-label"
-              style={{ fontSize: 11, marginTop: 8, marginBottom: 4 }}
-            >
+            <div className="pp-section-label u-fs-11 u-mt-8 u-mb-4">
               Job Posting Plans &mdash; Subscription only
             </div>
             {renderVendorTab()}
@@ -1182,22 +1116,9 @@ const PricingPage: React.FC<PricingPageProps> = ({
         {/* ── Staffing Only plans ── */}
         {employerView === "staffing" && (
           <>
-            <div
-              className="pp-section-label"
-              style={{ fontSize: 11, marginTop: 8, marginBottom: 4 }}
-            >
+            <div className="pp-section-label u-fs-11 u-mt-8 u-mb-4">
               Staffing / Candidate Management Plans &mdash; Subscription only{" "}
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 400,
-                  color: "#666",
-                  textTransform: "none",
-                  letterSpacing: 0,
-                }}
-              >
-                Pay annually &amp; save 8.3%
-              </span>
+              <span className="matchdb-note">Pay annually &amp; save 8.3%</span>
             </div>
             {renderMarketerTab()}
           </>
@@ -1251,8 +1172,8 @@ const PricingPage: React.FC<PricingPageProps> = ({
               <>
                 <span className="pp-statusbar-sep">|</span>
                 <button
-                  className="pp-btn"
-                  style={{ height: 18, fontSize: 10 }}
+                  className="pp-btn u-fs-10"
+                  style={{ height: 18 }}
                   onClick={handlePortal}
                   disabled={checkoutLoading}
                   data-testid="statusbar-manage-billing-btn"

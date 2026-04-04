@@ -59,7 +59,7 @@
   min-width: 0;
 }
 .legacy-shell-toggle.p-button .p-button-icon {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
 }
 
 .legacy-shell-signout.p-button {
@@ -67,7 +67,7 @@
   height: 24px;
 }
 .legacy-shell-signout.p-button .p-button-label {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
 }
 
 /* Dark-mode toggle */
@@ -86,7 +86,7 @@
   min-width: 0;
 }
 .legacy-shell-darkmode.p-button .p-button-icon {
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale, 1));
 }
 
 /* ── Font-size dropdown ── */
@@ -125,7 +125,7 @@
   color: var(--w97-text);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   text-align: left;
 }
 
@@ -146,13 +146,13 @@
 }
 
 .matchdb-fontsize-small {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
 }
 .matchdb-fontsize-medium {
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale, 1));
 }
 .matchdb-fontsize-large {
-  font-size: 17px;
+  font-size: calc(17px * var(--fs-scale, 1));
 }
 
 .matchdb-fontsize-text {
@@ -201,14 +201,14 @@
 .legacy-shell-brand-title {
   color: var(--w97-titlebar-text);
   font-weight: bold;
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale, 1));
   letter-spacing: 0.3px;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
 }
 
 .legacy-shell-brand-subtitle {
   color: var(--w97-titlebar-text);
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   opacity: 0.8;
   margin-left: 4px;
 }
@@ -228,7 +228,7 @@
   background: var(--w97-green) !important;
   border: 1px solid var(--w97-btn-dark);
   color: #fff !important;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   font-weight: bold;
   padding: 1px 6px;
 }
@@ -260,7 +260,7 @@
 }
 
 .legacy-shell-user-caret {
-  font-size: 9px;
+  font-size: calc(9px * var(--fs-scale, 1));
   opacity: 0.7;
   margin-left: 2px;
   flex-shrink: 0;
@@ -297,7 +297,7 @@
   align-items: center;
   gap: 5px;
   padding: 3px 6px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   font-weight: 700;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
   user-select: none;
@@ -317,7 +317,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 10px;
+  font-size: calc(10px * var(--fs-scale, 1));
   padding: 0;
   font-weight: 700;
   line-height: 1;
@@ -348,7 +348,7 @@
 }
 
 .shell-account-label {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   font-weight: 700;
   color: var(--w97-text-secondary, #4e4e4e);
   width: 72px;
@@ -357,7 +357,7 @@
 }
 
 .shell-account-value {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-text, #000);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -382,7 +382,7 @@
 
 .shell-account-panel-signout {
   height: 22px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   font-weight: 700;
   border-top: 1px solid var(--w97-btn-highlight, #fff);
   border-left: 1px solid var(--w97-btn-highlight, #fff);
@@ -443,7 +443,7 @@
   font-weight: bold;
   width: 22px;
   height: 22px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   border-radius: 4px !important;
   border: 1px solid var(--w97-btn-dark);
 }
@@ -451,7 +451,7 @@
 .legacy-shell-avatar.big.p-avatar {
   width: 32px;
   height: 32px;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs-scale, 1));
 }
 
 .legacy-shell-user-text {
@@ -460,11 +460,11 @@
 
 .legacy-shell-user-name {
   font-weight: bold;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
 }
 
 .legacy-shell-user-type {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   opacity: 0.75;
 }
 
@@ -517,7 +517,7 @@
 }
 
 .legacy-shell-sidebar-name {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-text);
   font-weight: bold;
 }
@@ -531,7 +531,7 @@
 }
 
 .legacy-shell-sidebar-type {
-  font-size: 10px;
+  font-size: calc(10px * var(--fs-scale, 1));
   opacity: 0.65;
   color: var(--w97-text);
   margin-top: 1px;
@@ -693,7 +693,7 @@
     var(--w97-titlebar-to)
   );
   color: var(--w97-titlebar-text);
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   font-weight: bold;
   letter-spacing: 0.5px;
   padding: 3px 8px;
@@ -730,7 +730,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -776,7 +776,7 @@
 
 /* "soon" tag on disabled MFEs */
 .legacy-shell-mfe-soon {
-  font-size: 10px;
+  font-size: calc(10px * var(--fs-scale, 1));
   font-weight: 700;
   text-transform: uppercase;
   background: var(--w97-btn-shadow);
@@ -791,7 +791,7 @@
 
 .legacy-shell-nav-icon {
   width: 14px;
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale, 1));
   flex-shrink: 0;
 }
 
@@ -836,24 +836,24 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
 }
 
 .legacy-shell-subnav-icon {
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale, 1));
   flex-shrink: 0;
 }
 
 .legacy-shell-subnav-item {
   padding-left: 20px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   gap: 4px;
 }
 
 /* Depth-1 child items — indented under their parent */
 .legacy-shell-subnav-item.depth-1 {
   padding-left: 30px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-text-secondary, #555);
   border-left: 2px solid var(--w97-border-light, #ddd);
   margin-left: 14px;
@@ -870,7 +870,7 @@
 }
 
 .legacy-shell-subnav-bullet {
-  font-size: 10px;
+  font-size: calc(10px * var(--fs-scale, 1));
   color: var(--w97-blue);
   flex-shrink: 0;
   width: 10px;
@@ -889,7 +889,7 @@
 .legacy-shell-subnav-count {
   background: var(--w97-navy);
   color: #fff;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   font-weight: 700;
   padding: 0px 4px;
   flex-shrink: 0;
@@ -910,7 +910,7 @@
 .legacy-shell-visible-in {
   background: #c0e8c0;
   color: #006000;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   font-weight: 600;
   padding: 2px 10px;
   display: flex;
@@ -925,7 +925,7 @@
 }
 .legacy-shell-visible-icon {
   margin-right: 6px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
 }
 
 /* Upgrade button in pagehead */
@@ -948,7 +948,7 @@
 .legacy-shell-pagehead h2 {
   margin: 0;
   color: var(--w97-navy);
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale, 1));
   font-weight: 800;
   letter-spacing: 0.3px;
   display: flex;
@@ -990,7 +990,7 @@
 .legacy-shell-pagehead p {
   margin: 0;
   color: var(--w97-text-secondary);
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   font-weight: 500;
   letter-spacing: 0.1px;
 }
@@ -1008,7 +1008,7 @@
 
 /* Subscription country badge in pagehead-right */
 .legacy-shell-sub-country {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   font-weight: 600;
   color: var(--w97-navy);
   white-space: nowrap;
@@ -1041,7 +1041,7 @@
 
 .legacy-shell-location-select {
   font-family: inherit;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   padding: 2px 4px;
   border: 2px solid;
   border-top-color: var(--w97-btn-dark, #404040);
@@ -1060,6 +1060,8 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
   overflow: hidden;
   background: var(--w97-content-bg);
   padding: 0;
@@ -1082,7 +1084,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 4px;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   margin-top: 0;
 }
 
@@ -1098,7 +1100,7 @@
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   .legacy-shell-nav-group-title {
-    font-size: 11px;
+    font-size: calc(11px * var(--fs-scale, 1));
     letter-spacing: 0;
     padding: 3px 4px;
     text-align: center;
@@ -1117,7 +1119,7 @@
     border-left-width: 2px;
   }
   .legacy-shell-nav-item .legacy-shell-nav-icon {
-    font-size: 15px;
+    font-size: calc(15px * var(--fs-scale, 1));
     width: auto;
   }
   .legacy-shell-nav-item.active {
@@ -1156,7 +1158,7 @@
     display: none;
   }
   .legacy-shell-pagehead h2 {
-    font-size: 13px;
+    font-size: calc(13px * var(--fs-scale, 1));
   }
 }
 
@@ -1177,7 +1179,7 @@
   background: #1d4e73;
   color: #e8f0f7;
   font-family: inherit;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
@@ -1189,7 +1191,7 @@
   border-color: #6aa3cc;
 }
 .legacy-shell-appearance-label {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   color: #c8ddf0;
 }
 
@@ -1229,7 +1231,7 @@
   border: none;
   background: transparent;
   color: var(--w97-text, #222);
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -1251,7 +1253,7 @@
 }
 
 .theme-board-icon {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   line-height: 1;
 }
 

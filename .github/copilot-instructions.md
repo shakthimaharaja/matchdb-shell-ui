@@ -1,8 +1,8 @@
-# MatchDB Shell UI — Copilot Rules
+# MatchingDB Shell UI — Copilot Rules
 
 ## Project Overview
 
-This is the **host / shell micro-frontend** for the MatchDB staffing platform. It runs on **port 3000** (webpack dev server) + **port 4000** (proxy server). It renders the sidebar nav, header, dark mode toggle, login modal, pricing modal, and page layout. It dynamically loads the Jobs UI remote via **Webpack 5 Module Federation**.
+This is the **host / shell micro-frontend** for the MatchingDB staffing platform. It runs on **port 3000** (webpack dev server) + **port 4000** (proxy server). It renders the sidebar nav, header, dark mode toggle, login modal, pricing modal, and page layout. It dynamically loads the Jobs UI remote via **Webpack 5 Module Federation**.
 
 **Stack:** React 18, TypeScript, Webpack 5 Module Federation, Redux Toolkit, Tailwind CSS, MUI, matchdb-component-library
 

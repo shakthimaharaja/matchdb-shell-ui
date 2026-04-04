@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   useTheme,
   type ThemeMode,
-  type TextSize,
+  type ThemeTextSize,
 } from "matchdb-component-library";
 import "./ThemeCustomizer.css";
 
@@ -176,7 +176,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
   // Local draft state — mirrors context until user hits Apply
   const [localTheme, setLocalTheme] = useState<ThemeMode>(themeMode);
   const [localDark, setLocalDark] = useState(resolvedScheme === "dark");
-  const [localFontSize, setLocalFontSize] = useState<TextSize>(textSize);
+  const [localFontSize, setLocalFontSize] = useState<ThemeTextSize>(textSize);
 
   // Sync local drafts when context changes externally
   useEffect(() => {
@@ -298,7 +298,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
           <div>
             <div className="tc-section-label">Text Size</div>
             <div className="tc-size-row">
-              {(["small", "medium", "large"] as TextSize[]).map((s) => (
+              {(["small", "medium", "large"] as ThemeTextSize[]).map((s) => (
                 <button
                   key={s}
                   type="button"

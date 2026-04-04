@@ -58,7 +58,7 @@ dialog[open].login-modal-overlay {
   );
   color: var(--w97-titlebar-text, #ffffff);
   padding: 3px 4px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: bold;
 }
 
@@ -68,7 +68,7 @@ dialog[open].login-modal-overlay {
 }
 
 .login-modal-context {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   opacity: 0.8;
   font-weight: normal;
 }
@@ -80,7 +80,7 @@ dialog[open].login-modal-overlay {
   border-right: 1px solid var(--w97-btn-dark, #404040);
   border-bottom: 1px solid var(--w97-btn-dark, #404040);
   color: var(--w97-text, #000);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   cursor: pointer;
   padding: 0 4px;
   line-height: 1;
@@ -109,7 +109,7 @@ dialog[open].login-modal-overlay {
   padding: 4px 0;
   background: var(--w97-btn-face, #c0c0c0);
   color: var(--w97-text, #000);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: normal;
   cursor: pointer;
   text-align: center;
@@ -163,7 +163,7 @@ dialog[open].login-modal-overlay {
 }
 
 .login-modal-field label {
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: normal;
   color: var(--w97-text, #000);
 }
@@ -178,7 +178,7 @@ dialog[open].login-modal-overlay {
   border-right: 1px solid var(--w97-btn-highlight, #fff) !important;
   border-bottom: 1px solid var(--w97-btn-highlight, #fff) !important;
   background: var(--w97-input-bg, #fff) !important;
-  font-size: 13px !important;
+  font-size: calc(13px * var(--fs-scale, 1)) !important;
   padding: 3px 4px !important;
   height: 24px !important;
   box-shadow: none !important;
@@ -197,7 +197,7 @@ dialog[open].login-modal-overlay {
   border-right: 1px solid var(--w97-btn-highlight, #fff);
   border-bottom: 1px solid var(--w97-btn-highlight, #fff);
   background: var(--w97-input-bg, #fff);
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   padding: 2px 4px;
   height: 24px;
   font-family: inherit;
@@ -207,7 +207,7 @@ dialog[open].login-modal-overlay {
 
 .login-modal-error.p-message {
   border-radius: 0 !important;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   margin: 0;
   padding: 4px 8px;
   background: #fff0f0 !important;
@@ -229,7 +229,7 @@ dialog[open].login-modal-overlay {
   font-family: inherit !important;
 }
 .login-modal-submit.p-button .p-button-label {
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: bold;
 }
 .login-modal-submit.p-button:not(:disabled):hover {
@@ -245,7 +245,7 @@ dialog[open].login-modal-overlay {
 /* ===== SMALL HINT TEXT ===== */
 .lm-hint {
   font-weight: normal;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   color: var(--w97-text-secondary, #666);
 }
 
@@ -259,14 +259,14 @@ dialog[open].login-modal-overlay {
 }
 
 .lm-vendor-info-title {
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: bold;
   color: var(--w97-navy, #235a81);
   margin-bottom: 3px;
 }
 
 .lm-vendor-info-desc {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-text-secondary, #555);
   line-height: 1.4;
 }
@@ -282,7 +282,7 @@ dialog[open].login-modal-overlay {
   border-right: 2px solid var(--w97-btn-dark, #404040) !important;
   border-bottom: 2px solid var(--w97-btn-dark, #404040) !important;
   height: 28px;
-  font-size: 13px !important;
+  font-size: calc(13px * var(--fs-scale, 1)) !important;
   font-family: inherit !important;
   margin: 2px 0;
   display: flex;
@@ -298,7 +298,7 @@ dialog[open].login-modal-overlay {
 
 .lm-google-btn.p-button .p-button-icon {
   color: #4285f4;
-  font-size: 15px;
+  font-size: calc(15px * var(--fs-scale, 1));
 }
 
 .lm-oauth-divider {
@@ -306,7 +306,7 @@ dialog[open].login-modal-overlay {
   align-items: center;
   gap: 8px;
   margin: 6px 0;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-text-secondary, #666);
 }
 
@@ -338,19 +338,19 @@ dialog[open].login-modal-overlay {
 }
 
 .lm-upgrade-icon {
-  font-size: 36px;
+  font-size: calc(36px * var(--fs-scale, 1));
   margin-bottom: 10px;
 }
 
 .lm-upgrade-title {
-  font-size: 16px;
+  font-size: calc(16px * var(--fs-scale, 1));
   font-weight: 700;
   color: var(--w97-navy, #235a81);
   margin: 0 0 10px;
 }
 
 .lm-upgrade-desc {
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   color: var(--w97-text-secondary, #444);
   line-height: 1.55;
   max-width: 320px;
@@ -361,14 +361,14 @@ dialog[open].login-modal-overlay {
   width: 100%;
   max-width: 300px;
   margin-bottom: 10px;
-  font-size: 13px !important;
+  font-size: calc(13px * var(--fs-scale, 1)) !important;
 }
 
 .lm-upgrade-skip {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: var(--w97-text-secondary, #666);
   text-decoration: underline;
   padding: 0;

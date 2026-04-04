@@ -17,7 +17,7 @@
   border: none;
   border-radius: 9999px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
@@ -33,7 +33,7 @@
   transform: translateY(0);
 }
 .tc-trigger-icon {
-  font-size: 16px;
+  font-size: calc(16px * var(--fs-scale, 1));
   line-height: 1;
 }
 
@@ -83,7 +83,7 @@
   flex-shrink: 0;
 }
 .tc-title {
-  font-size: 15px;
+  font-size: calc(15px * var(--fs-scale, 1));
   font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.01em;
@@ -98,7 +98,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   color: #64748b;
   transition: background 0.15s ease, color 0.15s ease;
 }
@@ -122,7 +122,7 @@
 
 /* ── Section ────────────────────────────────────────────────────────────── */
 .tc-section-label {
-  font-size: 10px;
+  font-size: calc(10px * var(--fs-scale, 1));
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -184,7 +184,7 @@
 .tc-card-bar.w60 { width: 60%; }
 .tc-card-bar.w45 { width: 45%; }
 .tc-card-name {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   font-weight: 600;
   color: #374151;
   text-align: center;
@@ -201,7 +201,7 @@
   border-radius: 50%;
   align-items: center;
   justify-content: center;
-  font-size: 8px;
+  font-size: calc(8px * var(--fs-scale, 1));
   color: #fff;
 }
 
@@ -212,12 +212,12 @@
   justify-content: space-between;
 }
 .tc-toggle-label {
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale, 1));
   font-weight: 500;
   color: #374151;
 }
 .tc-toggle-desc {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   color: #94a3b8;
   margin-top: 1px;
 }
@@ -291,13 +291,13 @@
   line-height: 1;
 }
 .tc-size-lbl {
-  font-size: 10px;
+  font-size: calc(10px * var(--fs-scale, 1));
   color: #94a3b8;
   font-weight: 500;
 }
-.tc-size-btn:nth-child(1) .tc-size-letter { font-size: 14px; }
-.tc-size-btn:nth-child(2) .tc-size-letter { font-size: 18px; }
-.tc-size-btn:nth-child(3) .tc-size-letter { font-size: 22px; }
+.tc-size-btn:nth-child(1) .tc-size-letter { font-size: calc(14px * var(--fs-scale, 1)); }
+.tc-size-btn:nth-child(2) .tc-size-letter { font-size: calc(18px * var(--fs-scale, 1)); }
+.tc-size-btn:nth-child(3) .tc-size-letter { font-size: calc(22px * var(--fs-scale, 1)); }
 
 /* ── Color pickers (custom section) ────────────────────────────────────── */
 .tc-colors-grid {
@@ -311,7 +311,7 @@
   gap: 5px;
 }
 .tc-color-lbl {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale, 1));
   font-weight: 600;
   color: #64748b;
   text-transform: uppercase;
@@ -344,7 +344,7 @@
   border: none;
   outline: none;
   font-family: "SF Mono", "Fira Code", monospace;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: #374151;
   background: transparent;
   min-width: 0;
@@ -365,7 +365,7 @@
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #fff;
   font-family: "Inter", sans-serif;
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale, 1));
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s ease, transform 0.1s ease;
@@ -380,7 +380,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs-scale, 1));
   color: #22c55e;
   margin-top: 8px;
   justify-content: center;

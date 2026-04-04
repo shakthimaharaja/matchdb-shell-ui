@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAppSelector } from "../store";
-import { Button } from "matchdb-component-library";
+import { Button, Text } from "matchdb-component-library";
 import axios from "axios";
 import { RESUME_VIEW, RESUME_DOWNLOAD } from "../constants/endpoints";
 
@@ -53,47 +53,34 @@ const ResumeViewPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={styles.center}>
-        <div
-          className="matchdb-panel"
-          style={{ maxWidth: 720, width: "100%", padding: 0 }}
-        >
-          <div className="rm-titlebar" style={{ borderRadius: 0 }}>
+      <div className="matchdb-loading-center">
+        <div className="matchdb-panel u-max-w-720 u-w-full u-p-0">
+          <div className="rm-titlebar u-rounded-0">
             <span className="rm-titlebar-icon">📄</span>
             <span className="rm-titlebar-title">Resume — Loading…</span>
           </div>
-          <div style={{ padding: "16px 20px" }}>
+          <div className="u-p-16">
             <div
-              className="w97-shimmer w97-shimmer-xl"
-              style={{ height: 14, marginBottom: 8, display: "block" }}
+              className="w97-shimmer w97-shimmer-xl u-block u-mb-8"
+              style={{ height: 14 }}
             />
             <div
-              className="w97-shimmer w97-shimmer-lg"
-              style={{ height: 12, marginBottom: 16, display: "block" }}
+              className="w97-shimmer w97-shimmer-lg u-block u-mb-16"
+              style={{ height: 12 }}
             />
             {[100, 80, 95, 70, 90].map((w) => (
               <div
                 key={`shimmer-${w}`}
-                className="w97-shimmer"
-                style={{
-                  height: 12,
-                  marginBottom: 6,
-                  width: `${w}%`,
-                  display: "block",
-                }}
+                className="w97-shimmer u-block u-mb-6"
+                style={{ height: 12, width: `${w}%` }}
               />
             ))}
-            <div style={{ marginTop: 16 }}>
+            <div className="u-mt-16">
               {[60, 40, 55, 45, 50].map((w) => (
                 <div
                   key={`shimmer-${w}`}
-                  className="w97-shimmer"
-                  style={{
-                    height: 12,
-                    marginBottom: 5,
-                    width: `${w}%`,
-                    display: "block",
-                  }}
+                  className="w97-shimmer u-block"
+                  style={{ height: 12, marginBottom: 5, width: `${w}%` }}
                 />
               ))}
             </div>
@@ -105,23 +92,21 @@ const ResumeViewPage: React.FC = () => {
 
   if (error || !profile) {
     return (
-      <div style={styles.center}>
+      <div className="matchdb-loading-center">
         <div
-          className="matchdb-panel"
-          style={{ padding: "48px 32px", textAlign: "center", maxWidth: 420 }}
+          className="matchdb-panel matchdb-empty-state u-max-w-420"
           role="alert"
         >
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
-          <h2 style={{ margin: "0 0 8px", fontSize: 16 }}>Profile Not Found</h2>
-          <p style={{ margin: "0 0 20px", fontSize: 12, color: "#666" }}>
+          <div className="matchdb-empty-icon">📄</div>
+          <h2 className="matchdb-empty-title">Profile Not Found</h2>
+          <Text as="p" className="matchdb-empty-desc">
             {error || "The username you requested does not exist."}
-          </p>
+          </Text>
           <Link
             to="/"
-            className="matchdb-btn matchdb-btn-primary"
-            style={{ textDecoration: "none", fontSize: 12 }}
+            className="matchdb-btn matchdb-btn-primary u-no-decoration u-fs-12"
           >
-            ← Back to MatchDB
+            ← Back to MatchingDB
           </Link>
         </div>
       </div>
@@ -157,13 +142,10 @@ const ResumeViewPage: React.FC = () => {
   };
 
   return (
-    <div style={styles.center}>
-      <div
-        className="matchdb-panel"
-        style={{ maxWidth: 720, width: "100%", padding: 0 }}
-      >
+    <div className="matchdb-loading-center">
+      <div className="matchdb-panel u-max-w-720 u-w-full u-p-0">
         {/* Title bar */}
-        <div className="rm-titlebar" style={{ borderRadius: 0 }}>
+        <div className="rm-titlebar u-rounded-0">
           <span className="rm-titlebar-icon">📄</span>
           <span className="rm-titlebar-title">
             Resume — {profile.name || username}
@@ -171,12 +153,12 @@ const ResumeViewPage: React.FC = () => {
         </div>
 
         {/* Status bar */}
-        <div className="rm-statusbar" style={{ fontSize: 11 }}>
-          Public profile for <strong>{profile.name}</strong> on MatchDB
+        <div className="rm-statusbar u-fs-11">
+          Public profile for <strong>{profile.name}</strong> on MatchingDB
         </div>
 
         {/* Body */}
-        <div style={{ padding: "16px 20px" }}>
+        <div className="u-p-16">
           {/* Personal info */}
           <Section title="Personal Information">
             <InfoRow label="Name" value={profile.name} />
@@ -205,17 +187,7 @@ const ResumeViewPage: React.FC = () => {
             <Section title="Skills">
               <div className="u-flex-wrap u-gap-4">
                 {profile.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    style={{
-                      display: "inline-block",
-                      background: "#d4d0c8",
-                      border: "1px solid #a0a0a0",
-                      padding: "2px 8px",
-                      fontSize: 11,
-                      fontWeight: 600,
-                    }}
-                  >
+                  <span key={skill} className="matchdb-tag">
                     {skill}
                   </span>
                 ))}
@@ -226,49 +198,40 @@ const ResumeViewPage: React.FC = () => {
           {/* Bio */}
           {profile.bio && (
             <Section title="Bio">
-              <p style={styles.text}>{profile.bio}</p>
+              <p className="matchdb-body-text">{profile.bio}</p>
             </Section>
           )}
 
           {/* Resume sections */}
           {profile.resume_summary && (
             <Section title="Professional Summary">
-              <p style={styles.text}>{profile.resume_summary}</p>
+              <p className="matchdb-body-text">{profile.resume_summary}</p>
             </Section>
           )}
           {profile.resume_experience && (
             <Section title="Work Experience">
-              <pre style={styles.pre}>{profile.resume_experience}</pre>
+              <pre className="matchdb-pre-text">
+                {profile.resume_experience}
+              </pre>
             </Section>
           )}
           {profile.resume_education && (
             <Section title="Education">
-              <pre style={styles.pre}>{profile.resume_education}</pre>
+              <pre className="matchdb-pre-text">{profile.resume_education}</pre>
             </Section>
           )}
           {profile.resume_achievements && (
             <Section title="Achievements & Certifications">
-              <pre style={styles.pre}>{profile.resume_achievements}</pre>
+              <pre className="matchdb-pre-text">
+                {profile.resume_achievements}
+              </pre>
             </Section>
           )}
 
           {/* Footer */}
-          <div
-            style={{
-              marginTop: 20,
-              paddingTop: 10,
-              borderTop: "1px solid #c0c0c0",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Link
-              to="/"
-              className="matchdb-btn"
-              style={{ textDecoration: "none", fontSize: 11 }}
-            >
-              ← Back to MatchDB
+          <div className="u-flex-between u-mt-20 u-pt-10 u-border-top">
+            <Link to="/" className="matchdb-btn u-no-decoration u-fs-11">
+              ← Back to MatchingDB
             </Link>
             <div className="u-flex-center u-gap-8">
               {token ? (
@@ -281,15 +244,13 @@ const ResumeViewPage: React.FC = () => {
                   {downloading ? "Downloading..." : "⬇ Download Resume"}
                 </Button>
               ) : (
-                <span
-                  style={{ fontSize: 10, color: "#999", fontStyle: "italic" }}
-                >
+                <Text size={10} color="hint" italic>
                   Log in to download resume
-                </span>
+                </Text>
               )}
-              <span style={{ fontSize: 10, color: "#999" }}>
-                Generated by MatchDB
-              </span>
+              <Text size={10} color="hint">
+                Generated by MatchingDB
+              </Text>
             </div>
           </div>
         </div>
@@ -304,20 +265,8 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   title,
   children,
 }) => (
-  <div style={{ marginBottom: 14 }}>
-    <h3
-      style={{
-        margin: "0 0 6px",
-        fontSize: 12,
-        fontWeight: 700,
-        textTransform: "uppercase",
-        color: "#003366",
-        borderBottom: "1px solid #d4d0c8",
-        paddingBottom: 3,
-      }}
-    >
-      {title}
-    </h3>
+  <div className="u-mb-12">
+    <h3 className="matchdb-section-heading">{title}</h3>
     {children}
   </div>
 );
@@ -326,35 +275,10 @@ const InfoRow: React.FC<{ label: string; value?: string | null }> = ({
   label,
   value,
 }) => (
-  <div style={{ display: "flex", fontSize: 12, marginBottom: 2 }}>
-    <span style={{ width: 140, fontWeight: 600, color: "#555", flexShrink: 0 }}>
-      {label}:
-    </span>
+  <div className="matchdb-info-row">
+    <span className="matchdb-info-key">{label}:</span>
     <span>{value || "—"}</span>
   </div>
 );
-
-const styles: Record<string, React.CSSProperties> = {
-  center: {
-    display: "flex",
-    justifyContent: "center",
-    padding: "32px 16px",
-  },
-  text: {
-    margin: 0,
-    fontSize: 12,
-    lineHeight: 1.6,
-    color: "#333",
-    whiteSpace: "pre-wrap",
-  },
-  pre: {
-    margin: 0,
-    fontSize: 11,
-    lineHeight: 1.6,
-    color: "#333",
-    whiteSpace: "pre-wrap",
-    fontFamily: "inherit",
-  },
-};
 
 export default ResumeViewPage;

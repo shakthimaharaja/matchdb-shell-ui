@@ -45,7 +45,7 @@ module.exports = function webpackConfig(env = {}) {
         },
         {
           test: /\.css$/,
-          use: ["style-loader", "css-loader"],
+          use: ["style-loader", "css-loader", "postcss-loader"],
         },
       ],
     },
@@ -75,7 +75,7 @@ module.exports = function webpackConfig(env = {}) {
       }),
       new HtmlWebpackPlugin({
         template: "./public/index.html",
-        title: "MatchDB",
+        title: "MatchingDB",
       }),
     ],
     devServer: {

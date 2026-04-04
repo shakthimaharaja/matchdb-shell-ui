@@ -1,6 +1,6 @@
 # matchdb-shell-ui
 
-Host (shell) microfrontend for the MatchDB staffing platform. Acts as the application shell — renders the sidebar navigation, header, dark-mode toggle, login modal, pricing modal, and dynamically loads the Jobs remote MFE via Webpack 5 Module Federation.
+Host (shell) microfrontend for the MatchingDB staffing platform. Acts as the application shell — renders the sidebar navigation, header, dark-mode toggle, login modal, pricing modal, and dynamically loads the Jobs remote MFE via Webpack 5 Module Federation.
 
 ---
 

@@ -448,17 +448,16 @@ const LoginModal: React.FC = () => {
                 onChange={(e) =>
                   handleField("user_type", e.target.value as UserType)
                 }
-                className="login-modal-select"
                 disabled={locked}
-                style={
-                  locked ? { opacity: 0.7, cursor: "not-allowed" } : undefined
+                className={
+                  locked ? "login-modal-select u-locked" : "login-modal-select"
                 }
               >
                 <option value="candidate">👤 Candidate (Job Seeker)</option>
                 <option value="employer">🏢 Employer</option>
               </select>
               {locked && (
-                <span style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>
+                <span className="u-fs-11 u-opacity-60 u-mt-2 u-block">
                   Account type is pre-selected from your navigation choice
                 </span>
               )}

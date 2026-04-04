@@ -381,7 +381,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
             e.preventDefault();
             navigate("/");
           }}
-          title="MatchDB — Home"
+          title="MatchingDB — Home"
         >
           {/* Tiny Windows-97 pixel flag */}
           <div className="legacy-shell-brand-logo">
@@ -392,7 +392,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
             <span className="legacy-shell-brand-pixel" />
             <span className="legacy-shell-brand-pixel" />
           </div>
-          <span className="legacy-shell-brand-title">MatchDB</span>
+          <span className="legacy-shell-brand-title">MatchingDB</span>
           <span className="legacy-shell-brand-subtitle">
             {headerThemeLabel}
           </span>
@@ -912,7 +912,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
 
           <div className="legacy-shell-pagehead">
             <div>
-              <h2>{isWelcome ? "MatchDB" : active?.label ?? ""}</h2>
+              <h2>{isWelcome ? "MatchingDB" : active?.label ?? ""}</h2>
               {(!isLoggedIn || isWelcome) && (
                 <p>
                   {isWelcome
@@ -957,7 +957,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
           <div className="legacy-shell-content">{children}</div>
 
           <footer className="legacy-shell-footer">
-            <span>&copy; 2026 MatchDB Corporation</span>
+            <span>&copy; 2026 MatchingDB Corporation</span>
             {footerInfo && <span>{footerInfo}</span>}
             <span>Build 97.2026.0213</span>
           </footer>
@@ -980,7 +980,7 @@ const ShellLayout: React.FC<ShellLayoutProps> = ({ children }) => {
             <div className="matchdb-modal-titlebar w97-titlebar">
               <span className="matchdb-modal-icon">💎</span>
               <span className="matchdb-modal-title">
-                Plans &amp; Pricing — MatchDB
+                Plans &amp; Pricing — MatchingDB
               </span>
               <button
                 className="w97-close-btn"

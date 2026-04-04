@@ -35,7 +35,7 @@ class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 16 }}>
+        <div className="u-p-16">
           <div
             className="w97-alert w97-alert-error"
             role="alert"
@@ -149,25 +149,20 @@ const JobsAppWrapper: React.FC = () => {
 };
 
 const LoadingPane: React.FC = () => (
-  <div style={{ padding: 16 }}>
+  <div className="u-p-16">
     <div
-      className="w97-shimmer w97-shimmer-xl"
-      style={{ height: 24, marginBottom: 12, display: "block" }}
+      className="w97-shimmer w97-shimmer-xl u-block u-mb-12"
+      style={{ height: 24 }}
     />
     <div
-      className="w97-shimmer w97-shimmer-lg"
-      style={{ height: 16, marginBottom: 16, display: "block" }}
+      className="w97-shimmer w97-shimmer-lg u-block u-mb-16"
+      style={{ height: 16 }}
     />
     {[85, 70, 60, 75, 50, 65].map((w) => (
       <div
         key={w}
-        className="w97-shimmer"
-        style={{
-          height: 18,
-          marginBottom: 6,
-          width: `${w}%`,
-          display: "block",
-        }}
+        className="w97-shimmer u-block u-mb-6"
+        style={{ height: 18, width: `${w}%` }}
       />
     ))}
   </div>

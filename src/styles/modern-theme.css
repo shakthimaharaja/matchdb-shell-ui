@@ -31,7 +31,7 @@
 
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif !important;
-  font-size: 14px !important;
+  font-size: calc(14px * var(--fs-scale, 1)) !important;
   color: var(--modern-text) !important;
   background: var(--modern-bg) !important;
 }
@@ -66,7 +66,7 @@
 .legacy-shell-root[data-theme="modern2"] .legacy-shell-brand-title {
   font-family: "Inter", sans-serif !important;
   font-weight: 700 !important;
-  font-size: 16px !important;
+  font-size: calc(16px * var(--fs-scale, 1)) !important;
   letter-spacing: -0.02em;
 }
 
@@ -75,7 +75,7 @@
   color: #fff !important;
   border-radius: 4px !important;
   padding: 1px 6px !important;
-  font-size: 10px !important;
+  font-size: calc(10px * var(--fs-scale, 1)) !important;
   font-weight: 700 !important;
 }
 
@@ -85,7 +85,7 @@
 
 .legacy-shell-root[data-theme="modern2"] .legacy-shell-date-inline {
   color: var(--modern-sidebar-text) !important;
-  font-size: 12px !important;
+  font-size: calc(12px * var(--fs-scale, 1)) !important;
 }
 
 .legacy-shell-root[data-theme="modern2"] .legacy-shell-logged-as {
@@ -145,7 +145,7 @@
 
 .legacy-shell-root[data-theme="modern2"] .legacy-shell-nav-group-title {
   color: var(--modern-sidebar-text) !important;
-  font-size: 10px !important;
+  font-size: calc(10px * var(--fs-scale, 1)) !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.08em;
@@ -157,7 +157,7 @@
   background: var(--modern-primary) !important;
   color: #fff !important;
   border-radius: 10px !important;
-  font-size: 10px !important;
+  font-size: calc(10px * var(--fs-scale, 1)) !important;
   font-weight: 600 !important;
   padding: 1px 6px !important;
   min-width: 18px !important;
@@ -180,7 +180,7 @@
 }
 
 .legacy-shell-root[data-theme="modern2"] .legacy-shell-pagehead h2 {
-  font-size: 18px !important;
+  font-size: calc(18px * var(--fs-scale, 1)) !important;
   font-weight: 600 !important;
   color: var(--modern-text) !important;
 }
@@ -188,7 +188,7 @@
 .legacy-shell-root[data-theme="modern2"] .legacy-shell-breadcrumb {
   background: transparent !important;
   border: none !important;
-  font-size: 13px !important;
+  font-size: calc(13px * var(--fs-scale, 1)) !important;
   color: var(--modern-text-secondary) !important;
 }
 
@@ -218,7 +218,7 @@
   background: #f8fafb !important;
   color: var(--modern-text-secondary) !important;
   font-weight: 600 !important;
-  font-size: 12px !important;
+  font-size: calc(12px * var(--fs-scale, 1)) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.04em;
   border-bottom: 2px solid var(--modern-border) !important;
@@ -228,7 +228,7 @@
 .legacy-shell-root[data-theme="modern2"] tbody td {
   padding: 10px 12px !important;
   border-bottom: 1px solid var(--modern-border) !important;
-  font-size: 13px !important;
+  font-size: calc(13px * var(--fs-scale, 1)) !important;
   color: var(--modern-text) !important;
 }
 
@@ -240,7 +240,7 @@
 .legacy-shell-root[data-theme="modern2"] .p-button {
   border-radius: var(--modern-radius-sm) !important;
   font-weight: 500 !important;
-  font-size: 13px !important;
+  font-size: calc(13px * var(--fs-scale, 1)) !important;
   transition: all 0.15s ease !important;
 }
 
@@ -267,7 +267,7 @@
   border: 1px solid var(--modern-border) !important;
   border-radius: var(--modern-radius-sm) !important;
   color: var(--modern-text) !important;
-  font-size: 13px !important;
+  font-size: calc(13px * var(--fs-scale, 1)) !important;
   padding: 8px 12px !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
@@ -284,7 +284,7 @@
 /* ── Tags / Badges ────────────────────────────────────────────────────────── */
 .legacy-shell-root[data-theme="modern2"] .p-tag {
   border-radius: 16px !important;
-  font-size: 11px !important;
+  font-size: calc(11px * var(--fs-scale, 1)) !important;
   font-weight: 600 !important;
   padding: 3px 10px !important;
 }
@@ -294,7 +294,7 @@
   background: var(--modern-card) !important;
   border-top: 1px solid var(--modern-border) !important;
   color: var(--modern-text-muted) !important;
-  font-size: 11px !important;
+  font-size: calc(11px * var(--fs-scale, 1)) !important;
 }
 
 .legacy-shell-root[data-theme="modern2"] .legacy-shell-footer span {
@@ -325,7 +325,7 @@
   background: var(--modern-primary) !important;
   color: #fff !important;
   border-radius: 4px !important;
-  font-size: 10px !important;
+  font-size: calc(10px * var(--fs-scale, 1)) !important;
   font-weight: 700 !important;
 }
 
@@ -354,7 +354,7 @@
 
 .legacy-shell-root[data-theme="modern2"] .legacy-shell-user-type {
   color: var(--modern-sidebar-text) !important;
-  font-size: 11px !important;
+  font-size: calc(11px * var(--fs-scale, 1)) !important;
 }
 
 /* ── Dialog / Modal overrides ─────────────────────────────────────────────── */
@@ -368,5 +368,5 @@
 /* ── Pagination ───────────────────────────────────────────────────────────── */
 .legacy-shell-root[data-theme="modern2"] .matchdb-pagination button {
   border-radius: 6px !important;
-  font-size: 12px !important;
+  font-size: calc(12px * var(--fs-scale, 1)) !important;
 }

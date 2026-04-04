@@ -18,7 +18,11 @@ const LINES: TLine[] = [
   { text: "  Establishing secure connection...", delay: 440, s: "ok" },
   { text: "  TLS 1.3 handshake complete          [OK]", delay: 780, s: "ok" },
   { text: "  Authentication successful            [OK]", delay: 1020, s: "ok" },
-  { text: "  Connected to MatchDB v97.2026        [OK]", delay: 1260, s: "ok" },
+  {
+    text: "  Connected to MatchingDB v97.2026        [OK]",
+    delay: 1260,
+    s: "ok",
+  },
   { text: "", delay: 1480, s: "" },
   { text: "> SHOW DATABASES;", delay: 1700, s: "cmd" },
   {
@@ -148,7 +152,7 @@ const WelcomePage: React.FC = () => {
         <div className="wlc-titlebar">
           <span className="wlc-titlebar-icon">🗄️</span>
           <span className="wlc-titlebar-title">
-            MatchDB Query Terminal — v97.2026
+            MatchingDB Query Terminal — v97.2026
           </span>
           <span className="wlc-titlebar-meta">
             {shown < LINES.length ? "Connecting..." : "8 databases loaded"}
@@ -188,7 +192,7 @@ const WelcomePage: React.FC = () => {
           {ctaVisible && (
             <div className="wlc-cta">
               <div className="wlc-cta-text">
-                <div className="wlc-cta-headline">Welcome to MatchDB</div>
+                <div className="wlc-cta-headline">Welcome to MatchingDB</div>
                 <div className="wlc-cta-sub">
                   The data-driven marketplace &middot; 8 modules &middot; 1 live
                 </div>
